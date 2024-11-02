@@ -17,7 +17,7 @@ const SingleProduct = () => {
                 </div>
             </section>
             <section className='section _ container mt-8'>
-                <div className='flex flex-col items-center md: flex-row gap-8'>
+                <div className='flex flex-col items-center md:flex-row gap-8'>
                     {/* product image */}
                     <div className='md:w-1/2 w-full'>
                         <img src="https://images.unsplash.com/photo-1512201078372-9c6b2a0d528a?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWd1fHx8fGVufDB8fHx8fA%3D%3D" alt=""
