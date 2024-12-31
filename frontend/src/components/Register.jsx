@@ -1,15 +1,24 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useRegisterUserMutation } from '../redux/features/auth/authApi';
 
 const Register = () => {
     const [message, setMessage] = useState("");
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [registerUser, { isLoading: registerLoading }] = useRegisterUserMutation();
+    const navigate = useNavigate();
     const handleRegister = async (e) => {
         e.preventDefault();
         const data = { email, password, username }
-        console.log(data);
+        try {
+            const response = await registerUser(data);
+            alert(response.data.message);
+            navigate("/");
+        } catch (error) {
+            setMessage("Username or Email is already exists.")
+        }
     }
     return (
         <section className='h-screen flex items-center justify-center'>
