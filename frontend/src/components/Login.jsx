@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLoginUserMutation } from '../redux/features/auth/authApi';
+import { setUser } from '../redux/features/auth/authSlice';
+import { useDispatch } from 'react-redux';
 
 const Login = () => {
     const [message, setMessage] = useState("");
@@ -16,8 +17,10 @@ const Login = () => {
         e.preventDefault();
         const data = { email, password }
         try {
-            const response = await loginUser(data);
-            alert(response.data.message);
+            const response = await loginUser(data).unwrap();
+            const { token, user } = response;
+            dispatch(setUser({ user }));
+            alert(response.message);
             navigate("/")
         } catch (error) {
             setMessage("Please provide valid email or password.")

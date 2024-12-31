@@ -15,7 +15,7 @@ const Register = () => {
         try {
             const response = await registerUser(data);
             alert(response.data.message);
-            navigate("/");
+            navigate("/login");
         } catch (error) {
             setMessage("Username or Email is already exists.")
         }
