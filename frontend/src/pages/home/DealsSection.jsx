@@ -9,8 +9,9 @@ const DealsSection = () => {
             <div className='deals__content'>
                 <h5>Get Up To 20% Discount</h5>
                 <h4>Deals Of This Month</h4>
-                <p>Our Women's Fashion Deals of the Month are here to make your style dreams a reality without
-                    breaking the bank. Discover a curated collection of exquisite clothing, accessories, and footwear, all handpicked to elevate your wardrobe.</p>
+                <p>Our Fashion Deals of the Month are here to make your style dreams a reality without
+                    breaking the bank. Discover a curated collection of clothing, accessories and footwear for
+                    men, women & kids — all handpicked to elevate your wardrobe.</p>
                 <div className='deals__countdown flex-wrap'>
                     <div className='deals__countdown__card'>
                         <h4>14</h4>

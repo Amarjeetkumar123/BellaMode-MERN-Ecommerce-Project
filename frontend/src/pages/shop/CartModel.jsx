@@ -2,6 +2,7 @@ import React from 'react'
 import OrderSummary from './OrderSummary'
 import { useDispatch } from 'react-redux'
 import { removeFromCart, updateQuantity } from '../../redux/features/cart/cartSlice';
+import { formatINR } from '../../utils/formatCurrency';
 
 const CartModel = ({ products, isOpen, onClose }) => {
     const dispatch = useDispatch();
@@ -37,7 +38,7 @@ const CartModel = ({ products, isOpen, onClose }) => {
                                             <img src={item.image} alt='' className='size-12 object-cover mr-4' />
                                             <div>
                                                 <h5 className='text-lg font-medium'>{item.name}</h5>
-                                                <p className='text-gray-600 text-sm'>${Number(item.price).toFixed(2)}</p>
+                                                <p className='text-gray-600 text-sm'>{formatINR(item.price)}</p>
                                             </div>
                                             <div className='flex flex-row md:justify-start justify-end items-center mt-2'>
                                                 <button
@@ -58,9 +59,9 @@ const CartModel = ({ products, isOpen, onClose }) => {
                                 )))}
                     </div>
 
-                    {/* Calculation */}.
+                    {/* Calculation */}
                     {
-                        products.length > 0 && (<OrderSummary />)
+                        products.length > 0 && (<OrderSummary onClose={onClose} />)
                     }
                 </div>
             </div>

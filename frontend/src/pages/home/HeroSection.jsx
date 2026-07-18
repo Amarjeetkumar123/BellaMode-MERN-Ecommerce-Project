@@ -4,9 +4,9 @@ import card2 from "../../assets/card-2.png"
 import card3 from "../../assets/card-3.png"
 const HeroSection = () => {
     const cards = [
-        { id: 1, image: card1, title: "Women Shirt", trend: "2024 Trend" },
-        { id: 2, image: card2, title: "Women Dresses", trend: "2024 Trend" },
-        { id: 3, image: card3, title: "Women Casuals", trend: "2024 Trend" },
+        { id: 1, image: card1, title: "Men's Shirts", trend: "New Trend" },
+        { id: 2, image: card2, title: "Women's Dresses", trend: "New Trend" },
+        { id: 3, image: card3, title: "Kids' Casuals", trend: "New Trend" },
     ]
     return (
         <section className='section__container hero__container'>

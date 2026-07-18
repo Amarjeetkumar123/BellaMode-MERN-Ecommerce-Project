@@ -1,81 +1,88 @@
-import React, { useEffect, useState } from 'react'
-import productsData from "../../data/products.json"
-import ProductCard from './productCard';
+import React, { useMemo, useState } from 'react'
+import ProductCard from './ProductCard';
 import ShopFiltering from './ShopFiltering';
+import { useGetProductsQuery, useGetProductFiltersQuery } from '../../redux/features/products/productsApi';
+import { useGetCategoriesQuery } from '../../redux/features/categories/categoriesApi';
 
-const filters = {
-    categories: ['all', 'accessories', 'dress', 'jewellery', 'cosmetics'],
-    colors: ['all', 'black', 'red', 'gold', 'blue', 'silver', 'beige', 'green'],
-    priceRanges: [
-        { label: 'Under $50', min: 0, max: 50 },
-        { label: '$50 - $100', min: 50, max: 100 },
-        { label: '$100 - $200', min: 100, max: 200 },
-        { label: '$200 and above', min: 200, max: Infinity },
-    ]
-}
+const PAGE_SIZE = 12;
+
 const ShopPage = () => {
-    const [products, setproducts] = useState(productsData);
-    const [filtersState, setFiltersState] = useState({
-        category: 'all',
-        color: 'all',
-        priceRange: ''
-    });
+    const [filtersState, setFiltersState] = useState({ audience: '', category: '', color: '', priceRange: '' });
+    const [page, setPage] = useState(1);
 
-    // filtering functions
-    const applyFilters = () => {
-        let filteredProducts = productsData;
-        // filter by category
-        if (filtersState.category && filtersState.category !== 'all') {
-            filteredProducts = filteredProducts.filter(product => product.category === filtersState.category)
-        }
-        // filter by color
-        if (filtersState.color && filtersState.color !== 'all') {
-            filteredProducts = filteredProducts.filter(product => product.color === filtersState.color)
-        }
-        // Filter by price range
+    // Translate UI filter state into API query params.
+    const queryParams = useMemo(() => {
+        const params = { page, limit: PAGE_SIZE };
+        if (filtersState.audience) params.audience = filtersState.audience;
+        if (filtersState.category) params.category = filtersState.category;
+        if (filtersState.color) params.color = filtersState.color;
         if (filtersState.priceRange) {
-            const [minPrice, maxPrice] = filtersState.priceRange.split('-').map(Number);
-            filteredProducts = filteredProducts.filter(product => product.price >= minPrice && product.price <= maxPrice);
+            const [min, max] = filtersState.priceRange.split('-');
+            if (min) params.minPrice = min;
+            if (max) params.maxPrice = max;
         }
-        setproducts(filteredProducts);
-    }
-    useEffect(() => {
-        applyFilters();
-    }, [filtersState])
+        return params;
+    }, [filtersState, page]);
 
-    // Clear the filters
+    const { data, isLoading, isFetching } = useGetProductsQuery(queryParams);
+    const { data: catData } = useGetCategoriesQuery(filtersState.audience ? { audience: filtersState.audience } : undefined);
+    const { data: facetData } = useGetProductFiltersQuery(filtersState.audience ? { audience: filtersState.audience } : undefined);
+
+    const products = data?.data?.products || [];
+    const totalPages = data?.data?.totalPages || 1;
+    const total = data?.data?.total || 0;
+    const categories = catData?.data?.categories || [];
+    const facets = facetData?.data || {};
+
     const clearFilters = () => {
-        setFiltersState({
-            category: 'all',
-            color: 'all',
-            priceRange: ''
-        })
-    }
+        setFiltersState({ audience: '', category: '', color: '', priceRange: '' });
+        setPage(1);
+    };
+    const onFilterChange = (next) => { setFiltersState(next); setPage(1); };
+
     return (
         <>
             <section className='section__container bg-primary-light'>
-                <h2 className='section__header capitalize'>Shop Page</h2>
-                <p className='section__subheader'>Discover the Hottest Picks: Elevate Your Style with Our Curated Collection of Trending Women's Fashion Products.</p>
+                <h2 className='section__header capitalize'>Shop</h2>
+                <p className='section__subheader'>Discover unisex styles for men, women & kids — curated for every occasion.</p>
             </section>
             <section className='section__container'>
                 <div className='flex flex-col md:flex-row md:gap-12 gap-8'>
-                    {/* left-side */}
-                    <div>Shop Filtering</div>
                     <ShopFiltering
-                        filters={filters}
+                        categories={categories}
+                        facets={facets}
                         filtersState={filtersState}
-                        setFiltersState={setFiltersState}
+                        setFiltersState={onFilterChange}
                         clearFilters={clearFilters}
                     />
-                    {/* right-side */}
-                    <div>
-                        <h3 className='text-xl font-medium mb-4'>Products Available: {products.length}</h3>
-                        <ProductCard products={products} />
+                    <div className='flex-1'>
+                        <h3 className='text-xl font-medium mb-4'>
+                            Products Available: {total}{isFetching ? ' …' : ''}
+                        </h3>
+                        {isLoading ? (
+                            <p>Loading products…</p>
+                        ) : products.length === 0 ? (
+                            <p className='text-gray-500'>No products match your filters.</p>
+                        ) : (
+                            <>
+                                <ProductCard products={products} />
+                                {totalPages > 1 && (
+                                    <div className='flex justify-center gap-2 mt-8'>
+                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                                            <button key={p} onClick={() => setPage(p)}
+                                                className={`px-3 py-1 rounded ${p === page ? 'bg-primary text-white' : 'bg-gray-200'}`}>
+                                                {p}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
                 </div>
             </section>
         </>
-    )
-}
+    );
+};
 
-export default ShopPage
+export default ShopPage;

@@ -18,7 +18,7 @@ const Footer = () => {
                     </p>
                     <p>
                         <span><i className='ri-mail-fill'></i></span>
-                        support@bellamode.com
+                        support@wearly.com
                     </p>
                     <p>
                         <span><i className='ri-phone-fill'></i></span>
@@ -54,7 +54,7 @@ const Footer = () => {
                 </div>
             </footer>
             <div className='footer__bar'>
-                Copyright © 2025 BellaMode. All Rights Reserved. Elevating beauty through timeless fashion.
+                Copyright © 2025 Wearly. All Rights Reserved. Style for everyone.
             </div>
         </>
     )

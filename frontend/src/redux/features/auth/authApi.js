@@ -1,68 +1,50 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
-import { getBaseUrl } from "../../../utils/baseUrl"
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { createBaseQuery } from "../baseQuery";
+
 const authApi = createApi({
-    reducerPath: 'authApi',
-    baseQuery: fetchBaseQuery({
-        baseUrl: `${getBaseUrl()}/api/auth`,
-        credentials: 'include'
-    }),
-    tagTypes: ["User"],
+    reducerPath: "authApi",
+    baseQuery: createBaseQuery("/api/auth"),
+    tagTypes: ["Users"],
     endpoints: (builder) => ({
         registerUser: builder.mutation({
-            query: (newUser) => ({
-                url: "/register",
-                method: "POST",
-                body: newUser
-            })
+            query: (newUser) => ({ url: "/register", method: "POST", body: newUser }),
         }),
         loginUser: builder.mutation({
-            query: (credentials) => ({
-                url: "/login",
-                method: "POST",
-                body: credentials
-            })
+            query: (credentials) => ({ url: "/login", method: "POST", body: credentials }),
         }),
         logoutUser: builder.mutation({
-            query: () => ({
-                url: "/logout",
-                method: "POST"
-            })
+            query: () => ({ url: "/logout", method: "POST" }),
         }),
-        getUser: builder.mutation({
-            query: () => ({
-                url: "/users",
-                method: "GET"
-            }),
-            refetchOnMount: true,
-            invalidatesTags: ["Users"]
-        }),
-        deleteUser: builder.mutation({
-            query: (userId) => ({
-                url: `/users/${userId}`,
-                method: "DELETE"
-            }),
-            invalidatesTags: ["Users"]
-        }),
-        updateUserRole: builder.mutation({
-            query: (userId, role) => ({
-                url: `/users/${userId}`,
-                method: "PUT",
-                body: { role }
-            }),
-            refetchOnMount: true,
-            invalidatesTags: ["Users"]
+        getMe: builder.query({
+            query: () => ({ url: "/me", method: "GET" }),
         }),
         editProfile: builder.mutation({
-            query: (profileData) => ({
-                url: "/edit-profile",
-                method: "PATCH",
-                body: profileData
-            }),
+            query: (profileData) => ({ url: "/edit-profile", method: "PATCH", body: profileData }),
+        }),
+        getUsers: builder.query({
+            query: (params) => ({ url: "/users", method: "GET", params }),
+            providesTags: ["Users"],
+        }),
+        updateUserRole: builder.mutation({
+            query: ({ userId, role }) => ({ url: `/users/${userId}`, method: "PUT", body: { role } }),
+            invalidatesTags: ["Users"],
+        }),
+        deleteUser: builder.mutation({
+            query: (userId) => ({ url: `/users/${userId}`, method: "DELETE" }),
+            invalidatesTags: ["Users"],
         }),
     }),
-})
+});
 
-export const { useRegisterUserMutation, useLoginUserMutation, useLogoutUserMutation,
-    useGetUserQuery, useDeleteUserMutation, useUpdateUserRoleMutation, useEditProfileMutation } = authApi;
+export const {
+    useRegisterUserMutation,
+    useLoginUserMutation,
+    useLogoutUserMutation,
+    useGetMeQuery,
+    useEditProfileMutation,
+    useGetUsersQuery,
+    useUpdateUserRoleMutation,
+    useDeleteUserMutation,
+} = authApi;
 
 export default authApi;

@@ -18,12 +18,11 @@ const Login = () => {
         const data = { email, password }
         try {
             const response = await loginUser(data).unwrap();
-            const { token, user } = response;
-            dispatch(setUser({ user }));
-            alert(response.message);
+            const { token, user } = response.data;
+            dispatch(setUser({ user, token }));
             navigate("/")
         } catch (error) {
-            setMessage("Please provide valid email or password.")
+            setMessage(error?.data?.message || "Please provide valid email or password.")
         }
     }
     return (

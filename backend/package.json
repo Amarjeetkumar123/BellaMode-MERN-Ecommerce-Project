@@ -1,17 +1,25 @@
 {
-  "name": "bella-mode-ecommerce-backend",
+  "name": "wearly-ecommerce-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Wearly — unisex e-commerce backend (Express + Mongoose)",
   "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "seed": "node seed/seed.js"
   },
-  "author": "bella-mode",
+  "author": "wearly",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^5.1.1",
-    "body-parser": "^1.20.3",
+    "ajv": "^8.20.0",
+    "ajv-keywords": "^5.1.0",
+    "axios": "^1.18.1",
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.3.0",
+    "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -19,6 +27,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.10.0",
     "mongoose": "^8.8.1",
-    "nodemon": "^3.1.7"
+    "multer": "^2.2.0",
+    "nodemon": "^3.1.7",
+    "razorpay": "^2.9.8"
   }
 }

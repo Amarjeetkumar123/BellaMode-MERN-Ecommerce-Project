@@ -13,11 +13,11 @@ const Register = () => {
         e.preventDefault();
         const data = { email, password, username }
         try {
-            const response = await registerUser(data);
-            alert(response.data.message);
+            const response = await registerUser(data).unwrap();
+            alert(response.message);
             navigate("/login");
         } catch (error) {
-            setMessage("Username or Email is already exists.")
+            setMessage(error?.data?.message || "Registration failed. Please try again.")
         }
     }
     return (
