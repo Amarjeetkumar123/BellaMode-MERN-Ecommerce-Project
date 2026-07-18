@@ -8,6 +8,15 @@ const settingSchema = new Schema({
     brandName: { type: String, default: 'Wearly' },
     logoUrl: { type: String, default: '' },
     heroTagline: { type: String, default: 'Style for everyone.' },
+    // Optional lifestyle images for the homepage "Shop by Category" tiles, keyed by audience.
+    audienceImages: {
+        women: { type: String, default: '' },
+        men: { type: String, default: '' },
+        girls: { type: String, default: '' },
+        boys: { type: String, default: '' },
+        kids: { type: String, default: '' },
+        footwear: { type: String, default: '' },
+    },
     currency: { type: String, default: CURRENCY },
     contactEmail: String,
     contactPhone: String,

@@ -54,7 +54,7 @@ const Footer = () => {
                 </div>
             </footer>
             <div className='footer__bar'>
-                Copyright © 2025 Wearly. All Rights Reserved. Style for everyone.
+                Copyright © 2025 Wearly Fashion. All Rights Reserved. Style for everyone.
             </div>
         </>
     )

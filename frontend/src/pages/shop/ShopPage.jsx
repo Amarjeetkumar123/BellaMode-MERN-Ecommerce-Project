@@ -8,11 +8,12 @@ const PAGE_SIZE = 12;
 
 const ShopPage = () => {
     const [filtersState, setFiltersState] = useState({ audience: '', category: '', color: '', priceRange: '' });
+    const [sort, setSort] = useState('newest');
     const [page, setPage] = useState(1);
 
     // Translate UI filter state into API query params.
     const queryParams = useMemo(() => {
-        const params = { page, limit: PAGE_SIZE };
+        const params = { page, limit: PAGE_SIZE, sort };
         if (filtersState.audience) params.audience = filtersState.audience;
         if (filtersState.category) params.category = filtersState.category;
         if (filtersState.color) params.color = filtersState.color;
@@ -22,7 +23,7 @@ const ShopPage = () => {
             if (max) params.maxPrice = max;
         }
         return params;
-    }, [filtersState, page]);
+    }, [filtersState, sort, page]);
 
     const { data, isLoading, isFetching } = useGetProductsQuery(queryParams);
     const { data: catData } = useGetCategoriesQuery(filtersState.audience ? { audience: filtersState.audience } : undefined);
@@ -44,7 +45,7 @@ const ShopPage = () => {
         <>
             <section className='section__container bg-primary-light'>
                 <h2 className='section__header capitalize'>Shop</h2>
-                <p className='section__subheader'>Discover unisex styles for men, women & kids — curated for every occasion.</p>
+                <p className='section__subheader'>Shop the latest styles for men, women & kids — curated for every occasion.</p>
             </section>
             <section className='section__container'>
                 <div className='flex flex-col md:flex-row md:gap-12 gap-8'>
@@ -56,9 +57,21 @@ const ShopPage = () => {
                         clearFilters={clearFilters}
                     />
                     <div className='flex-1'>
-                        <h3 className='text-xl font-medium mb-4'>
-                            Products Available: {total}{isFetching ? ' …' : ''}
-                        </h3>
+                        <div className='flex items-center justify-between flex-wrap gap-3 mb-6 border-b pb-3'>
+                            <h3 className='text-sm text-text-light'>
+                                <span className='font-semibold text-text-dark'>{total}</span> product{total === 1 ? '' : 's'} found{isFetching ? ' …' : ''}
+                            </h3>
+                            <div className='flex items-center gap-2 text-sm'>
+                                <span className='text-text-light'>Sort by</span>
+                                <select value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); }}
+                                    className='border rounded px-2 py-1.5 focus:outline-none'>
+                                    <option value='newest'>Newest</option>
+                                    <option value='price_asc'>Price: Low to High</option>
+                                    <option value='price_desc'>Price: High to Low</option>
+                                    <option value='rating'>Top Rated</option>
+                                </select>
+                            </div>
+                        </div>
                         {isLoading ? (
                             <p>Loading products…</p>
                         ) : products.length === 0 ? (

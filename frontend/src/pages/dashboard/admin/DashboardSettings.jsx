@@ -17,12 +17,16 @@ const DashboardSettings = () => {
     const [deleteBanner] = useDeleteBannerMutation();
 
     const [brand, setBrand] = useState({ brandName: '', heroTagline: '', logoUrl: '', contactEmail: '', contactPhone: '' });
+    const [audienceImages, setAudienceImages] = useState({ women: '', men: '', girls: '', boys: '', kids: '', footwear: '' });
     const [banner, setBanner] = useState(bannerBlank);
     const [msg, setMsg] = useState('');
 
     useEffect(() => {
         const s = settingsData?.data?.settings;
-        if (s) setBrand({ brandName: s.brandName || '', heroTagline: s.heroTagline || '', logoUrl: s.logoUrl || '', contactEmail: s.contactEmail || '', contactPhone: s.contactPhone || '' });
+        if (s) {
+            setBrand({ brandName: s.brandName || '', heroTagline: s.heroTagline || '', logoUrl: s.logoUrl || '', contactEmail: s.contactEmail || '', contactPhone: s.contactPhone || '' });
+            setAudienceImages({ women: '', men: '', girls: '', boys: '', kids: '', footwear: '', ...(s.audienceImages || {}) });
+        }
     }, [settingsData]);
 
     const banners = bannerData?.data?.banners || [];
@@ -30,7 +34,7 @@ const DashboardSettings = () => {
     const saveBrand = async (e) => {
         e.preventDefault();
         setMsg('');
-        try { await updateSettings(brand).unwrap(); setMsg('Brand settings saved.'); }
+        try { await updateSettings({ ...brand, audienceImages }).unwrap(); setMsg('Brand settings saved.'); }
         catch (err) { setMsg(err?.data?.message || 'Failed.'); }
     };
 
@@ -50,6 +54,17 @@ const DashboardSettings = () => {
                     <input placeholder='Contact email' value={brand.contactEmail} onChange={(e) => setBrand({ ...brand, contactEmail: e.target.value })} className='border p-2 rounded w-full' />
                     <input placeholder='Contact phone' value={brand.contactPhone} onChange={(e) => setBrand({ ...brand, contactPhone: e.target.value })} className='border p-2 rounded w-full' />
                     <ImageInput label='Logo' value={brand.logoUrl} onChange={(url) => setBrand({ ...brand, logoUrl: url })} />
+
+                    <h3 className='font-semibold pt-4'>Homepage Category Tile Images</h3>
+                    <p className='text-sm text-text-light'>Lifestyle images for the "Shop by Category" tiles (Women is the large featured tile).</p>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                        {['women', 'men', 'kids', 'girls', 'boys', 'footwear'].map((aud) => (
+                            <ImageInput key={aud} label={aud.charAt(0).toUpperCase() + aud.slice(1)}
+                                value={audienceImages[aud]}
+                                onChange={(url) => setAudienceImages((a) => ({ ...a, [aud]: url }))} />
+                        ))}
+                    </div>
+
                     {msg && <p className='text-primary text-sm'>{msg}</p>}
                     <button className='px-5 py-2 bg-primary text-white rounded'>Save Brand</button>
                 </form>

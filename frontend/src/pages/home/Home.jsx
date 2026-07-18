@@ -1,6 +1,6 @@
 import React from 'react'
 import Banner from './Banner'
-import Categories from './Categories'
+import ShopByCategory from './ShopByCategory'
 import HeroSection from './HeroSection'
 import TrendingProducts from '../shop/TrendingProducts'
 import DealsSection from './DealsSection'
@@ -11,14 +11,14 @@ const Home = () => {
     return (
         <>
             <Banner />
-            <Categories />
-            <HeroSection />
+            <ShopByCategory />
             <TrendingProducts />
+            <HeroSection />
             <DealsSection />
             <PromoBanner />
             <Blogs />
         </>
-    )
-}
+    );
+};
 
-export default Home
+export default Home;

@@ -62,7 +62,7 @@ const PRODUCTS = [
 
 const SETTINGS = {
     key: 'brand',
-    brandName: 'Wearly',
+    brandName: 'Wearly Fashion',
     logoUrl: '',
     heroTagline: 'Style for everyone — men, women & kids.',
     currency: 'INR',
@@ -77,9 +77,9 @@ const SETTINGS = {
 };
 
 const BANNERS = [
-    { title: 'New Season Arrivals', subtitle: 'Fresh unisex styles for the whole family', image: IMG.jacket, link: '/shop', ctaText: 'Shop Now', position: 'hero', sortOrder: 1 },
-    { title: 'Up to 50% Off', subtitle: 'Season-end sale across all categories', image: IMG.sneakers, link: '/shop', ctaText: 'Grab Deals', position: 'hero', sortOrder: 2 },
-    { title: 'Kids Collection', subtitle: 'Comfy & colourful — built for play', image: IMG.kids, link: '/categories/kidswear-kids', ctaText: 'Explore', position: 'promo', sortOrder: 1 },
+    { title: 'The New Season Edit', subtitle: 'New In · Autumn 2025', image: IMG.jacket, link: '/shop', ctaText: 'Shop the Collection', position: 'hero', sortOrder: 1 },
+    { title: 'Up to 50% Off', subtitle: 'Season Sale · Limited Time', image: IMG.sneakers, link: '/shop', ctaText: 'Grab Deals', position: 'hero', sortOrder: 2 },
+    { title: 'Streetwear Staples', subtitle: 'Built for every day', image: IMG.hoodie, link: '/shop', ctaText: 'Explore', position: 'promo', sortOrder: 1 },
     { title: 'Deal of the Day', subtitle: 'Everyday Sneakers at their best price', image: IMG.sneakers, link: '/shop', ctaText: 'Buy Now', position: 'deal', sortOrder: 1 },
 ];
 

@@ -21,7 +21,9 @@ const Navbar = () => {
 
     const { data: settingsData } = useGetSettingsQuery();
     const settings = settingsData?.data?.settings;
-    const brandName = settings?.brandName || 'Wearly';
+    const brandName = settings?.brandName || 'Wearly Fashion';
+    // Two-tone wordmark: first word in brand colour, the rest in dark.
+    const [brandFirst, ...brandRest] = brandName.split(' ');
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const handleDropDownToggle = () => setIsDropdownOpen(!isDropdownOpen);
@@ -58,6 +60,10 @@ const Navbar = () => {
     };
 
     return (
+        <>
+        <div className='announcement-bar'>
+            Free shipping on orders over <span>₹999</span> &nbsp;•&nbsp; Easy 30-day returns &nbsp;•&nbsp; Shop the new season
+        </div>
         <header className='fixed-nav-bar w-nav'>
             <nav className='max-w-screen-2xl mx-auto px-4 py-3 flex justify-between items-center'>
                 <ul className='nav__links'>
@@ -72,7 +78,7 @@ const Navbar = () => {
                     <Link to="/">
                         {settings?.logoUrl
                             ? <img src={settings.logoUrl} alt={brandName} className='h-8' />
-                            : <>{brandName}<span>.</span></>}
+                            : <><span>{brandFirst}</span>{brandRest.length ? ` ${brandRest.join(' ')}` : ''}</>}
                     </Link>
                 </div>
                 <div className='nav__icons relative'>
@@ -111,6 +117,7 @@ const Navbar = () => {
             </nav>
             {isCartOpen && <CartModel products={products} isOpen={isCartOpen} onClose={handleCartToggle} />}
         </header>
+        </>
     );
 };
 

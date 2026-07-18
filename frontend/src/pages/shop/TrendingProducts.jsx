@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import ProductCard from './ProductCard'
 import { useGetProductsQuery } from '../../redux/features/products/productsApi';
 
@@ -9,16 +10,21 @@ const TrendingProducts = () => {
 
     return (
         <section className='section__container'>
-            <h2 className='section__header'>Trending Products</h2>
-            <p className='section__subheader !mb-12'>Discover the hottest picks — trending styles for everyone.</p>
+            <div className='section-head'>
+                <div>
+                    <h2>Trending Now</h2>
+                    <p>The hottest picks everyone's adding to cart.</p>
+                </div>
+                <Link to='/shop'>View all</Link>
+            </div>
 
             {isLoading ? (
-                <p>Loading…</p>
+                <p className='px-4'>Loading…</p>
             ) : (
                 <ProductCard products={products.slice(0, visible)} />
             )}
 
-            <div className='product__btn'>
+            <div className='product__btn mt-10'>
                 {visible < products.length && (
                     <button className='btn' onClick={() => setVisible((c) => c + 4)}>Load More</button>
                 )}
