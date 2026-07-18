@@ -1,23 +1,29 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { useGetBannersQuery } from '../../redux/features/banners/bannersApi'
+import { heroCouple } from '../../assets/images'
 
-// Editorial full-bleed hero. Uses the DB hero banner when present, else a fashion fallback.
-const FALLBACK = 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1600&auto=format&fit=crop';
-
+// Full-bleed editorial hero — always the AI studio shot.
 const Banner = () => {
-    const { data } = useGetBannersQuery({ position: 'hero' });
-    const hero = data?.data?.banners?.[0];
-
     return (
         <section className='hero-full'>
-            <img className='hero-full__img' src={hero?.image || FALLBACK} alt='' />
+            <img className='hero-full__img' src={heroCouple} alt='Wearly new season collection' />
             <div className='hero-full__overlay' />
             <div className='hero-full__content'>
-                <p className='hero-full__eyebrow'>{hero?.subtitle || 'New Season 2025'}</p>
-                <h1 className='hero-full__title'>{hero?.title || 'The New Edit'}</h1>
-                <p className='hero-full__sub'>Curated fashion for men, women, girls, boys & kids — discover the styles everyone is wearing this season.</p>
-                <Link to={hero?.link || '/shop'} className='btn-dark'>{hero?.ctaText || 'Shop the Collection'}</Link>
+                <p className='hero-full__eyebrow'>New Season · Autumn 2025</p>
+                <h1 className='hero-full__title'>Wear the Confidence</h1>
+                <p className='hero-full__sub'>
+                    Elevated everyday fashion for men, women &amp; kids — clothing, footwear,
+                    watches, perfumes and accessories, all in one place.
+                </p>
+                <div className='hero-full__ctas'>
+                    <Link to='/shop' className='btn-dark'>Shop the Collection</Link>
+                    <Link to='/categories/women' className='btn-ghost'>New Arrivals <i className='ri-arrow-right-line'></i></Link>
+                </div>
+                <ul className='hero-full__trust'>
+                    <li><i className='ri-truck-line'></i> Free shipping over ₹999</li>
+                    <li><i className='ri-arrow-go-back-line'></i> 30-day returns</li>
+                    <li><i className='ri-shield-check-line'></i> Secure checkout</li>
+                </ul>
             </div>
         </section>
     );

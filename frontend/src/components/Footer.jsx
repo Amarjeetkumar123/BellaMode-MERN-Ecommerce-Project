@@ -1,60 +1,70 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import instaImg1 from "../assets/instagram-1.jpg"
 import instaImg2 from "../assets/instagram-2.jpg"
 import instaImg3 from "../assets/instagram-3.jpg"
 import instaImg4 from "../assets/instagram-4.jpg"
 import instaImg5 from "../assets/instagram-5.jpg"
 import instaImg6 from "../assets/instagram-6.jpg"
+
+const insta = [instaImg1, instaImg2, instaImg3, instaImg4, instaImg5, instaImg6];
+
 const Footer = () => {
     return (
         <>
+            {/* Newsletter band */}
+            <section className='newsletter'>
+                <div className='newsletter__inner'>
+                    <div>
+                        <h3>Join the Wearly list</h3>
+                        <p>Get early access to new drops, exclusive offers & style tips — straight to your inbox.</p>
+                    </div>
+                    <form className='newsletter__form' onSubmit={(e) => e.preventDefault()}>
+                        <input type='email' placeholder='Enter your email' aria-label='Email address' required />
+                        <button type='submit' className='btn'>Subscribe</button>
+                    </form>
+                </div>
+            </section>
 
             <footer className='section__container footer__container'>
                 <div className='footer__col'>
-                    <h4>CONTACT INFO</h4>
-                    <p>
-                        <span><i className='ri-map-pin-2-fill'></i></span>
-                        123, London Bridge Street, London
-                    </p>
-                    <p>
-                        <span><i className='ri-mail-fill'></i></span>
-                        support@wearly.com
-                    </p>
-                    <p>
-                        <span><i className='ri-phone-fill'></i></span>
-                        (+012) 3456 789 478
-                    </p>
+                    <h4 className='footer__brand'>Wearly<span>.</span></h4>
+                    <p className='footer__about'>Curated fashion for men, women & kids — clothing, footwear, watches, perfumes and accessories, all in one place.</p>
+                    <div className='footer__social'>
+                        <a href='https://instagram.com' aria-label='Instagram'><i className='ri-instagram-line'></i></a>
+                        <a href='https://facebook.com' aria-label='Facebook'><i className='ri-facebook-circle-line'></i></a>
+                        <a href='https://twitter.com' aria-label='Twitter'><i className='ri-twitter-x-line'></i></a>
+                        <a href='https://youtube.com' aria-label='YouTube'><i className='ri-youtube-line'></i></a>
+                    </div>
                 </div>
                 <div className='footer__col'>
-                    <h4>COMPANY</h4>
-                    <a href='/'>Home</a>
-                    <a href='/'>About Us</a>
-                    <a href='/'>Work with Us</a>
-                    <a href='/'>Our Blogs</a>
-                    <a href='/'>Terms & Condition</a>
+                    <h4>SHOP</h4>
+                    <Link to='/categories/women'>Women</Link>
+                    <Link to='/categories/men'>Men</Link>
+                    <Link to='/categories/kids'>Kids</Link>
+                    <Link to='/categories/footwear-unisex'>Footwear</Link>
+                    <Link to='/categories/perfumes-unisex'>Perfumes</Link>
                 </div>
                 <div className='footer__col'>
-                    <h4>USEFUL LINK</h4>
-                    <a href='/'>Help</a>
-                    <a href='/'>Track your order</a>
-                    <a href='/'>Men</a>
-                    <a href='/'>Women</a>
-                    <a href='/'>Dresses</a>
+                    <h4>HELP</h4>
+                    <Link to='/shop'>Track your order</Link>
+                    <Link to='/shop'>Shipping & Returns</Link>
+                    <Link to='/shop'>Size Guide</Link>
+                    <Link to='/shop'>FAQs</Link>
+                    <a href='mailto:support@wearly.com'>Contact Us</a>
                 </div>
                 <div className='footer__col'>
-                    <h4>INSTAGRAM</h4>
+                    <h4>FOLLOW US</h4>
                     <div className='instagram__grid'>
-                        <img src={instaImg1} alt='' />
-                        <img src={instaImg2} alt='' />
-                        <img src={instaImg3} alt='' />
-                        <img src={instaImg4} alt='' />
-                        <img src={instaImg5} alt='' />
-                        <img src={instaImg6} alt='' />
+                        {insta.map((src, i) => (
+                            <img key={i} src={src} alt='' loading='lazy' />
+                        ))}
                     </div>
                 </div>
             </footer>
             <div className='footer__bar'>
-                Copyright © 2025 Wearly Fashion. All Rights Reserved. Style for everyone.
+                <span>© 2025 Wearly Fashion. All Rights Reserved.</span>
+                <span className='footer__pay'><i className='ri-visa-line'></i><i className='ri-mastercard-line'></i><i className='ri-secure-payment-line'></i> Secure payments</span>
             </div>
         </>
     )

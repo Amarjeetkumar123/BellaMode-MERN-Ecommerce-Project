@@ -1,25 +1,28 @@
 import React from 'react'
 
+const PERKS = [
+    { icon: 'ri-truck-line', title: 'Free Delivery', text: 'On all orders over ₹999' },
+    { icon: 'ri-arrow-go-back-line', title: 'Easy 30-Day Returns', text: 'Hassle-free & quick' },
+    { icon: 'ri-secure-payment-line', title: 'Secure Payments', text: 'UPI, cards & wallets' },
+    { icon: 'ri-customer-service-2-line', title: 'Dedicated Support', text: 'We’re here 7 days a week' },
+];
+
 const PromoBanner = () => {
     return (
-        <section className='section__container banner__container'>
-            <div className='banner__card'>
-                <span><i className='ri-truck-line'></i></span>
-                <h4>Free Delivery</h4>
-                <p>Offers convenience and the ability to shop from anywhere, anytime.</p>
-            </div>
-            <div className='banner__card'>
-                <span><i className='ri-money-dollar-circle-line'></i></span>
-                <h4>100% Money Back Gauranty</h4>
-                <p>E-commerce have a review system whre customers can share feedback.</p>
-            </div>
-            <div className='banner__card'>
-                <span><i className='ri-user-voice-fill'></i></span>
-                <h4>Strong Support</h4>
-                <p>Offer customer support services to assist customers with queries and issues.</p>
+        <section className='trust-strip'>
+            <div className='trust-strip__inner'>
+                {PERKS.map((perk) => (
+                    <div key={perk.title} className='trust-item'>
+                        <span className='trust-item__icon'><i className={perk.icon}></i></span>
+                        <div>
+                            <h4>{perk.title}</h4>
+                            <p>{perk.text}</p>
+                        </div>
+                    </div>
+                ))}
             </div>
         </section>
-    )
-}
+    );
+};
 
-export default PromoBanner
+export default PromoBanner;

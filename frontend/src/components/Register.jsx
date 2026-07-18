@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import { useRegisterUserMutation } from '../redux/features/auth/authApi';
+import { menFashion } from '../assets/images';
 
 const Register = () => {
     const [message, setMessage] = useState("");
@@ -9,39 +10,58 @@ const Register = () => {
     const [password, setPassword] = useState("");
     const [registerUser, { isLoading: registerLoading }] = useRegisterUserMutation();
     const navigate = useNavigate();
+
     const handleRegister = async (e) => {
         e.preventDefault();
-        const data = { email, password, username }
         try {
-            const response = await registerUser(data).unwrap();
+            const response = await registerUser({ email, password, username }).unwrap();
             alert(response.message);
             navigate("/login");
         } catch (error) {
             setMessage(error?.data?.message || "Registration failed. Please try again.")
         }
     }
+
     return (
-        <section className='h-screen flex items-center justify-center'>
-            <div className='max-w-sm border shadow bg-white mx-auto p-8'>
-                <h2 className='text-2x1 font-semibold pt-5'>Please Register</h2>
-                <form onSubmit={handleRegister} className='space-y-5 max-w-sm mx-auto pt-8'>
-                    <input type="text" name="username" id="username" placeholder="Username" required
-                        onChange={(e) => setUsername(e.target.value)}
-                        className='w-full bg-gray-100 focus:outline-none px-5 py-3' />
-                    <input type="email" name="email" id="email" placeholder="Email Address" required
-                        onChange={(e) => setEmail(e.target.value)}
-                        className='w-full bg-gray-100 focus:outline-none px-5 py-3' />
-                    <input type="password" name="password" id="password" placeholder="Password" required
-                        onChange={(e) => setPassword(e.target.value)}
-                        className='w-full bg-gray-100 focus:outline-none px-5 py-3' />
-                    {
-                        message && <p className='text-red-500'>{message}</p>
-                    }
-                    <button type='submit'
-                        className='w-full mt-5 bg-primary text-white hover:bg-indigo-500 font-medium 
-                        py-3 rounded-md'>Register</button>
-                </form>
-                <p className='my-5 italic text-sm text-center'>Already have an account? <Link to="/login" className='text-red-500 px-1 underline'>Login</Link> here.</p>
+        <section className='auth'>
+            <div className='auth__visual'>
+                <img src={menFashion} alt='' />
+                <div className='auth__visual-overlay'>
+                    <Link to='/' className='auth__brand'>Wearly<span>.</span></Link>
+                    <div>
+                        <h2>Join Wearly</h2>
+                        <p>Create an account for faster checkout, order tracking and members-only offers.</p>
+                    </div>
+                </div>
+            </div>
+            <div className='auth__form-wrap'>
+                <div className='auth__form'>
+                    <Link to='/' className='auth__brand auth__brand--dark'>Wearly<span>.</span></Link>
+                    <h1>Create account</h1>
+                    <p className='auth__hint'>It only takes a minute.</p>
+                    <form onSubmit={handleRegister} className='space-y-4 mt-6'>
+                        <div>
+                            <label className='auth__label'>Username</label>
+                            <input type='text' placeholder='Your name' required
+                                onChange={(e) => setUsername(e.target.value)} className='auth__input' />
+                        </div>
+                        <div>
+                            <label className='auth__label'>Email address</label>
+                            <input type='email' placeholder='you@example.com' required
+                                onChange={(e) => setEmail(e.target.value)} className='auth__input' />
+                        </div>
+                        <div>
+                            <label className='auth__label'>Password</label>
+                            <input type='password' placeholder='••••••••' required
+                                onChange={(e) => setPassword(e.target.value)} className='auth__input' />
+                        </div>
+                        {message && <p className='text-primary text-sm'>{message}</p>}
+                        <button type='submit' disabled={registerLoading} className='btn w-full !rounded-lg'>
+                            {registerLoading ? 'Creating…' : 'Create Account'}
+                        </button>
+                    </form>
+                    <p className='auth__switch'>Already have an account? <Link to='/login'>Sign in</Link></p>
+                </div>
             </div>
         </section>
     )

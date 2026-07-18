@@ -1,6 +1,7 @@
 import React from 'react'
 import Banner from './Banner'
 import ShopByCategory from './ShopByCategory'
+import ShopByDepartment from './ShopByDepartment'
 import HeroSection from './HeroSection'
 import TrendingProducts from '../shop/TrendingProducts'
 import DealsSection from './DealsSection'
@@ -11,11 +12,12 @@ const Home = () => {
     return (
         <>
             <Banner />
+            <PromoBanner />
             <ShopByCategory />
+            <ShopByDepartment />
             <TrendingProducts />
             <HeroSection />
             <DealsSection />
-            <PromoBanner />
             <Blogs />
         </>
     );

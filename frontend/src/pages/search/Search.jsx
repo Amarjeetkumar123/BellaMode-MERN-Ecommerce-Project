@@ -16,9 +16,9 @@ const Search = () => {
 
     return (
         <>
-            <section className='section__container bg-primary-light'>
-                <h2 className='section__header capitalize'>Search Products</h2>
-                <p className='section__subheader'>Find exactly what you are looking for across our collection.</p>
+            <section className='page-hero'>
+                <h1>Search Products</h1>
+                <p>Find exactly what you are looking for across our collection.</p>
             </section>
             <section className='section__container'>
                 <form onSubmit={handleSearch} className='w-full mb-12 flex flex-col md:flex-row items-center justify-center gap-4'>

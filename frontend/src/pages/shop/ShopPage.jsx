@@ -43,9 +43,9 @@ const ShopPage = () => {
 
     return (
         <>
-            <section className='section__container bg-primary-light'>
-                <h2 className='section__header capitalize'>Shop</h2>
-                <p className='section__subheader'>Shop the latest styles for men, women & kids — curated for every occasion.</p>
+            <section className='page-hero'>
+                <h1>Shop All</h1>
+                <p>Shop the latest styles for men, women & kids — curated for every occasion.</p>
             </section>
             <section className='section__container'>
                 <div className='flex flex-col md:flex-row md:gap-12 gap-8'>

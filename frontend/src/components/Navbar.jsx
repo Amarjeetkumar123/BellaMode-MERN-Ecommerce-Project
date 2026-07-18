@@ -6,8 +6,18 @@ import avatarImg from "../assets/avatar.png"
 import { useLogoutUserMutation } from '../redux/features/auth/authApi';
 import { logout } from '../redux/features/auth/authSlice';
 import { useGetSettingsQuery } from '../redux/features/settings/settingsApi';
+import { useGetCategoriesQuery } from '../redux/features/categories/categoriesApi';
+import { AUDIENCES, LIFESTYLE } from '../data/catalog';
 
 const ADMIN_ROLES = ['ADMIN', 'SUPERADMIN'];
+const MENU = [
+    { key: 'women', label: 'Women' },
+    { key: 'men', label: 'Men' },
+    { key: 'kids', label: 'Kids' },
+    { key: 'boys', label: 'Boys' },
+    { key: 'girls', label: 'Girls' },
+];
+const AUDIENCE_IMG = AUDIENCES.reduce((acc, a) => ({ ...acc, [a.key]: a.image }), {});
 
 const Navbar = () => {
     const products = useSelector((state) => state.cart.products);
@@ -20,13 +30,17 @@ const Navbar = () => {
     const navigate = useNavigate();
 
     const { data: settingsData } = useGetSettingsQuery();
+    const { data: catData } = useGetCategoriesQuery();
+    const allCats = catData?.data?.categories || [];
+    const lifestyleCats = allCats.filter((c) => c.audience === 'unisex').sort((a, b) => a.sortOrder - b.sortOrder);
+
     const settings = settingsData?.data?.settings;
     const brandName = settings?.brandName || 'Wearly Fashion';
-    // Two-tone wordmark: first word in brand colour, the rest in dark.
     const [brandFirst, ...brandRest] = brandName.split(' ');
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const handleDropDownToggle = () => setIsDropdownOpen(!isDropdownOpen);
+    const [openMenu, setOpenMenu] = useState(null); // audience key of the open mega-menu
 
     const isAdmin = user && ADMIN_ROLES.includes(user.role);
     const isSuperadmin = user && user.role === 'SUPERADMIN';
@@ -59,19 +73,20 @@ const Navbar = () => {
         navigate('/');
     };
 
+    const catsFor = (key) => allCats.filter((c) => c.audience === key).sort((a, b) => a.sortOrder - b.sortOrder);
+
     return (
         <>
-        <div className='announcement-bar'>
-            Free shipping on orders over <span>₹999</span> &nbsp;•&nbsp; Easy 30-day returns &nbsp;•&nbsp; Shop the new season
-        </div>
-        <header className='fixed-nav-bar w-nav'>
+        <header className='fixed-nav-bar w-nav' onMouseLeave={() => setOpenMenu(null)}>
             <nav className='max-w-screen-2xl mx-auto px-4 py-3 flex justify-between items-center'>
                 <ul className='nav__links'>
                     <li className='link'><Link to="/">Home</Link></li>
                     <li className='link'><Link to="/shop">Shop</Link></li>
-                    <li className='link'><Link to="/categories/men">Men</Link></li>
-                    <li className='link'><Link to="/categories/women">Women</Link></li>
-                    <li className='link'><Link to="/categories/kids">Kids</Link></li>
+                    {MENU.map((m) => (
+                        <li key={m.key} className='link nav__has-mega' onMouseEnter={() => setOpenMenu(m.key)}>
+                            <Link to={`/categories/${m.key}`}>{m.label}</Link>
+                        </li>
+                    ))}
                 </ul>
                 {/* logo (text wordmark, or uploaded logo image) */}
                 <div className='nav__logo'>
@@ -115,6 +130,40 @@ const Navbar = () => {
                     </span>
                 </div>
             </nav>
+
+            {/* Mega-menu panel */}
+            {openMenu && (
+                <div className='mega' onMouseLeave={() => setOpenMenu(null)}>
+                    <div className='mega__inner'>
+                        <div className='mega__col'>
+                            <h5 className='mega__title capitalize'>{openMenu} Clothing</h5>
+                            <ul>
+                                <li><Link to={`/categories/${openMenu}`} onClick={() => setOpenMenu(null)}>All {openMenu}</Link></li>
+                                {catsFor(openMenu).map((c) => (
+                                    <li key={c._id}><Link to={`/categories/${c.slug}`} onClick={() => setOpenMenu(null)}>{c.name}</Link></li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className='mega__col'>
+                            <h5 className='mega__title'>Footwear &amp; Lifestyle</h5>
+                            <ul>
+                                {(lifestyleCats.length ? lifestyleCats.map((c) => ({ slug: c.slug, name: c.name, id: c._id }))
+                                    : LIFESTYLE.map((l) => ({ slug: l.slug, name: l.label, id: l.key })))
+                                    .map((c) => (
+                                        <li key={c.id}><Link to={`/categories/${c.slug}`} onClick={() => setOpenMenu(null)}>{c.name}</Link></li>
+                                    ))}
+                            </ul>
+                        </div>
+                        <Link to={`/categories/${openMenu}`} className='mega__promo' onClick={() => setOpenMenu(null)}>
+                            <img src={AUDIENCE_IMG[openMenu]} alt={openMenu} />
+                            <div className='mega__promo-overlay'>
+                                <span>Shop the</span>
+                                <strong className='capitalize'>{openMenu} Edit</strong>
+                            </div>
+                        </Link>
+                    </div>
+                </div>
+            )}
             {isCartOpen && <CartModel products={products} isOpen={isCartOpen} onClose={handleCartToggle} />}
         </header>
         </>

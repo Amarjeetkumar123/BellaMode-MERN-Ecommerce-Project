@@ -8,6 +8,12 @@ import { addToCart } from '../../../redux/features/cart/cartSlice'
 import { toCartProduct } from '../ProductCard'
 import { formatINR } from '../../../utils/formatCurrency'
 
+const TRUST = [
+    { icon: 'ri-truck-line', text: 'Free delivery over ₹999' },
+    { icon: 'ri-arrow-go-back-line', text: '30-day easy returns' },
+    { icon: 'ri-secure-payment-line', text: 'Secure checkout' },
+];
+
 const SingleProduct = () => {
     const { id } = useParams(); // slug or id
     const dispatch = useDispatch();
@@ -21,18 +27,25 @@ const SingleProduct = () => {
 
     const [size, setSize] = useState('');
     const [color, setColor] = useState('');
+    const [qty, setQty] = useState(1);
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState('');
     const [msg, setMsg] = useState('');
+    const [added, setAdded] = useState(false);
 
     if (isLoading) return <div className='section__container'>Loading…</div>;
     if (isError || !product) return <div className='section__container'>Product not found.</div>;
 
     const image = (product.images && product.images[0]) || product.image;
     const reviews = reviewData?.data?.reviews || [];
+    const discount = product.oldPrice && product.oldPrice > product.price
+        ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : 0;
+    const inStock = (product.stock ?? 1) > 0;
 
     const handleAddToCart = () => {
-        dispatch(addToCart({ ...toCartProduct(product), size, color }));
+        for (let i = 0; i < qty; i++) dispatch(addToCart({ ...toCartProduct(product), size, color }));
+        setAdded(true);
+        setTimeout(() => setAdded(false), 1800);
     };
 
     const handleReview = async (e) => {
@@ -49,70 +62,116 @@ const SingleProduct = () => {
 
     return (
         <>
-            <section className='section__container bg-primary-light'>
-                <h2 className='section__header capitalize'>{product.name}</h2>
-                <div className='section__subheader space-x-2'>
-                    <span className='hover:text-primary'><Link to="/">home</Link></span>
+            <section className='section__container !py-16'>
+                {/* Breadcrumb */}
+                <nav className='flex items-center gap-2 text-sm text-text-light mb-8'>
+                    <Link to='/' className='hover:text-primary'>Home</Link>
                     <i className='ri-arrow-right-s-line'></i>
-                    <span className='hover:text-primary'><Link to="/shop">shop</Link></span>
+                    <Link to='/shop' className='hover:text-primary'>Shop</Link>
+                    {product.category?.slug && (
+                        <>
+                            <i className='ri-arrow-right-s-line'></i>
+                            <Link to={`/categories/${product.category.slug}`} className='hover:text-primary'>{product.category.name}</Link>
+                        </>
+                    )}
                     <i className='ri-arrow-right-s-line'></i>
-                    <span className='capitalize'>{product.name}</span>
-                </div>
-            </section>
+                    <span className='text-text-dark line-clamp-1'>{product.name}</span>
+                </nav>
 
-            <section className='section__container mt-8'>
-                <div className='flex flex-col items-center md:flex-row gap-8'>
-                    <div className='md:w-1/2 w-full'>
-                        <img src={image} alt={product.name} className='rounded-md w-full h-auto object-cover' />
+                <div className='grid md:grid-cols-2 gap-10 lg:gap-16'>
+                    {/* Gallery */}
+                    <div className='relative'>
+                        <div className='rounded-2xl overflow-hidden bg-gray-50 aspect-[4/5]'>
+                            <img src={image} alt={product.name} className='w-full h-full object-cover' />
+                        </div>
+                        {discount > 0 && (
+                            <span className='absolute top-4 left-4 bg-primary text-white text-sm font-semibold px-3 py-1.5 rounded-full'>
+                                -{discount}% OFF
+                            </span>
+                        )}
                     </div>
-                    <div className='md:w-1/2 w-full'>
-                        <h3 className='text-2xl font-semibold mb-4'>{product.name}</h3>
-                        <p className='text-xl text-primary mb-4'>
-                            {formatINR(product.price)}{' '}
-                            {product.oldPrice ? <s className='text-gray-400'>{formatINR(product.oldPrice)}</s> : null}
-                        </p>
-                        <p className='text-gray-500 mb-4'>{product.description}</p>
-                        <div className='space-y-1 mb-4'>
-                            <p><strong>Category:</strong> {product.category?.name} <span className='text-gray-400'>({product.audience})</span></p>
-                            {product.brand && <p><strong>Brand:</strong> {product.brand}</p>}
-                            <div className='flex gap-1 items-center'>
-                                <strong>Rating:</strong> <RatingStars rating={product.rating} /> <span className='text-gray-400 text-sm'>({product.numReviews || 0})</span>
-                            </div>
+
+                    {/* Details */}
+                    <div>
+                        {product.brand && (
+                            <span className='text-xs uppercase tracking-widest text-text-light font-semibold'>{product.brand}</span>
+                        )}
+                        <h1 className='text-3xl font-extrabold text-text-dark mt-1 mb-3' style={{ fontFamily: 'var(--header-font)' }}>{product.name}</h1>
+                        <div className='flex items-center gap-2 mb-5'>
+                            <RatingStars rating={product.rating} />
+                            <span className='text-sm text-text-light'>{product.rating?.toFixed(1) || '0.0'} · {product.numReviews || 0} reviews</span>
                         </div>
 
+                        <div className='flex items-end gap-3 mb-6'>
+                            <span className='text-3xl font-bold text-text-dark'>{formatINR(product.price)}</span>
+                            {product.oldPrice ? <s className='text-lg text-text-light'>{formatINR(product.oldPrice)}</s> : null}
+                            {discount > 0 && <span className='text-sm font-semibold text-green-600 mb-1'>You save {formatINR(product.oldPrice - product.price)}</span>}
+                        </div>
+
+                        <p className='text-text-light leading-relaxed mb-6'>{product.description}</p>
+
                         {product.sizes?.length > 0 && (
-                            <div className='mb-3'>
-                                <strong className='block mb-1'>Size:</strong>
+                            <div className='mb-5'>
+                                <strong className='block mb-2 text-sm'>Select Size</strong>
                                 <div className='flex flex-wrap gap-2'>
                                     {product.sizes.map((s) => (
                                         <button key={s} onClick={() => setSize(s)}
-                                            className={`px-3 py-1 border rounded ${size === s ? 'bg-primary text-white' : ''}`}>{s}</button>
+                                            className={`min-w-[46px] px-3 py-2 border rounded-lg text-sm transition ${size === s ? 'bg-text-dark text-white border-text-dark' : 'hover:border-text-dark'}`}>{s}</button>
                                     ))}
                                 </div>
                             </div>
                         )}
                         {product.colors?.length > 0 && (
-                            <div className='mb-4'>
-                                <strong className='block mb-1'>Color:</strong>
+                            <div className='mb-6'>
+                                <strong className='block mb-2 text-sm'>Color</strong>
                                 <div className='flex flex-wrap gap-2'>
                                     {product.colors.map((c) => (
                                         <button key={c} onClick={() => setColor(c)}
-                                            className={`px-3 py-1 border rounded capitalize ${color === c ? 'bg-primary text-white' : ''}`}>{c}</button>
+                                            className={`px-3 py-2 border rounded-lg text-sm capitalize transition ${color === c ? 'bg-text-dark text-white border-text-dark' : 'hover:border-text-dark'}`}>{c}</button>
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        <button onClick={handleAddToCart} className='mt-2 px-6 py-3 bg-primary text-white rounded'>
-                            Add to Cart
-                        </button>
+                        <div className='flex items-center gap-4 mb-6'>
+                            <div className='flex items-center border rounded-lg overflow-hidden'>
+                                <button onClick={() => setQty((q) => Math.max(1, q - 1))} className='px-3 py-2 text-lg hover:bg-gray-50'>−</button>
+                                <span className='px-4 py-2 min-w-[42px] text-center'>{qty}</span>
+                                <button onClick={() => setQty((q) => q + 1)} className='px-3 py-2 text-lg hover:bg-gray-50'>+</button>
+                            </div>
+                            <span className={`text-sm font-medium ${inStock ? 'text-green-600' : 'text-primary'}`}>
+                                <i className={`${inStock ? 'ri-checkbox-circle-line' : 'ri-close-circle-line'} mr-1`}></i>
+                                {inStock ? 'In stock' : 'Out of stock'}
+                            </span>
+                        </div>
+
+                        <div className='flex flex-col sm:flex-row gap-3 mb-8'>
+                            <button onClick={handleAddToCart} disabled={!inStock}
+                                className='flex-1 px-6 py-3.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition disabled:opacity-50 flex items-center justify-center gap-2'>
+                                <i className='ri-shopping-cart-2-line'></i>
+                                {added ? 'Added to Cart ✓' : 'Add to Cart'}
+                            </button>
+                            <Link to='/checkout' onClick={handleAddToCart}
+                                className='flex-1 px-6 py-3.5 border-2 border-text-dark text-text-dark rounded-lg font-semibold hover:bg-text-dark hover:text-white transition text-center'>
+                                Buy Now
+                            </Link>
+                        </div>
+
+                        <div className='grid grid-cols-3 gap-3 border-t pt-6'>
+                            {TRUST.map((t) => (
+                                <div key={t.text} className='flex flex-col items-center text-center gap-1.5 text-text-light'>
+                                    <i className={`${t.icon} text-2xl text-text-dark`}></i>
+                                    <span className='text-xs'>{t.text}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </section>
 
             {/* Reviews */}
-            <section className='section__container mt-8'>
-                <h3 className='text-xl font-semibold mb-4'>Customer Reviews ({reviews.length})</h3>
+            <section className='section__container !pt-0'>
+                <h3 className='text-xl font-semibold mb-6' style={{ fontFamily: 'var(--header-font)' }}>Customer Reviews ({reviews.length})</h3>
                 <div className='space-y-4 mb-8'>
                     {reviews.length === 0 && <p className='text-gray-500'>No reviews yet. Be the first!</p>}
                     {reviews.map((r) => (
