@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import ProductCard from '../shop/ProductCard';
 import { useGetProductsQuery } from '../../redux/features/products/productsApi';
 import { useGetCategoriesQuery } from '../../redux/features/categories/categoriesApi';
 import { AUDIENCES, LIFESTYLE } from '../../data/catalog';
+import { useActiveAudiences } from '../../hooks/useActiveAudiences';
 
 const AUDIENCE_KEYS = ['men', 'women', 'girls', 'boys', 'kids', 'unisex'];
 const AUDIENCE_LABEL = { men: 'Men', women: 'Women', girls: 'Girls', boys: 'Boys', kids: 'Kids', unisex: 'Lifestyle' };
@@ -14,13 +15,23 @@ const LIFESTYLE_IMG = LIFESTYLE.reduce((acc, l) => ({ ...acc, [l.slug]: l.image 
 
 const CategoryPage = () => {
     const { categoryName } = useParams();
+    const navigate = useNavigate();
     const [sort, setSort] = useState('newest');
 
     const { data: catData } = useGetCategoriesQuery();
     const allCats = catData?.data?.categories || [];
+    const { isActive } = useActiveAudiences();
 
     const lower = (categoryName || '').toLowerCase();
     const isAudience = AUDIENCE_KEYS.includes(lower);
+
+    // Guard: a shopper-audience page that the store no longer serves → send to shop.
+    // (unisex/lifestyle stays accessible for everyone.)
+    useEffect(() => {
+        if (isAudience && lower !== 'unisex' && !isActive(lower)) {
+            navigate('/shop', { replace: true });
+        }
+    }, [lower, isAudience, isActive, navigate]);
     const activeCat = isAudience ? null : allCats.find((c) => c.slug === categoryName);
     const audience = isAudience ? lower : (activeCat?.audience || 'unisex');
 

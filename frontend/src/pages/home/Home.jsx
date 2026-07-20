@@ -16,8 +16,8 @@ const Home = () => {
             <ShopByCategory />
             <ShopByDepartment />
             <TrendingProducts />
-            <HeroSection />
             <DealsSection />
+            <HeroSection />
             <Blogs />
         </>
     );

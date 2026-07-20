@@ -85,57 +85,92 @@ const Checkout = () => {
         }
     };
 
+    const inputCls = 'border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition';
+    const freeShip = totalPrice >= 999;
+
     return (
         <>
-            <section className='section__container bg-primary-light'>
-                <h2 className='section__header'>Checkout</h2>
+            <section className='page-hero'>
+                <h1>Checkout</h1>
+                <p>You're just a step away — enter your details to complete the order.</p>
             </section>
-            <section className='section__container'>
+            <section className='section__container !pt-12'>
                 {products.length === 0 ? (
-                    <p className='text-gray-500'>Your cart is empty. <a href='/shop' className='text-primary underline'>Continue shopping</a>.</p>
+                    <div className='text-center py-16 text-text-light'>
+                        <i className='ri-shopping-bag-line text-4xl mb-3 block'></i>
+                        Your cart is empty. <a href='/shop' className='text-primary font-medium'>Continue shopping</a>.
+                    </div>
                 ) : (
-                    <div className='flex flex-col md:flex-row gap-8'>
-                        <form onSubmit={handlePlaceOrder} className='flex-1 space-y-4'>
-                            <h3 className='text-lg font-semibold'>Shipping Address</h3>
-                            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                                <input required placeholder='Full name' value={address.fullName} onChange={(e) => setField('fullName', e.target.value)} className='border p-2 rounded' />
-                                <input required placeholder='Phone' value={address.phone} onChange={(e) => setField('phone', e.target.value)} className='border p-2 rounded' />
-                                <input required placeholder='Address line 1' value={address.line1} onChange={(e) => setField('line1', e.target.value)} className='border p-2 rounded sm:col-span-2' />
-                                <input placeholder='Address line 2 (optional)' value={address.line2} onChange={(e) => setField('line2', e.target.value)} className='border p-2 rounded sm:col-span-2' />
-                                <input required placeholder='City' value={address.city} onChange={(e) => setField('city', e.target.value)} className='border p-2 rounded' />
-                                <input required placeholder='State' value={address.state} onChange={(e) => setField('state', e.target.value)} className='border p-2 rounded' />
-                                <input required placeholder='Postal code' value={address.postalCode} onChange={(e) => setField('postalCode', e.target.value)} className='border p-2 rounded' />
+                    <div className='grid lg:grid-cols-[1fr_380px] gap-8 items-start'>
+                        <form onSubmit={handlePlaceOrder} className='space-y-6'>
+                            <div className='bg-white border border-gray-100 rounded-2xl p-6 shadow-sm'>
+                                <h3 className='text-lg font-semibold mb-4 flex items-center gap-2' style={{ fontFamily: 'var(--header-font)' }}>
+                                    <i className='ri-map-pin-line text-primary'></i> Shipping Address
+                                </h3>
+                                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                                    <input required placeholder='Full name' value={address.fullName} onChange={(e) => setField('fullName', e.target.value)} className={inputCls} />
+                                    <input required placeholder='Phone' value={address.phone} onChange={(e) => setField('phone', e.target.value)} className={inputCls} />
+                                    <input required placeholder='Address line 1' value={address.line1} onChange={(e) => setField('line1', e.target.value)} className={`${inputCls} sm:col-span-2`} />
+                                    <input placeholder='Address line 2 (optional)' value={address.line2} onChange={(e) => setField('line2', e.target.value)} className={`${inputCls} sm:col-span-2`} />
+                                    <input required placeholder='City' value={address.city} onChange={(e) => setField('city', e.target.value)} className={inputCls} />
+                                    <input required placeholder='State' value={address.state} onChange={(e) => setField('state', e.target.value)} className={inputCls} />
+                                    <input required placeholder='Postal code' value={address.postalCode} onChange={(e) => setField('postalCode', e.target.value)} className={inputCls} />
+                                </div>
                             </div>
 
-                            <h3 className='text-lg font-semibold pt-2'>Payment Method</h3>
-                            <label className='flex items-center gap-2'>
-                                <input type='radio' name='pay' checked={paymentMethod === 'COD'} onChange={() => setPaymentMethod('COD')} />
-                                Cash on Delivery
-                            </label>
-                            <label className='flex items-center gap-2'>
-                                <input type='radio' name='pay' checked={paymentMethod === 'RAZORPAY'} onChange={() => setPaymentMethod('RAZORPAY')} />
-                                Pay Online (Razorpay)
-                            </label>
+                            <div className='bg-white border border-gray-100 rounded-2xl p-6 shadow-sm'>
+                                <h3 className='text-lg font-semibold mb-4 flex items-center gap-2' style={{ fontFamily: 'var(--header-font)' }}>
+                                    <i className='ri-bank-card-line text-primary'></i> Payment Method
+                                </h3>
+                                <div className='space-y-3'>
+                                    {[
+                                        { v: 'COD', icon: 'ri-hand-coin-line', label: 'Cash on Delivery', desc: 'Pay when your order arrives' },
+                                        { v: 'RAZORPAY', icon: 'ri-secure-payment-line', label: 'Pay Online', desc: 'UPI, cards & netbanking via Razorpay' },
+                                    ].map((m) => (
+                                        <label key={m.v} className={`flex items-center gap-3 border rounded-xl px-4 py-3 cursor-pointer transition ${paymentMethod === m.v ? 'border-primary bg-primary-light/50' : 'border-gray-200 hover:border-gray-300'}`}>
+                                            <input type='radio' name='pay' checked={paymentMethod === m.v} onChange={() => setPaymentMethod(m.v)} className='accent-primary' />
+                                            <i className={`${m.icon} text-xl text-text-dark`}></i>
+                                            <div>
+                                                <div className='text-sm font-medium'>{m.label}</div>
+                                                <div className='text-xs text-text-light'>{m.desc}</div>
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
 
-                            {error && <p className='text-red-500'>{error}</p>}
-                            <button type='submit' disabled={creating} className='px-6 py-3 bg-primary text-white rounded'>
-                                {creating ? 'Placing order…' : `Place Order`}
+                            {error && <p className='text-primary text-sm'>{error}</p>}
+                            <button type='submit' disabled={creating} className='btn w-full !rounded-lg flex items-center justify-center gap-2 disabled:opacity-60'>
+                                {creating ? 'Placing order…' : 'Place Order'} <i className='ri-arrow-right-line'></i>
                             </button>
                         </form>
 
-                        <div className='md:w-80 bg-primary-light rounded p-6 h-fit'>
-                            <h3 className='text-lg font-semibold mb-3'>Your Order</h3>
-                            {products.map((p) => (
-                                <div key={p._id} className='flex justify-between text-sm mb-2'>
-                                    <span>{p.name} × {p.quantity}</span>
-                                    <span>{formatINR(p.price * p.quantity)}</span>
-                                </div>
-                            ))}
-                            <hr className='my-2' />
-                            <div className='flex justify-between text-sm'><span>Subtotal</span><span>{formatINR(totalPrice)}</span></div>
-                            <div className='flex justify-between text-sm'><span>Tax</span><span>{formatINR(tax)}</span></div>
-                            <div className='flex justify-between font-bold mt-2'><span>Total (excl. shipping)</span><span>{formatINR(grandTotal)}</span></div>
-                            <p className='text-xs text-gray-500 mt-2'>Final total incl. shipping is confirmed on the order.</p>
+                        <div className='bg-white border border-gray-100 rounded-2xl p-6 shadow-sm lg:sticky lg:top-24'>
+                            <h3 className='text-lg font-semibold mb-4' style={{ fontFamily: 'var(--header-font)' }}>Your Order</h3>
+                            <div className='space-y-3 max-h-64 overflow-y-auto mb-4'>
+                                {products.map((p) => (
+                                    <div key={p._id} className='flex gap-3'>
+                                        <div className='relative shrink-0'>
+                                            <img src={p.image} alt={p.name} className='w-14 h-16 object-cover rounded-lg bg-gray-50' />
+                                            <span className='absolute -top-2 -right-2 bg-text-dark text-white text-[11px] w-5 h-5 grid place-content-center rounded-full'>{p.quantity}</span>
+                                        </div>
+                                        <div className='flex-1 min-w-0 flex flex-col justify-center'>
+                                            <p className='text-sm font-medium line-clamp-1'>{p.name}</p>
+                                            <p className='text-xs text-text-light'>{formatINR(p.price)}</p>
+                                        </div>
+                                        <span className='text-sm font-medium self-center'>{formatINR(p.price * p.quantity)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className='border-t pt-4 space-y-2 text-sm'>
+                                <div className='flex justify-between text-text-light'><span>Subtotal</span><span className='text-text-dark'>{formatINR(totalPrice)}</span></div>
+                                <div className='flex justify-between text-text-light'><span>Tax</span><span className='text-text-dark'>{formatINR(tax)}</span></div>
+                                <div className='flex justify-between text-text-light'><span>Shipping</span><span className={freeShip ? 'text-green-600 font-medium' : 'text-text-dark'}>{freeShip ? 'FREE' : 'At delivery'}</span></div>
+                                <div className='flex justify-between font-bold text-base pt-2 border-t'><span>Total</span><span>{formatINR(grandTotal)}</span></div>
+                            </div>
+                            <div className='flex items-center gap-2 text-xs text-text-light mt-4'>
+                                <i className='ri-lock-line'></i> Secure, encrypted checkout
+                            </div>
                         </div>
                     </div>
                 )}

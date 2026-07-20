@@ -5,6 +5,7 @@ import {
     useDeleteBlogMutation,
 } from '../../../redux/features/blogs/blogsApi'
 import ImageInput from '../../../components/ImageInput'
+import { card, input, primaryBtn, titleFont } from './adminUI'
 
 const blank = { title: '', subtitle: '', content: '', image: '' };
 
@@ -30,24 +31,26 @@ const AddNewPost = () => {
 
     return (
         <div>
-            <h2 className='text-2xl font-semibold mb-6'>Blog Posts</h2>
-            <form onSubmit={handleSubmit} className='bg-primary-light p-4 rounded space-y-3 mb-8 max-w-2xl'>
-                <h3 className='font-semibold'>New Post</h3>
-                <input required placeholder='Title' value={form.title} onChange={(e) => setField('title', e.target.value)} className='border p-2 rounded w-full' />
-                <input placeholder='Subtitle' value={form.subtitle} onChange={(e) => setField('subtitle', e.target.value)} className='border p-2 rounded w-full' />
-                <textarea placeholder='Content' value={form.content} onChange={(e) => setField('content', e.target.value)} className='border p-2 rounded w-full' rows={4} />
+            <h2 className='text-2xl font-bold mb-6' style={titleFont}>Blog Posts</h2>
+            <form onSubmit={handleSubmit} className={`${card} space-y-3 mb-8 max-w-2xl`}>
+                <h3 className='font-semibold' style={titleFont}>New Post</h3>
+                <input required placeholder='Title' value={form.title} onChange={(e) => setField('title', e.target.value)} className={input} />
+                <input placeholder='Subtitle' value={form.subtitle} onChange={(e) => setField('subtitle', e.target.value)} className={input} />
+                <textarea placeholder='Content' value={form.content} onChange={(e) => setField('content', e.target.value)} className={input} rows={4} />
                 <ImageInput value={form.image} onChange={(url) => setField('image', url)} />
                 {msg && <p className='text-primary text-sm'>{msg}</p>}
-                <button className='px-5 py-2 bg-primary text-white rounded'>Publish</button>
+                <button className={primaryBtn}>Publish Post</button>
             </form>
 
             <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
                 {blogs.map((b) => (
-                    <div key={b._id} className='border rounded p-3'>
-                        {b.image && <img src={b.image} alt='' className='w-full h-28 object-cover rounded mb-2' />}
-                        <p className='font-medium'>{b.title}</p>
-                        <p className='text-xs text-gray-500'>{b.subtitle}</p>
-                        <button onClick={() => window.confirm('Delete post?') && deleteBlog(b._id)} className='text-red-600 text-sm mt-2'>Delete</button>
+                    <div key={b._id} className='bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition'>
+                        {b.image && <img src={b.image} alt='' className='w-full h-32 object-cover' />}
+                        <div className='p-3'>
+                            <p className='font-medium line-clamp-1'>{b.title}</p>
+                            <p className='text-xs text-text-light line-clamp-1'>{b.subtitle}</p>
+                            <button onClick={() => window.confirm('Delete post?') && deleteBlog(b._id)} className='text-primary text-sm hover:underline mt-2'>Delete</button>
+                        </div>
                     </div>
                 ))}
             </div>

@@ -1,11 +1,13 @@
 import React from 'react'
 import { formatINR } from '../../utils/formatCurrency';
-
-const AUDIENCES = ['men', 'women', 'girls', 'boys', 'kids', 'unisex'];
+import { useActiveAudiences } from '../../hooks/useActiveAudiences';
 
 // Fully dynamic filters — options come from the API (categories + product facets).
 const ShopFiltering = ({ categories = [], facets = {}, filtersState, setFiltersState, clearFilters }) => {
     const set = (patch) => setFiltersState({ ...filtersState, ...patch });
+    const { keys } = useActiveAudiences();
+    // Active shopper audiences + unisex (lifestyle is common to all).
+    const AUDIENCES = [...keys, 'unisex'];
     const priceRanges = [
         { label: 'Under ₹1000', value: '0-1000' },
         { label: '₹1000 - ₹2000', value: '1000-2000' },

@@ -8,6 +8,22 @@ exports.updateSettingSchema = {
         brandName: { type: 'string', minLength: 1, maxLength: 60 },
         logoUrl: def.trimString,
         heroTagline: { type: 'string', maxLength: 160 },
+        activeAudiences: {
+            type: 'array',
+            items: { type: 'string', enum: ['women', 'men', 'girls', 'boys', 'kids'] },
+            uniqueItems: true,
+        },
+        audienceHeroImages: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+                women: def.trimString,
+                men: def.trimString,
+                girls: def.trimString,
+                boys: def.trimString,
+                kids: def.trimString,
+            },
+        },
         audienceImages: {
             type: 'object',
             additionalProperties: false,

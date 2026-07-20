@@ -1,17 +1,29 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../shop/ProductCard';
 import { useGetProductsQuery } from '../../redux/features/products/productsApi';
 
 const Search = () => {
-    const [searchQuery, setSearchQuery] = useState("");
-    const [submitted, setSubmitted] = useState("");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const initial = searchParams.get('q') || '';
+    const [searchQuery, setSearchQuery] = useState(initial);
+    const [submitted, setSubmitted] = useState(initial);
 
-    const { data, isFetching } = useGetProductsQuery({ search: submitted, limit: 50 }, { skip: submitted === "" && false });
+    // Keep local state in sync when the ?q= param changes (e.g. navbar search).
+    useEffect(() => {
+        const q = searchParams.get('q') || '';
+        setSearchQuery(q);
+        setSubmitted(q);
+    }, [searchParams]);
+
+    const { data, isFetching } = useGetProductsQuery({ search: submitted, limit: 50 });
     const products = data?.data?.products || [];
 
     const handleSearch = (e) => {
         e?.preventDefault();
-        setSubmitted(searchQuery.trim());
+        const q = searchQuery.trim();
+        setSubmitted(q);
+        setSearchParams(q ? { q } : {});
     };
 
     return (

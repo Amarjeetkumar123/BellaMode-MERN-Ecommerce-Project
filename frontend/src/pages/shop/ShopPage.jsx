@@ -3,10 +3,12 @@ import ProductCard from './ProductCard';
 import ShopFiltering from './ShopFiltering';
 import { useGetProductsQuery, useGetProductFiltersQuery } from '../../redux/features/products/productsApi';
 import { useGetCategoriesQuery } from '../../redux/features/categories/categoriesApi';
+import { useActiveAudiences } from '../../hooks/useActiveAudiences';
 
 const PAGE_SIZE = 12;
 
 const ShopPage = () => {
+    const { copy } = useActiveAudiences();
     const [filtersState, setFiltersState] = useState({ audience: '', category: '', color: '', priceRange: '' });
     const [sort, setSort] = useState('newest');
     const [page, setPage] = useState(1);
@@ -45,7 +47,7 @@ const ShopPage = () => {
         <>
             <section className='page-hero'>
                 <h1>Shop All</h1>
-                <p>Shop the latest styles for men, women & kids — curated for every occasion.</p>
+                <p>Shop the latest styles for {copy} — curated for every occasion.</p>
             </section>
             <section className='section__container'>
                 <div className='flex flex-col md:flex-row md:gap-12 gap-8'>

@@ -6,67 +6,80 @@ import { formatINR } from '../../utils/formatCurrency';
 
 const CartModel = ({ products, isOpen, onClose }) => {
     const dispatch = useDispatch();
-    const handleQuantity = (type, id) => {
-        const payload = { type, _id: id };
-        dispatch(updateQuantity(payload));
-    }
-    const handleRemove = (e, id) => {
-        e.preventDefault();
-        dispatch(removeFromCart({ _id: id }))
-    }
+    const handleQuantity = (type, id) => dispatch(updateQuantity({ type, _id: id }));
+    const handleRemove = (e, id) => { e.preventDefault(); dispatch(removeFromCart({ _id: id })); };
+
     return (
-        <div className={`fixed z-[1000] inset-0 bg-black bg-opacity-80 transition-opacity ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
-            style={{ transition: 'opacity 300ms' }}>
-            <div className={`fixed right-0 top-0 md:w-1/3 w-full bg-white h-full overflow-y-auto transition-transform ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                style={{ transition: 'transform 300ms cubic-bezier (0.25, 0.46, 0.45, 0.94' }}>
-                <div className='p-4 mt-4'>
-                    <div className='flex justify-between items-center mb-4'>
-                        <h4 className='text-xl font-semibold' >Your Cart</h4>
-                        <button
-                            onClick={() => onClose()}
-                            className='text-gray-600 hover:text-gray-900'>
-                            <i className="ri-xrp-fill bg-black p-1 text-white"></i></button>
+        <>
+            {/* Dim overlay — sits BELOW the navbar (z-1001) so the nav stays crisp */}
+            <div
+                onClick={onClose}
+                className={`fixed z-[1000] inset-0 bg-black/50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            />
+            {/* Drawer — above the navbar */}
+            <div
+                style={{ height: '100vh' }}
+                className={`fixed z-[1002] right-0 top-0 md:w-[420px] w-full bg-white flex flex-col shadow-2xl transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+            >
+                {/* Header */}
+                <div className='flex justify-between items-center px-5 py-4 border-b shrink-0'>
+                    <h4 className='text-lg font-semibold' style={{ fontFamily: 'var(--header-font)' }}>
+                        Your Cart <span className='text-text-light font-normal text-sm'>({products.length})</span>
+                    </h4>
+                    <button onClick={onClose} className='w-9 h-9 grid place-content-center rounded-full hover:bg-gray-100 text-xl'>
+                        <i className='ri-close-line'></i>
+                    </button>
+                </div>
+
+                {products.length === 0 ? (
+                    /* Empty state */
+                    <div className='flex-1 flex flex-col items-center justify-center text-center px-6 text-text-light'>
+                        <i className='ri-shopping-bag-line text-5xl mb-3'></i>
+                        <p className='font-medium text-text-dark'>Your cart is empty</p>
+                        <p className='text-sm mb-4'>Add something you love to get started.</p>
+                        <button onClick={onClose} className='btn !rounded-lg'>Continue Shopping</button>
                     </div>
-                    {/* Cart Details */}
-                    <div className=''>
-                        {
-                            products.length === 0 ? (<div>Your cart is empty</div>) : (
-                                products.map((item, index) => (
-                                    <div key={index} className='flex flex-col md:flex-row md:items-center md:justify-between shadow-md md:p-5 p-2 mb-4'>
-                                        <div className='flex items-center'>
-                                            <span className='mr-4 px-1 bg-primary text-white rounded-full'>0{index + 1}</span>
-                                            <img src={item.image} alt='' className='size-12 object-cover mr-4' />
-                                            <div>
-                                                <h5 className='text-lg font-medium'>{item.name}</h5>
-                                                <p className='text-gray-600 text-sm'>{formatINR(item.price)}</p>
+                ) : (
+                    <>
+                        {/* Items (scrollable) */}
+                        <div className='flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-4'>
+                            {products.map((item) => (
+                                <div key={item._id} className='flex gap-3'>
+                                    <img src={item.image} alt={item.name} className='w-20 h-24 object-cover rounded-lg bg-gray-50 shrink-0' />
+                                    <div className='flex-1 min-w-0'>
+                                        <div className='flex justify-between gap-2'>
+                                            <h5 className='text-sm font-medium text-text-dark line-clamp-2'>{item.name}</h5>
+                                            <button onClick={(e) => handleRemove(e, item._id)} className='text-text-light hover:text-primary shrink-0'>
+                                                <i className='ri-delete-bin-6-line'></i>
+                                            </button>
+                                        </div>
+                                        {(item.size || item.color) && (
+                                            <p className='text-xs text-text-light mt-0.5 capitalize'>
+                                                {[item.color, item.size].filter(Boolean).join(' · ')}
+                                            </p>
+                                        )}
+                                        <div className='flex items-center justify-between mt-2'>
+                                            <div className='flex items-center border rounded-lg'>
+                                                <button onClick={() => handleQuantity('decrement', item._id)} className='w-8 h-8 grid place-content-center hover:bg-gray-50'>−</button>
+                                                <span className='w-8 text-center text-sm'>{item.quantity}</span>
+                                                <button onClick={() => handleQuantity('increment', item._id)} className='w-8 h-8 grid place-content-center hover:bg-gray-50'>+</button>
                                             </div>
-                                            <div className='flex flex-row md:justify-start justify-end items-center mt-2'>
-                                                <button
-                                                    onClick={() => handleQuantity('decrement', item._id)}
-                                                    className='size-6 flex items-center justify-center px-1.5 rounded-full bg-gray-200 text-gray-700 hover:bg-primary hover:text-white ml-8'
-                                                >-</button>
-                                                <span className='px-2 text-center mx-1'>{item.quantity}</span>
-                                                <button
-                                                    onClick={() => handleQuantity('increment', item._id)}
-                                                    className='size-6 flex items-center justify-center px-1.5 rounded-full bg-gray-200 text-gray-700 hover:bg-primary
-                                            hover:text-white'>+</button>
-                                                <div className='ml-5'>
-                                                    <button onClick={(e) => handleRemove(e, item._id)} className='text-red-500 hover:text-red-800 mr-4'>Remove</button>
-                                                </div>
-                                            </div>
+                                            <span className='font-semibold text-text-dark'>{formatINR(item.price * item.quantity)}</span>
                                         </div>
                                     </div>
-                                )))}
-                    </div>
+                                </div>
+                            ))}
+                        </div>
 
-                    {/* Calculation */}
-                    {
-                        products.length > 0 && (<OrderSummary onClose={onClose} />)
-                    }
-                </div>
+                        {/* Summary (pinned bottom) */}
+                        <div className='shrink-0'>
+                            <OrderSummary onClose={onClose} />
+                        </div>
+                    </>
+                )}
             </div>
-        </div>
-    )
-}
+        </>
+    );
+};
 
-export default CartModel
+export default CartModel;

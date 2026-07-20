@@ -8,6 +8,8 @@ const settingSchema = new Schema({
     brandName: { type: String, default: 'Wearly' },
     logoUrl: { type: String, default: '' },
     heroTagline: { type: String, default: 'Style for everyone.' },
+    // Which shopper audiences the storefront serves (run a Men-only / Women+Girls / … store).
+    activeAudiences: { type: [String], default: ['women', 'men', 'kids', 'boys', 'girls'] },
     // Optional lifestyle images for the homepage "Shop by Category" tiles, keyed by audience.
     audienceImages: {
         women: { type: String, default: '' },
@@ -16,6 +18,14 @@ const settingSchema = new Schema({
         boys: { type: String, default: '' },
         kids: { type: String, default: '' },
         footwear: { type: String, default: '' },
+    },
+    // Optional per-audience editorial hero banner images (wide), keyed by audience.
+    audienceHeroImages: {
+        women: { type: String, default: '' },
+        men: { type: String, default: '' },
+        girls: { type: String, default: '' },
+        boys: { type: String, default: '' },
+        kids: { type: String, default: '' },
     },
     currency: { type: String, default: CURRENCY },
     contactEmail: String,

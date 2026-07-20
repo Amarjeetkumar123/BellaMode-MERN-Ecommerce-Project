@@ -6,10 +6,17 @@ import instaImg3 from "../assets/instagram-3.jpg"
 import instaImg4 from "../assets/instagram-4.jpg"
 import instaImg5 from "../assets/instagram-5.jpg"
 import instaImg6 from "../assets/instagram-6.jpg"
+import { AUDIENCES } from '../data/catalog'
+import { useActiveAudiences } from '../hooks/useActiveAudiences'
 
 const insta = [instaImg1, instaImg2, instaImg3, instaImg4, instaImg5, instaImg6];
 
 const Footer = () => {
+    const { isActive, settings, copy } = useActiveAudiences();
+    const brandName = settings?.brandName || 'Wearly';
+    const [brandFirst, ...brandRest] = brandName.split(' ');
+    const shopLinks = AUDIENCES.filter((a) => isActive(a.key));
+
     return (
         <>
             {/* Newsletter band */}
@@ -28,8 +35,8 @@ const Footer = () => {
 
             <footer className='section__container footer__container'>
                 <div className='footer__col'>
-                    <h4 className='footer__brand'>Wearly<span>.</span></h4>
-                    <p className='footer__about'>Curated fashion for men, women & kids — clothing, footwear, watches, perfumes and accessories, all in one place.</p>
+                    <h4 className='footer__brand'>{brandFirst}{brandRest.length ? ` ${brandRest.join(' ')}` : ''}<span>.</span></h4>
+                    <p className='footer__about'>Curated fashion for {copy} — clothing, footwear, watches, perfumes and accessories, all in one place.</p>
                     <div className='footer__social'>
                         <a href='https://instagram.com' aria-label='Instagram'><i className='ri-instagram-line'></i></a>
                         <a href='https://facebook.com' aria-label='Facebook'><i className='ri-facebook-circle-line'></i></a>
@@ -39,9 +46,9 @@ const Footer = () => {
                 </div>
                 <div className='footer__col'>
                     <h4>SHOP</h4>
-                    <Link to='/categories/women'>Women</Link>
-                    <Link to='/categories/men'>Men</Link>
-                    <Link to='/categories/kids'>Kids</Link>
+                    {shopLinks.map((a) => (
+                        <Link key={a.key} to={a.to}>{a.label}</Link>
+                    ))}
                     <Link to='/categories/footwear-unisex'>Footwear</Link>
                     <Link to='/categories/perfumes-unisex'>Perfumes</Link>
                 </div>
@@ -63,7 +70,7 @@ const Footer = () => {
                 </div>
             </footer>
             <div className='footer__bar'>
-                <span>© 2025 Wearly Fashion. All Rights Reserved.</span>
+                <span>© 2025 {brandName}. All Rights Reserved.</span>
                 <span className='footer__pay'><i className='ri-visa-line'></i><i className='ri-mastercard-line'></i><i className='ri-secure-payment-line'></i> Secure payments</span>
             </div>
         </>

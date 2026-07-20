@@ -43,3 +43,34 @@ export const LIFESTYLE = [
 ];
 
 export const SALE_IMAGE = saleFlatlay;
+
+// Canonical shopper-audience keys (order = display order).
+export const ALL_AUDIENCE_KEYS = ['women', 'men', 'kids', 'boys', 'girls'];
+
+// Human-readable copy from a set of active audience keys, e.g.
+// ['men','boys'] -> "men & boys"; ['women','girls','kids'] -> "women, girls & kids".
+const COPY_LABEL = { women: 'women', men: 'men', kids: 'kids', boys: 'boys', girls: 'girls' };
+export const audienceCopy = (keys = []) => {
+    const arr = keys.map((k) => COPY_LABEL[k]).filter(Boolean);
+    if (!arr.length) return 'everyone';
+    if (arr.length === 1) return arr[0];
+    return `${arr.slice(0, -1).join(', ')} & ${arr[arr.length - 1]}`;
+};
+
+// Per-audience hero branding used to re-skin the storefront to the selected audience.
+export const AUDIENCE_THEME = {
+    women: { eyebrow: 'Womenswear · New Season', headline: 'Effortless Elegance', tagline: 'Dresses, tops, ethnic wear & the season’s edit — curated for you.', cta: 'Shop Women', to: '/categories/women' },
+    men: { eyebrow: 'Menswear · New Season', headline: 'Wear the Confidence', tagline: 'Shirts, tees, denim, jackets & more — modern menswear, refined.', cta: 'Shop Men', to: '/categories/men' },
+    kids: { eyebrow: 'Kids · New Season', headline: 'Little Big Moments', tagline: 'Comfy, playful styles made for every little adventure.', cta: 'Shop Kids', to: '/categories/kids' },
+    boys: { eyebrow: 'Boys · New Season', headline: 'Ready, Set, Play', tagline: 'Cool, durable everyday styles built for boys.', cta: 'Shop Boys', to: '/categories/boys' },
+    girls: { eyebrow: 'Girls · New Season', headline: 'Twirl in Style', tagline: 'Frocks, dresses & everyday favourites for girls.', cta: 'Shop Girls', to: '/categories/girls' },
+};
+
+// Fallback branding for a multi-audience / full store.
+export const DEFAULT_THEME = {
+    eyebrow: 'New Season · Autumn 2025',
+    headline: 'Wear the Confidence',
+    tagline: 'Elevated everyday fashion — clothing, footwear, watches, perfumes & accessories, all in one place.',
+    cta: 'Shop the Collection',
+    to: '/shop',
+};

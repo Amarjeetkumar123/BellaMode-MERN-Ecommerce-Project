@@ -8,15 +8,9 @@ import { logout } from '../redux/features/auth/authSlice';
 import { useGetSettingsQuery } from '../redux/features/settings/settingsApi';
 import { useGetCategoriesQuery } from '../redux/features/categories/categoriesApi';
 import { AUDIENCES, LIFESTYLE } from '../data/catalog';
+import { useActiveAudiences } from '../hooks/useActiveAudiences';
 
 const ADMIN_ROLES = ['ADMIN', 'SUPERADMIN'];
-const MENU = [
-    { key: 'women', label: 'Women' },
-    { key: 'men', label: 'Men' },
-    { key: 'kids', label: 'Kids' },
-    { key: 'boys', label: 'Boys' },
-    { key: 'girls', label: 'Girls' },
-];
 const AUDIENCE_IMG = AUDIENCES.reduce((acc, a) => ({ ...acc, [a.key]: a.image }), {});
 
 const Navbar = () => {
@@ -31,6 +25,8 @@ const Navbar = () => {
 
     const { data: settingsData } = useGetSettingsQuery();
     const { data: catData } = useGetCategoriesQuery();
+    const { isActive } = useActiveAudiences();
+    const menu = AUDIENCES.filter((a) => isActive(a.key));
     const allCats = catData?.data?.categories || [];
     const lifestyleCats = allCats.filter((c) => c.audience === 'unisex').sort((a, b) => a.sortOrder - b.sortOrder);
 
@@ -41,6 +37,15 @@ const Navbar = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const handleDropDownToggle = () => setIsDropdownOpen(!isDropdownOpen);
     const [openMenu, setOpenMenu] = useState(null); // audience key of the open mega-menu
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const submitSearch = (e) => {
+        e.preventDefault();
+        const q = searchTerm.trim();
+        navigate(q ? `/search?q=${encodeURIComponent(q)}` : '/search');
+        setSearchOpen(false);
+    };
 
     const isAdmin = user && ADMIN_ROLES.includes(user.role);
     const isSuperadmin = user && user.role === 'SUPERADMIN';
@@ -82,7 +87,7 @@ const Navbar = () => {
                 <ul className='nav__links'>
                     <li className='link'><Link to="/">Home</Link></li>
                     <li className='link'><Link to="/shop">Shop</Link></li>
-                    {MENU.map((m) => (
+                    {menu.map((m) => (
                         <li key={m.key} className='link nav__has-mega' onMouseEnter={() => setOpenMenu(m.key)}>
                             <Link to={`/categories/${m.key}`}>{m.label}</Link>
                         </li>
@@ -98,7 +103,9 @@ const Navbar = () => {
                 </div>
                 <div className='nav__icons relative'>
                     <span>
-                        <Link to="/search"><i className="ri-search-line"></i></Link>
+                        <button onClick={() => setSearchOpen((v) => !v)} aria-label='Search' className='hover:text-primary'>
+                            <i className={searchOpen ? 'ri-close-line' : 'ri-search-line'}></i>
+                        </button>
                     </span>
                     <span>
                         <button onClick={handleCartToggle} className='hover:text-primary'>
@@ -130,6 +137,23 @@ const Navbar = () => {
                     </span>
                 </div>
             </nav>
+
+            {/* Search bar (expands under the nav) */}
+            {searchOpen && (
+                <div className='nav-search'>
+                    <form onSubmit={submitSearch} className='nav-search__form'>
+                        <i className='ri-search-line'></i>
+                        <input
+                            autoFocus
+                            type='text'
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder='Search for products, brands & more…'
+                        />
+                        <button type='submit' className='btn !rounded-lg !py-2'>Search</button>
+                    </form>
+                </div>
+            )}
 
             {/* Mega-menu panel */}
             {openMenu && (
@@ -164,8 +188,8 @@ const Navbar = () => {
                     </div>
                 </div>
             )}
-            {isCartOpen && <CartModel products={products} isOpen={isCartOpen} onClose={handleCartToggle} />}
         </header>
+        {isCartOpen && <CartModel products={products} isOpen={isCartOpen} onClose={handleCartToggle} />}
         </>
     );
 };

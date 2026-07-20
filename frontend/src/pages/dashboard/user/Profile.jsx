@@ -31,18 +31,38 @@ const Profile = () => {
         }
     };
 
+    const inputCls = 'border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm w-full focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition';
+
     return (
         <div>
-            <h2 className='text-2xl font-semibold mb-6'>My Profile</h2>
-            <form onSubmit={handleSubmit} className='max-w-lg space-y-4'>
+            <h2 className='text-2xl font-bold mb-6' style={{ fontFamily: 'var(--header-font)' }}>My Profile</h2>
+            <form onSubmit={handleSubmit} className='max-w-xl bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4'>
                 <ImageInput label='Profile Image' value={form.profileImage} onChange={(url) => setField('profileImage', url)} />
-                <input placeholder='Username' value={form.username} onChange={(e) => setField('username', e.target.value)} className='border p-2 rounded w-full' />
-                <input placeholder='Phone' value={form.phone} onChange={(e) => setField('phone', e.target.value)} className='border p-2 rounded w-full' />
-                <input placeholder='Profession' value={form.profession} onChange={(e) => setField('profession', e.target.value)} className='border p-2 rounded w-full' />
-                <textarea placeholder='Bio' value={form.bio} onChange={(e) => setField('bio', e.target.value)} className='border p-2 rounded w-full' rows={3} />
-                <p className='text-sm text-gray-500'>Email: {user?.email} · Role: {user?.role}</p>
+                <div>
+                    <label className='block text-sm font-medium mb-1'>Username</label>
+                    <input placeholder='Username' value={form.username} onChange={(e) => setField('username', e.target.value)} className={inputCls} />
+                </div>
+                <div className='grid sm:grid-cols-2 gap-4'>
+                    <div>
+                        <label className='block text-sm font-medium mb-1'>Phone</label>
+                        <input placeholder='Phone' value={form.phone} onChange={(e) => setField('phone', e.target.value)} className={inputCls} />
+                    </div>
+                    <div>
+                        <label className='block text-sm font-medium mb-1'>Profession</label>
+                        <input placeholder='Profession' value={form.profession} onChange={(e) => setField('profession', e.target.value)} className={inputCls} />
+                    </div>
+                </div>
+                <div>
+                    <label className='block text-sm font-medium mb-1'>Bio</label>
+                    <textarea placeholder='Tell us about yourself' value={form.bio} onChange={(e) => setField('bio', e.target.value)} className={inputCls} rows={3} />
+                </div>
+                <div className='flex items-center gap-2 text-sm text-text-light bg-extra-light rounded-lg px-3 py-2.5'>
+                    <i className='ri-mail-line'></i> {user?.email}
+                    <span className='mx-1'>·</span>
+                    <i className='ri-shield-user-line'></i> <span className='capitalize'>{(user?.role || 'user').toLowerCase()}</span>
+                </div>
                 {msg && <p className='text-primary text-sm'>{msg}</p>}
-                <button disabled={isLoading} className='px-6 py-2 bg-primary text-white rounded'>{isLoading ? 'Saving…' : 'Save Changes'}</button>
+                <button disabled={isLoading} className='btn !rounded-lg'>{isLoading ? 'Saving…' : 'Save Changes'}</button>
             </form>
         </div>
     );
