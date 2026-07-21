@@ -10,7 +10,7 @@ import ImageInput from '../../../components/ImageInput'
 import { formatINR } from '../../../utils/formatCurrency'
 import { card, input, primaryBtn, ghostBtn, titleFont } from './adminUI'
 
-const AUDIENCES = ['men', 'women', 'girls', 'boys', 'kids', 'unisex'];
+const AUDIENCES = ['men', 'women', 'kids', 'unisex'];
 const blank = { name: '', description: '', price: '', oldPrice: '', audience: 'men', category: '', brand: '', colors: '', sizes: '', stock: '', image: '', isTrending: false, isFeatured: false };
 
 const ManageProducts = () => {
@@ -28,6 +28,21 @@ const ManageProducts = () => {
     const [msg, setMsg] = useState('');
     const [search, setSearch] = useState('');
     const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+    // Categories for the audience currently selected in the form.
+    const ownCats = categories.filter((c) => c.audience === form.audience);
+    // Footwear/Watches/Bags are shared `unisex` categories: a men's shoe is a men's
+    // product filed under the shared Footwear category, so they stay selectable
+    // for every audience (and aren't repeated when unisex is already selected).
+    const sharedCats = form.audience === 'unisex' ? [] : categories.filter((c) => c.audience === 'unisex');
+
+    // Switching audience must drop a category that no longer belongs to it,
+    // otherwise the form silently keeps an invalid pairing.
+    const changeAudience = (audience) => setForm((f) => {
+        const allowed = categories.filter((c) => c.audience === audience || (audience !== 'unisex' && c.audience === 'unisex'));
+        const stillValid = allowed.some((c) => c._id === f.category);
+        return { ...f, audience, category: stillValid ? f.category : '' };
+    });
 
     const q = search.trim().toLowerCase();
     const filtered = q
@@ -95,12 +110,17 @@ const ManageProducts = () => {
                     <input required type='number' placeholder='Price (₹)' value={form.price} onChange={(e) => setField('price', e.target.value)} className={input} />
                     <input type='number' placeholder='Old Price (₹)' value={form.oldPrice} onChange={(e) => setField('oldPrice', e.target.value)} className={input} />
                     <input type='number' placeholder='Stock' value={form.stock} onChange={(e) => setField('stock', e.target.value)} className={input} />
-                    <select value={form.audience} onChange={(e) => setField('audience', e.target.value)} className={`${input} capitalize`}>
+                    <select value={form.audience} onChange={(e) => changeAudience(e.target.value)} className={`${input} capitalize`}>
                         {AUDIENCES.map((a) => <option key={a} value={a}>{a}</option>)}
                     </select>
                     <select required value={form.category} onChange={(e) => setField('category', e.target.value)} className={input}>
                         <option value=''>Select category…</option>
-                        {categories.map((c) => <option key={c._id} value={c._id}>{c.name} ({c.audience})</option>)}
+                        {ownCats.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                        {sharedCats.length > 0 && (
+                            <optgroup label='Footwear &amp; Lifestyle (shared)'>
+                                {sharedCats.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                            </optgroup>
+                        )}
                     </select>
                     <input placeholder='Brand' value={form.brand} onChange={(e) => setField('brand', e.target.value)} className={input} />
                     <input placeholder='Colors (comma separated)' value={form.colors} onChange={(e) => setField('colors', e.target.value)} className={input} />

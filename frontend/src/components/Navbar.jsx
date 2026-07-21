@@ -2,13 +2,15 @@ import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import CartModel from '../pages/shop/CartModel';
+import WishlistDrawer from '../pages/wishlist/WishlistDrawer';
 import avatarImg from "../assets/avatar.png"
 import { useLogoutUserMutation } from '../redux/features/auth/authApi';
 import { logout } from '../redux/features/auth/authSlice';
 import { useGetSettingsQuery } from '../redux/features/settings/settingsApi';
 import { useGetCategoriesQuery } from '../redux/features/categories/categoriesApi';
-import { AUDIENCES, LIFESTYLE } from '../data/catalog';
+import { AUDIENCES, LIFESTYLE, FOOTWEAR_DEPT } from '../data/catalog';
 import { useActiveAudiences } from '../hooks/useActiveAudiences';
+import { useWishlist } from '../hooks/useWishlist';
 
 const ADMIN_ROLES = ['ADMIN', 'SUPERADMIN'];
 const AUDIENCE_IMG = AUDIENCES.reduce((acc, a) => ({ ...acc, [a.key]: a.image }), {});
@@ -16,7 +18,10 @@ const AUDIENCE_IMG = AUDIENCES.reduce((acc, a) => ({ ...acc, [a.key]: a.image })
 const Navbar = () => {
     const products = useSelector((state) => state.cart.products);
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const handleCartToggle = () => setIsCartOpen(!isCartOpen);
+    const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+    // Only one drawer at a time — opening either closes the other.
+    const handleCartToggle = () => { setIsCartOpen((v) => !v); setIsWishlistOpen(false); };
+    const handleWishlistToggle = () => { setIsWishlistOpen((v) => !v); setIsCartOpen(false); };
 
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
@@ -26,6 +31,7 @@ const Navbar = () => {
     const { data: settingsData } = useGetSettingsQuery();
     const { data: catData } = useGetCategoriesQuery();
     const { isActive } = useActiveAudiences();
+    const { count: wishlistCount } = useWishlist();
     const menu = AUDIENCES.filter((a) => isActive(a.key));
     const allCats = catData?.data?.categories || [];
     const lifestyleCats = allCats.filter((c) => c.audience === 'unisex').sort((a, b) => a.sortOrder - b.sortOrder);
@@ -85,26 +91,40 @@ const Navbar = () => {
         <header className='fixed-nav-bar w-nav' onMouseLeave={() => setOpenMenu(null)}>
             <nav className='max-w-screen-2xl mx-auto px-4 py-3 flex justify-between items-center'>
                 <ul className='nav__links'>
-                    <li className='link'><Link to="/">Home</Link></li>
-                    <li className='link'><Link to="/shop">Shop</Link></li>
+                    {/* Departments: the shopper audiences, then Footwear, then everything else. */}
                     {menu.map((m) => (
                         <li key={m.key} className='link nav__has-mega' onMouseEnter={() => setOpenMenu(m.key)}>
                             <Link to={`/categories/${m.key}`}>{m.label}</Link>
                         </li>
                     ))}
+                    {/* These have no mega-menu, so hovering them must dismiss an open one. */}
+                    <li className='link' onMouseEnter={() => setOpenMenu(null)}>
+                        <Link to={FOOTWEAR_DEPT.to}>{FOOTWEAR_DEPT.label}</Link>
+                    </li>
+                    <li className='link' onMouseEnter={() => setOpenMenu(null)}>
+                        <Link to="/shop">Shop All</Link>
+                    </li>
                 </ul>
                 {/* logo (text wordmark, or uploaded logo image) */}
-                <div className='nav__logo'>
+                <div className='nav__logo' onMouseEnter={() => setOpenMenu(null)}>
                     <Link to="/">
                         {settings?.logoUrl
                             ? <img src={settings.logoUrl} alt={brandName} className='h-8' />
                             : <><span>{brandFirst}</span>{brandRest.length ? ` ${brandRest.join(' ')}` : ''}</>}
                     </Link>
                 </div>
-                <div className='nav__icons relative'>
+                <div className='nav__icons relative' onMouseEnter={() => setOpenMenu(null)}>
                     <span>
                         <button onClick={() => setSearchOpen((v) => !v)} aria-label='Search' className='hover:text-primary'>
                             <i className={searchOpen ? 'ri-close-line' : 'ri-search-line'}></i>
+                        </button>
+                    </span>
+                    <span>
+                        <button onClick={handleWishlistToggle} aria-label='Wishlist' className='hover:text-primary'>
+                            <i className='ri-heart-line'></i>
+                            {wishlistCount > 0 && (
+                                <sup className='text-sm inline-block px-1.5 text-white rounded-full bg-primary text-center'>{wishlistCount}</sup>
+                            )}
                         </button>
                     </span>
                     <span>
@@ -190,6 +210,7 @@ const Navbar = () => {
             )}
         </header>
         {isCartOpen && <CartModel products={products} isOpen={isCartOpen} onClose={handleCartToggle} />}
+        {isWishlistOpen && <WishlistDrawer isOpen={isWishlistOpen} onClose={handleWishlistToggle} />}
         </>
     );
 };

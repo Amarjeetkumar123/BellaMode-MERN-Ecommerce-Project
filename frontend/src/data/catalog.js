@@ -2,31 +2,26 @@
 // "Shop by Category" tiles and the "Shop by Department" lifestyle strip.
 // Category slugs mirror the backend seed (slugify(`${name}-${audience}`)).
 import {
-    womenFashion, menFashion, boyFashion, girlFashion, saleFlatlay,
+    womenFashion, menFashion, saleFlatlay,
 } from '../assets/images';
 
-// Five shopper audiences. `image` is the AI studio shot used on the home tiles
-// and the category hero. `feature` makes the tile span two rows on desktop.
+// Three shopper audiences — boys & girls both live under Kids.
+// `image` is the AI studio shot used on the category hero.
 export const AUDIENCES = [
+    { key: 'men', label: 'Men', to: '/categories/men', image: menFashion, blurb: 'Shirts, tees, denim & jackets' },
     {
         key: 'women', label: 'Women', to: '/categories/women', image: womenFashion, feature: true,
         blurb: 'Dresses, tops, ethnic & more',
     },
-    { key: 'men', label: 'Men', to: '/categories/men', image: menFashion, blurb: 'Shirts, tees, denim & jackets' },
-    // Kids tile uses a distinct bright kids photo so it doesn't duplicate Girls.
-    { key: 'kids', label: 'Kids', to: '/categories/kids', image: 'https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?q=80&w=900&auto=format&fit=crop', blurb: 'Everyday comfort for little ones' },
-    { key: 'boys', label: 'Boys', to: '/categories/boys', image: boyFashion, blurb: 'Cool, playful & durable' },
-    { key: 'girls', label: 'Girls', to: '/categories/girls', image: girlFashion, blurb: 'Frocks, dresses & more' },
+    { key: 'kids', label: 'Kids', to: '/categories/kids', image: 'https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?q=80&w=900&auto=format&fit=crop', blurb: 'Boys & girls — everyday comfort' },
 ];
 
 // Sub-categories shown per audience in the navbar mega-menu (labels only —
 // the live category list on each page comes from the API).
 export const AUDIENCE_SUBS = {
-    women: ['Dresses', 'Tops', 'Kurtas & Suits', 'Sarees', 'Jeans', 'Skirts', 'Handbags'],
     men: ['T-Shirts', 'Shirts', 'Jeans', 'Trousers', 'Jackets', 'Hoodies'],
-    kids: ['Kidswear', 'Nightwear', 'Rompers'],
-    boys: ['T-Shirts', 'Shirts', 'Jeans', 'Shorts'],
-    girls: ['Frocks', 'Tops', 'Dresses', 'Leggings'],
+    women: ['Dresses', 'Tops', 'Kurtas & Suits', 'Sarees', 'Jeans', 'Skirts', 'Handbags'],
+    kids: ['Kidswear', 'T-Shirts', 'Frocks', 'Dresses', 'Shorts', 'Nightwear', 'Rompers'],
 };
 
 // Cross-department "lifestyle" categories (unisex) — surfaced on every audience
@@ -45,11 +40,15 @@ export const LIFESTYLE = [
 export const SALE_IMAGE = saleFlatlay;
 
 // Canonical shopper-audience keys (order = display order).
-export const ALL_AUDIENCE_KEYS = ['women', 'men', 'kids', 'boys', 'girls'];
+export const ALL_AUDIENCE_KEYS = ['men', 'women', 'kids'];
+
+// Footwear is promoted to a top-level department alongside the audiences.
+// It's a shared unisex category whose products carry their own audience.
+export const FOOTWEAR_DEPT = { key: 'footwear', label: 'Footwear', slug: 'footwear-unisex', to: '/categories/footwear-unisex' };
 
 // Human-readable copy from a set of active audience keys, e.g.
-// ['men','boys'] -> "men & boys"; ['women','girls','kids'] -> "women, girls & kids".
-const COPY_LABEL = { women: 'women', men: 'men', kids: 'kids', boys: 'boys', girls: 'girls' };
+// ['men'] -> "men"; ['men','women','kids'] -> "men, women & kids".
+const COPY_LABEL = { men: 'men', women: 'women', kids: 'kids' };
 export const audienceCopy = (keys = []) => {
     const arr = keys.map((k) => COPY_LABEL[k]).filter(Boolean);
     if (!arr.length) return 'everyone';
@@ -61,9 +60,7 @@ export const audienceCopy = (keys = []) => {
 export const AUDIENCE_THEME = {
     women: { eyebrow: 'Womenswear · New Season', headline: 'Effortless Elegance', tagline: 'Dresses, tops, ethnic wear & the season’s edit — curated for you.', cta: 'Shop Women', to: '/categories/women' },
     men: { eyebrow: 'Menswear · New Season', headline: 'Wear the Confidence', tagline: 'Shirts, tees, denim, jackets & more — modern menswear, refined.', cta: 'Shop Men', to: '/categories/men' },
-    kids: { eyebrow: 'Kids · New Season', headline: 'Little Big Moments', tagline: 'Comfy, playful styles made for every little adventure.', cta: 'Shop Kids', to: '/categories/kids' },
-    boys: { eyebrow: 'Boys · New Season', headline: 'Ready, Set, Play', tagline: 'Cool, durable everyday styles built for boys.', cta: 'Shop Boys', to: '/categories/boys' },
-    girls: { eyebrow: 'Girls · New Season', headline: 'Twirl in Style', tagline: 'Frocks, dresses & everyday favourites for girls.', cta: 'Shop Girls', to: '/categories/girls' },
+    kids: { eyebrow: 'Kids · New Season', headline: 'Little Big Moments', tagline: 'Comfy, playful styles for boys & girls — made for every little adventure.', cta: 'Shop Kids', to: '/categories/kids' },
 };
 
 // Fallback branding for a multi-audience / full store.

@@ -8,7 +8,7 @@ import {
 import ImageInput from '../../../components/ImageInput'
 import { card, input, primaryBtn, ghostBtn, titleFont } from './adminUI'
 
-const AUDIENCES = ['men', 'women', 'girls', 'boys', 'kids', 'unisex'];
+const AUDIENCES = ['men', 'women', 'kids', 'unisex'];
 const blank = { name: '', audience: 'men', image: '', sortOrder: 0 };
 
 const ManageCategories = () => {

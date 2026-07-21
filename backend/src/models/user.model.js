@@ -30,6 +30,8 @@ const userSchema = new Schema({
     profession: String,
     phone: String,
     addresses: [addressSchema],
+    // Account-synced wishlist — product refs, so saves follow the user across devices.
+    wishlist: [{ type: Schema.Types.ObjectId, ref: 'Product' }],
     create_date: { type: Number, default: () => Date.now() },
     update_date: { type: Number, default: () => Date.now() },
 });

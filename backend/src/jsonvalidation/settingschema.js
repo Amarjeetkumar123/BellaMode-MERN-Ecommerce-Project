@@ -10,7 +10,7 @@ exports.updateSettingSchema = {
         heroTagline: { type: 'string', maxLength: 160 },
         activeAudiences: {
             type: 'array',
-            items: { type: 'string', enum: ['women', 'men', 'girls', 'boys', 'kids'] },
+            items: { type: 'string', enum: ['women', 'men', 'kids'] },
             uniqueItems: true,
         },
         audienceHeroImages: {
@@ -19,8 +19,6 @@ exports.updateSettingSchema = {
             properties: {
                 women: def.trimString,
                 men: def.trimString,
-                girls: def.trimString,
-                boys: def.trimString,
                 kids: def.trimString,
             },
         },
@@ -30,10 +28,23 @@ exports.updateSettingSchema = {
             properties: {
                 women: def.trimString,
                 men: def.trimString,
-                girls: def.trimString,
-                boys: def.trimString,
                 kids: def.trimString,
                 footwear: def.trimString,
+            },
+        },
+        announcement: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+                enabled: { type: 'boolean' },
+                messages: {
+                    type: 'array',
+                    items: { type: 'string', maxLength: 160 },
+                    maxItems: 6,
+                },
+                link: def.trimString,
+                bgColor: def.trimString,
+                textColor: def.trimString,
             },
         },
         currency: def.trimString,

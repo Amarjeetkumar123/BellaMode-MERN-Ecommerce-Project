@@ -15,7 +15,7 @@ const ROLES = {
 const ADMIN_ROLES = [ROLES.SUPERADMIN, ROLES.ADMIN];
 
 // The audiences a product/category can target (unisex store).
-const AUDIENCES = ['men', 'women', 'girls', 'boys', 'kids', 'unisex'];
+const AUDIENCES = ['men', 'women', 'kids', 'unisex'];
 
 const ORDER_STATUS = {
     PENDING: 'PENDING',

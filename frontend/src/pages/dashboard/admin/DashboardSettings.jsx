@@ -6,20 +6,19 @@ import {
     useDeleteBannerMutation,
 } from '../../../redux/features/banners/bannersApi'
 import ImageInput from '../../../components/ImageInput'
-import { card, input, primaryBtn, titleFont } from './adminUI'
+import { card, input, primaryBtn, ghostBtn, titleFont } from './adminUI'
 
 const bannerBlank = { title: '', subtitle: '', image: '', link: '/shop', ctaText: 'Shop Now', position: 'hero' };
 
-const AUDIENCE_OPTS = ['women', 'men', 'kids', 'boys', 'girls'];
+const AUDIENCE_OPTS = ['men', 'women', 'kids'];
 const PRESETS = [
-    { label: 'All', keys: ['women', 'men', 'kids', 'boys', 'girls'] },
+    { label: 'All', keys: ['men', 'women', 'kids'] },
     { label: 'Men only', keys: ['men'] },
     { label: 'Women only', keys: ['women'] },
-    { label: 'Men + Boys', keys: ['men', 'boys'] },
-    { label: 'Women + Girls', keys: ['women', 'girls'] },
-    { label: 'Kids only', keys: ['kids', 'boys', 'girls'] },
-    { label: 'Women + Girls + Kids', keys: ['women', 'girls', 'kids'] },
-    { label: 'Men + Boys + Kids', keys: ['men', 'boys', 'kids'] },
+    { label: 'Kids only', keys: ['kids'] },
+    { label: 'Men + Women', keys: ['men', 'women'] },
+    { label: 'Women + Kids', keys: ['women', 'kids'] },
+    { label: 'Men + Kids', keys: ['men', 'kids'] },
 ];
 
 const DashboardSettings = () => {
@@ -30,9 +29,10 @@ const DashboardSettings = () => {
     const [deleteBanner] = useDeleteBannerMutation();
 
     const [brand, setBrand] = useState({ brandName: '', heroTagline: '', logoUrl: '', contactEmail: '', contactPhone: '' });
-    const [audienceImages, setAudienceImages] = useState({ women: '', men: '', girls: '', boys: '', kids: '', footwear: '' });
-    const [audienceHeroImages, setAudienceHeroImages] = useState({ women: '', men: '', girls: '', boys: '', kids: '' });
+    const [audienceImages, setAudienceImages] = useState({ men: '', women: '', kids: '', footwear: '' });
+    const [audienceHeroImages, setAudienceHeroImages] = useState({ men: '', women: '', kids: '' });
     const [activeAudiences, setActiveAudiences] = useState([...AUDIENCE_OPTS]);
+    const [announcement, setAnnouncement] = useState({ enabled: false, messages: [''], link: '', bgColor: '#0f172a', textColor: '#ffffff' });
     const [banner, setBanner] = useState(bannerBlank);
     const [msg, setMsg] = useState('');
 
@@ -40,9 +40,18 @@ const DashboardSettings = () => {
         const s = settingsData?.data?.settings;
         if (s) {
             setBrand({ brandName: s.brandName || '', heroTagline: s.heroTagline || '', logoUrl: s.logoUrl || '', contactEmail: s.contactEmail || '', contactPhone: s.contactPhone || '' });
-            setAudienceImages({ women: '', men: '', girls: '', boys: '', kids: '', footwear: '', ...(s.audienceImages || {}) });
-            setAudienceHeroImages({ women: '', men: '', girls: '', boys: '', kids: '', ...(s.audienceHeroImages || {}) });
+            setAudienceImages({ men: '', women: '', kids: '', footwear: '', ...(s.audienceImages || {}) });
+            setAudienceHeroImages({ men: '', women: '', kids: '', ...(s.audienceHeroImages || {}) });
             if (Array.isArray(s.activeAudiences) && s.activeAudiences.length) setActiveAudiences(s.activeAudiences);
+            const a = s.announcement || {};
+            setAnnouncement({
+                enabled: !!a.enabled,
+                // keep one empty row so there's always something to type into
+                messages: a.messages && a.messages.length ? a.messages : [''],
+                link: a.link || '',
+                bgColor: a.bgColor || '#0f172a',
+                textColor: a.textColor || '#ffffff',
+            });
         }
     }, [settingsData]);
 
@@ -55,8 +64,13 @@ const DashboardSettings = () => {
         e.preventDefault();
         setMsg('');
         const active = activeAudiences.length ? activeAudiences : [...AUDIENCE_OPTS];
+        // Drop blank message rows so the storefront never renders an empty strip.
+        const cleanAnnouncement = {
+            ...announcement,
+            messages: announcement.messages.map((m) => m.trim()).filter(Boolean),
+        };
         try {
-            await updateSettings({ ...brand, audienceImages, audienceHeroImages, activeAudiences: active }).unwrap();
+            await updateSettings({ ...brand, audienceImages, audienceHeroImages, activeAudiences: active, announcement: cleanAnnouncement }).unwrap();
             setMsg('Brand settings saved.');
         }
         catch (err) { setMsg(err?.data?.message || 'Failed.'); }
@@ -118,12 +132,79 @@ const DashboardSettings = () => {
                     <h3 className='font-semibold pt-4' style={titleFont}>Homepage Category Tile Images</h3>
                     <p className='text-sm text-text-light'>Override the "Shop by Category" tile images (Women is the large featured tile).</p>
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                        {['women', 'men', 'kids', 'girls', 'boys'].map((aud) => (
+                        {AUDIENCE_OPTS.map((aud) => (
                             <ImageInput key={aud} label={aud.charAt(0).toUpperCase() + aud.slice(1)}
                                 value={audienceImages[aud]}
                                 onChange={(url) => setAudienceImages((a) => ({ ...a, [aud]: url }))} />
                         ))}
                     </div>
+
+                    {/* Announcement bar */}
+                    <h3 className='font-semibold pt-4' style={titleFont}>Announcement Bar</h3>
+                    <p className='text-sm text-text-light'>A slim strip above the navigation. Add more than one message and they cross-fade. Shoppers can dismiss it for their session.</p>
+                    <label className='flex items-center gap-2 text-sm cursor-pointer'>
+                        <input type='checkbox' className='accent-primary w-4 h-4'
+                            checked={announcement.enabled}
+                            onChange={(e) => setAnnouncement((a) => ({ ...a, enabled: e.target.checked }))} />
+                        Show the announcement bar
+                    </label>
+
+                    <div className='space-y-2'>
+                        {announcement.messages.map((m, i) => (
+                            <div key={i} className='flex gap-2'>
+                                <input
+                                    placeholder={`Message ${i + 1} — e.g. Complimentary shipping over ₹999`}
+                                    value={m}
+                                    onChange={(e) => setAnnouncement((a) => ({
+                                        ...a,
+                                        messages: a.messages.map((x, xi) => (xi === i ? e.target.value : x)),
+                                    }))}
+                                    className={`${input} flex-1`}
+                                />
+                                {announcement.messages.length > 1 && (
+                                    <button type='button' aria-label='Remove message'
+                                        onClick={() => setAnnouncement((a) => ({ ...a, messages: a.messages.filter((_, xi) => xi !== i) }))}
+                                        className='px-3 rounded-lg border border-gray-200 hover:border-primary hover:text-primary'>
+                                        <i className='ri-delete-bin-6-line'></i>
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                        {announcement.messages.length < 6 && (
+                            <button type='button' className={ghostBtn}
+                                onClick={() => setAnnouncement((a) => ({ ...a, messages: [...a.messages, ''] }))}>
+                                + Add message
+                            </button>
+                        )}
+                    </div>
+
+                    <input placeholder='Link (optional) — e.g. /shop' value={announcement.link}
+                        onChange={(e) => setAnnouncement((a) => ({ ...a, link: e.target.value }))} className={input} />
+
+                    <div className='flex flex-wrap gap-6'>
+                        <label className='flex items-center gap-2 text-sm'>
+                            Background
+                            <input type='color' value={announcement.bgColor}
+                                onChange={(e) => setAnnouncement((a) => ({ ...a, bgColor: e.target.value }))}
+                                className='w-10 h-8 rounded border border-gray-200 bg-white' />
+                        </label>
+                        <label className='flex items-center gap-2 text-sm'>
+                            Text
+                            <input type='color' value={announcement.textColor}
+                                onChange={(e) => setAnnouncement((a) => ({ ...a, textColor: e.target.value }))}
+                                className='w-10 h-8 rounded border border-gray-200 bg-white' />
+                        </label>
+                    </div>
+
+                    {/* Live preview so colours can be judged before saving */}
+                    {announcement.enabled && announcement.messages.some((m) => m.trim()) && (
+                        <div className='rounded-lg overflow-hidden border border-gray-200'>
+                            <div className='text-center py-2 text-[0.72rem] uppercase tracking-[0.09em] font-medium'
+                                style={{ backgroundColor: announcement.bgColor, color: announcement.textColor }}>
+                                {announcement.messages.find((m) => m.trim())}
+                            </div>
+                        </div>
+                    )}
 
                     {msg && <p className='text-primary text-sm'>{msg}</p>}
                     <button className={primaryBtn}>Save Brand</button>

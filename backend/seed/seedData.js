@@ -1,5 +1,5 @@
 // Static seed dataset for Wearly — full-department catalog
-// (men / women / girls / boys / kids + unisex lifestyle).
+// (men / women / kids + unisex lifestyle; boys & girls are merged into kids).
 // Prices are in INR. Image URLs reuse known-good Unsplash assets so they load reliably.
 
 const IMG = {
@@ -53,20 +53,18 @@ const CATEGORIES = [
     { name: 'Jeans', audience: 'women', image: IMG.jeans, sortOrder: 5 },
     { name: 'Skirts', audience: 'women', image: IMG.skirt, sortOrder: 6 },
     { name: 'Handbags', audience: 'women', image: IMG.handbag, sortOrder: 7 },
-    // Boys
-    { name: 'T-Shirts', audience: 'boys', image: IMG.tshirt, sortOrder: 1 },
-    { name: 'Shirts', audience: 'boys', image: IMG.shirt, sortOrder: 2 },
-    { name: 'Jeans', audience: 'boys', image: IMG.jeans, sortOrder: 3 },
-    { name: 'Shorts', audience: 'boys', image: IMG.shorts, sortOrder: 4 },
-    // Girls
-    { name: 'Frocks', audience: 'girls', image: IMG.gown, sortOrder: 1 },
-    { name: 'Tops', audience: 'girls', image: IMG.cocktail, sortOrder: 2 },
-    { name: 'Dresses', audience: 'girls', image: IMG.dress, sortOrder: 3 },
-    { name: 'Leggings', audience: 'girls', image: IMG.leggings, sortOrder: 4 },
-    // Kids
+    // Kids (boys' and girls' styles both live here)
     { name: 'Kidswear', audience: 'kids', image: IMG.kids, sortOrder: 1 },
-    { name: 'Nightwear', audience: 'kids', image: IMG.hoodie, sortOrder: 2 },
-    { name: 'Rompers', audience: 'kids', image: IMG.romper, sortOrder: 3 },
+    { name: 'T-Shirts', audience: 'kids', image: IMG.tshirt, sortOrder: 2 },
+    { name: 'Shirts', audience: 'kids', image: IMG.shirt, sortOrder: 3 },
+    { name: 'Tops', audience: 'kids', image: IMG.cocktail, sortOrder: 4 },
+    { name: 'Frocks', audience: 'kids', image: IMG.gown, sortOrder: 5 },
+    { name: 'Dresses', audience: 'kids', image: IMG.dress, sortOrder: 6 },
+    { name: 'Jeans', audience: 'kids', image: IMG.jeans, sortOrder: 7 },
+    { name: 'Shorts', audience: 'kids', image: IMG.shorts, sortOrder: 8 },
+    { name: 'Leggings', audience: 'kids', image: IMG.leggings, sortOrder: 9 },
+    { name: 'Nightwear', audience: 'kids', image: IMG.hoodie, sortOrder: 10 },
+    { name: 'Rompers', audience: 'kids', image: IMG.romper, sortOrder: 11 },
     // Unisex lifestyle (shown on every department page)
     { name: 'Footwear', audience: 'unisex', image: IMG.sneakers, sortOrder: 1 },
     { name: 'Watches', audience: 'unisex', image: IMG.watch, sortOrder: 2 },
@@ -98,15 +96,15 @@ const PRODUCTS = [
     { name: 'Pleated Midi Skirt', audience: 'women', categoryName: 'Skirts', price: 1299, oldPrice: 1799, image: IMG.skirt, brand: 'Bloom', colors: ['beige', 'black'], sizes: ['S', 'M', 'L'], stock: 45, rating: 4.3, description: 'Flowy pleated midi skirt with elastic waist.' },
     { name: 'Leather Handbag', audience: 'women', categoryName: 'Handbags', price: 2499, oldPrice: 3199, image: IMG.handbag, brand: 'Carry', colors: ['black', 'beige'], sizes: [], stock: 50, rating: 4.5, isTrending: true, description: 'Stylish leather handbag with ample storage.' },
     // ---- Boys ----
-    { name: 'Graphic Kids Tee', audience: 'boys', categoryName: 'T-Shirts', price: 599, oldPrice: 899, image: IMG.tshirt, brand: 'Tiny Tots', colors: ['green', 'navy'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 85, rating: 4.3, isTrending: true, description: 'Fun printed t-shirt for active boys.' },
-    { name: 'Checked Boys Shirt', audience: 'boys', categoryName: 'Shirts', price: 799, oldPrice: 1099, image: IMG.shirt, brand: 'Tiny Tots', colors: ['blue', 'red'], sizes: ['2-3Y', '4-5Y', '6-7Y', '8-9Y'], stock: 60, rating: 4.2, description: 'Smart-casual checked shirt for little gentlemen.' },
-    { name: 'Boys Denim Jeans', audience: 'boys', categoryName: 'Jeans', price: 999, oldPrice: 1399, image: IMG.jeans, brand: 'Tiny Tots', colors: ['blue'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 70, rating: 4.4, description: 'Durable stretch denim built for playtime.' },
-    { name: 'Cotton Play Shorts', audience: 'boys', categoryName: 'Shorts', price: 549, oldPrice: 799, image: IMG.shorts, brand: 'Tiny Tots', colors: ['grey', 'navy'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 95, rating: 4.3, isTrending: true, description: 'Breathable cotton shorts for warm days.' },
+    { name: 'Graphic Kids Tee', audience: 'kids', categoryName: 'T-Shirts', price: 599, oldPrice: 899, image: IMG.tshirt, brand: 'Tiny Tots', colors: ['green', 'navy'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 85, rating: 4.3, isTrending: true, description: 'Fun printed t-shirt for active boys.' },
+    { name: 'Checked Boys Shirt', audience: 'kids', categoryName: 'Shirts', price: 799, oldPrice: 1099, image: IMG.shirt, brand: 'Tiny Tots', colors: ['blue', 'red'], sizes: ['2-3Y', '4-5Y', '6-7Y', '8-9Y'], stock: 60, rating: 4.2, description: 'Smart-casual checked shirt for little gentlemen.' },
+    { name: 'Boys Denim Jeans', audience: 'kids', categoryName: 'Jeans', price: 999, oldPrice: 1399, image: IMG.jeans, brand: 'Tiny Tots', colors: ['blue'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 70, rating: 4.4, description: 'Durable stretch denim built for playtime.' },
+    { name: 'Cotton Play Shorts', audience: 'kids', categoryName: 'Shorts', price: 549, oldPrice: 799, image: IMG.shorts, brand: 'Tiny Tots', colors: ['grey', 'navy'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 95, rating: 4.3, isTrending: true, description: 'Breathable cotton shorts for warm days.' },
     // ---- Girls ----
-    { name: 'Party Frock', audience: 'girls', categoryName: 'Frocks', price: 1299, oldPrice: 1699, image: IMG.gown, brand: 'Tiny Tots', colors: ['red', 'blue'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 55, rating: 4.4, isFeatured: true, description: 'Adorable party frock for little girls.' },
-    { name: 'Floral Girls Top', audience: 'girls', categoryName: 'Tops', price: 649, oldPrice: 899, image: IMG.cocktail, brand: 'Tiny Tots', colors: ['pink', 'white'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 80, rating: 4.2, description: 'Soft cotton top with a cheerful floral print.' },
-    { name: 'Polka Dot Dress', audience: 'girls', categoryName: 'Dresses', price: 1099, oldPrice: 1499, image: IMG.dress, brand: 'Tiny Tots', colors: ['red', 'yellow'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 60, rating: 4.5, isTrending: true, description: 'Twirl-worthy polka dot dress for special days.' },
-    { name: 'Stretch Leggings', audience: 'girls', categoryName: 'Leggings', price: 449, oldPrice: 699, image: IMG.leggings, brand: 'Tiny Tots', colors: ['black', 'pink'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 110, rating: 4.3, description: 'Comfy everyday leggings with a soft waistband.' },
+    { name: 'Party Frock', audience: 'kids', categoryName: 'Frocks', price: 1299, oldPrice: 1699, image: IMG.gown, brand: 'Tiny Tots', colors: ['red', 'blue'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 55, rating: 4.4, isFeatured: true, description: 'Adorable party frock for little girls.' },
+    { name: 'Floral Girls Top', audience: 'kids', categoryName: 'Tops', price: 649, oldPrice: 899, image: IMG.cocktail, brand: 'Tiny Tots', colors: ['pink', 'white'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 80, rating: 4.2, description: 'Soft cotton top with a cheerful floral print.' },
+    { name: 'Polka Dot Dress', audience: 'kids', categoryName: 'Dresses', price: 1099, oldPrice: 1499, image: IMG.dress, brand: 'Tiny Tots', colors: ['red', 'yellow'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 60, rating: 4.5, isTrending: true, description: 'Twirl-worthy polka dot dress for special days.' },
+    { name: 'Stretch Leggings', audience: 'kids', categoryName: 'Leggings', price: 449, oldPrice: 699, image: IMG.leggings, brand: 'Tiny Tots', colors: ['black', 'pink'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 110, rating: 4.3, description: 'Comfy everyday leggings with a soft waistband.' },
     // ---- Kids ----
     { name: 'Kids Cozy Hoodie', audience: 'kids', categoryName: 'Kidswear', price: 1099, oldPrice: 1499, image: IMG.hoodie, brand: 'Tiny Tots', colors: ['grey', 'blue'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 65, rating: 4.6, isFeatured: true, description: 'Warm fleece hoodie to keep kids cozy.' },
     { name: 'Star Print Nightsuit', audience: 'kids', categoryName: 'Nightwear', price: 899, oldPrice: 1199, image: IMG.kids, brand: 'Tiny Tots', colors: ['navy', 'grey'], sizes: ['2-3Y', '4-5Y', '6-7Y'], stock: 70, rating: 4.4, description: 'Soft cotton nightsuit for a snug bedtime.' },
@@ -124,6 +122,25 @@ const PRODUCTS = [
     { name: 'Canvas Tote Bag', audience: 'unisex', categoryName: 'Bags', price: 999, oldPrice: 1399, image: IMG.tote, brand: 'Carry', colors: ['beige', 'black'], sizes: [], stock: 85, rating: 4.3, description: 'Roomy everyday canvas tote for work & errands.' },
     { name: 'Urban Backpack', audience: 'unisex', categoryName: 'Bags', price: 1899, oldPrice: 2499, image: IMG.backpack, brand: 'Carry', colors: ['grey', 'navy'], sizes: [], stock: 60, rating: 4.6, isTrending: true, description: 'Water-resistant backpack with a padded laptop sleeve.' },
     { name: 'Baseball Cap', audience: 'unisex', categoryName: 'Caps & Hats', price: 599, oldPrice: 899, image: IMG.cap, brand: 'StepUp', colors: ['black', 'navy'], sizes: [], stock: 130, rating: 4.2, isTrending: true, description: 'Adjustable cotton baseball cap.' },
+
+    // ---- Lifestyle, per audience ----
+    // These sit in the SHARED unisex lifestyle categories (via `categoryAudience`) but carry a real
+    // audience, so the Footwear/Watches/Bags pages can be filtered by Men / Women / Kids / …
+    // and the items also surface on their own department pages.
+    { name: 'Mens Leather Derby Shoes', audience: 'men', categoryAudience: 'unisex', categoryName: 'Footwear', price: 3299, oldPrice: 4499, image: IMG.sneakers, brand: 'StepUp', colors: ['brown', 'black'], sizes: ['7', '8', '9', '10', '11'], stock: 55, rating: 4.6, isFeatured: true, description: 'Polished leather derby shoes for formal occasions.' },
+    { name: 'Mens Running Trainers', audience: 'men', categoryAudience: 'unisex', categoryName: 'Footwear', price: 2599, oldPrice: 3399, image: IMG.sneakers, brand: 'StepUp', colors: ['grey', 'navy'], sizes: ['7', '8', '9', '10'], stock: 80, rating: 4.5, isTrending: true, description: 'Breathable trainers with responsive cushioning.' },
+    { name: 'Womens Block Heels', audience: 'women', categoryAudience: 'unisex', categoryName: 'Footwear', price: 2399, oldPrice: 3199, image: IMG.heels, brand: 'StepUp', colors: ['nude', 'black'], sizes: ['4', '5', '6', '7'], stock: 65, rating: 4.5, isFeatured: true, description: 'Elegant block heels that stay comfortable all evening.' },
+    { name: 'Womens Slip-On Sneakers', audience: 'women', categoryAudience: 'unisex', categoryName: 'Footwear', price: 1899, oldPrice: 2499, image: IMG.sneakers, brand: 'StepUp', colors: ['white', 'blush'], sizes: ['4', '5', '6', '7', '8'], stock: 90, rating: 4.4, isTrending: true, description: 'Easy slip-on sneakers with a cushioned footbed.' },
+    { name: 'Kids Velcro Sneakers', audience: 'kids', categoryAudience: 'unisex', categoryName: 'Footwear', price: 1299, oldPrice: 1799, image: IMG.sneakers, brand: 'StepUp', colors: ['blue', 'red'], sizes: ['10', '11', '12', '13'], stock: 95, rating: 4.6, isTrending: true, description: 'Easy-fasten sneakers built for the playground.' },
+    { name: 'Boys Canvas Shoes', audience: 'kids', categoryAudience: 'unisex', categoryName: 'Footwear', price: 1099, oldPrice: 1499, image: IMG.sneakers, brand: 'StepUp', colors: ['navy', 'black'], sizes: ['11', '12', '13', '1'], stock: 70, rating: 4.3, description: 'Durable canvas shoes for everyday adventures.' },
+    { name: 'Girls Party Ballerinas', audience: 'kids', categoryAudience: 'unisex', categoryName: 'Footwear', price: 1199, oldPrice: 1599, image: IMG.heels, brand: 'StepUp', colors: ['pink', 'white'], sizes: ['11', '12', '13', '1'], stock: 60, rating: 4.5, isFeatured: true, description: 'Sparkly ballerina flats for parties and festivals.' },
+
+    { name: 'Mens Classic Leather Watch', audience: 'men', categoryAudience: 'unisex', categoryName: 'Watches', price: 4299, oldPrice: 5499, image: IMG.watch, brand: 'Tick', colors: ['brown', 'black'], sizes: [], stock: 40, rating: 4.7, isFeatured: true, description: 'Timeless leather-strap watch with a clean dial.' },
+    { name: 'Womens Rose Gold Watch', audience: 'women', categoryAudience: 'unisex', categoryName: 'Watches', price: 4599, oldPrice: 5999, image: IMG.watch2, brand: 'Tick', colors: ['rose gold'], sizes: [], stock: 35, rating: 4.8, isTrending: true, description: 'Slim rose-gold watch with a mesh bracelet.' },
+
+    { name: 'Mens Laptop Backpack', audience: 'men', categoryAudience: 'unisex', categoryName: 'Bags', price: 2199, oldPrice: 2899, image: IMG.backpack, brand: 'Carry', colors: ['black', 'grey'], sizes: [], stock: 65, rating: 4.6, isTrending: true, description: 'Structured backpack with a padded 15" laptop sleeve.' },
+    { name: 'Womens Shoulder Handbag', audience: 'women', categoryAudience: 'unisex', categoryName: 'Bags', price: 2499, oldPrice: 3299, image: IMG.handbag, brand: 'Carry', colors: ['tan', 'black'], sizes: [], stock: 50, rating: 4.7, isFeatured: true, description: 'Soft-grain shoulder bag with gold-tone hardware.' },
+    { name: 'Kids School Backpack', audience: 'kids', categoryAudience: 'unisex', categoryName: 'Bags', price: 1199, oldPrice: 1699, image: IMG.backpack, brand: 'Carry', colors: ['blue', 'pink'], sizes: [], stock: 85, rating: 4.4, description: 'Lightweight school backpack with padded straps.' },
 ];
 
 const SETTINGS = {

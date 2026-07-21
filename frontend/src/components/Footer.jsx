@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import instaImg1 from "../assets/instagram-1.jpg"
 import instaImg2 from "../assets/instagram-2.jpg"
 import instaImg3 from "../assets/instagram-3.jpg"
@@ -13,13 +13,17 @@ const insta = [instaImg1, instaImg2, instaImg3, instaImg4, instaImg5, instaImg6]
 
 const Footer = () => {
     const { isActive, settings, copy } = useActiveAudiences();
+    const { pathname } = useLocation();
     const brandName = settings?.brandName || 'Wearly';
     const [brandFirst, ...brandRest] = brandName.split(' ');
     const shopLinks = AUDIENCES.filter((a) => isActive(a.key));
+    // The newsletter is storefront marketing — it has no place in the dashboard.
+    const isDashboard = pathname.startsWith('/dashboard');
 
     return (
         <>
             {/* Newsletter band */}
+            {!isDashboard && (
             <section className='newsletter'>
                 <div className='newsletter__inner'>
                     <div>
@@ -32,6 +36,7 @@ const Footer = () => {
                     </form>
                 </div>
             </section>
+            )}
 
             <footer className='section__container footer__container'>
                 <div className='footer__col'>

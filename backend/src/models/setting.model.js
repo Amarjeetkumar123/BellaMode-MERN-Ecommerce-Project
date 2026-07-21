@@ -9,13 +9,11 @@ const settingSchema = new Schema({
     logoUrl: { type: String, default: '' },
     heroTagline: { type: String, default: 'Style for everyone.' },
     // Which shopper audiences the storefront serves (run a Men-only / Women+Girls / … store).
-    activeAudiences: { type: [String], default: ['women', 'men', 'kids', 'boys', 'girls'] },
+    activeAudiences: { type: [String], default: ['women', 'men', 'kids'] },
     // Optional lifestyle images for the homepage "Shop by Category" tiles, keyed by audience.
     audienceImages: {
         women: { type: String, default: '' },
         men: { type: String, default: '' },
-        girls: { type: String, default: '' },
-        boys: { type: String, default: '' },
         kids: { type: String, default: '' },
         footwear: { type: String, default: '' },
     },
@@ -23,9 +21,15 @@ const settingSchema = new Schema({
     audienceHeroImages: {
         women: { type: String, default: '' },
         men: { type: String, default: '' },
-        girls: { type: String, default: '' },
-        boys: { type: String, default: '' },
         kids: { type: String, default: '' },
+    },
+    // Slim promo/service strip above the navbar. Messages cross-fade on the storefront.
+    announcement: {
+        enabled: { type: Boolean, default: false },
+        messages: { type: [String], default: [] },
+        link: { type: String, default: '' },
+        bgColor: { type: String, default: '#0f172a' },
+        textColor: { type: String, default: '#ffffff' },
     },
     currency: { type: String, default: CURRENCY },
     contactEmail: String,

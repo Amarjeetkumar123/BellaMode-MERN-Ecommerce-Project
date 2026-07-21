@@ -58,6 +58,34 @@ async function deleteUserById(id) {
     return User.findByIdAndDelete(id);
 }
 
+// ---- wishlist (account-synced product refs on the user doc) ----
+
+// Returns the caller's wishlist with each product populated, newest saves last.
+async function getWishlist(userId) {
+    const user = await User.findById(userId).populate({
+        path: 'wishlist',
+        populate: { path: 'category', select: 'name slug audience' },
+    });
+    return user ? user.wishlist : [];
+}
+
+// $addToSet keeps the save idempotent — hearting twice is a no-op.
+async function addToWishlist(userId, productId) {
+    return User.findByIdAndUpdate(
+        userId,
+        { $addToSet: { wishlist: productId }, $set: { update_date: Date.now() } },
+        { new: true }
+    );
+}
+
+async function removeFromWishlist(userId, productId) {
+    return User.findByIdAndUpdate(
+        userId,
+        { $pull: { wishlist: productId }, $set: { update_date: Date.now() } },
+        { new: true }
+    );
+}
+
 module.exports = {
     getUsers,
     getUsersCount,
@@ -67,4 +95,7 @@ module.exports = {
     saveUser,
     updateUserById,
     deleteUserById,
+    getWishlist,
+    addToWishlist,
+    removeFromWishlist,
 };

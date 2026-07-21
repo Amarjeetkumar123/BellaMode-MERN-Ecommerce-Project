@@ -54,7 +54,10 @@ async function seedCategories() {
 async function seedProducts(categoryMap, authorId) {
     await Product.deleteMany({});
     const docs = PRODUCTS.map((p) => {
-        const categoryId = categoryMap.get(`${p.audience}::${p.categoryName}`);
+        // Lifestyle categories (Footwear, Watches, …) are shared `unisex` categories, but the
+        // products inside them carry a real audience so they can be filtered per department.
+        // `categoryAudience` lets a men's shoe live in the unisex Footwear category.
+        const categoryId = categoryMap.get(`${p.categoryAudience || p.audience}::${p.categoryName}`);
         return {
             name: p.name,
             slug: slugify(`${p.name}-${p.audience}`),

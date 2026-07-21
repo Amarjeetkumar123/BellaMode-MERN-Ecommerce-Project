@@ -792,35 +792,61 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 /* Left-aligned section heading with a "view all" action */
+/* Always used INSIDE .section__container, so it must not re-apply the
+   container's max-width/padding — doing so indents headings past the content. */
 .section-head {
-    max-width: var(--max-width-1400);
-    margin: 0 auto 2rem;
-    padding: 0 1rem;
+    margin: 0 0 1.75rem;
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
     gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .section-head h2 {
     font-family: var(--header-font);
-    font-size: 2rem;
-    font-weight: 800;
+    font-size: clamp(1.6rem, 2.6vw, 2.125rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
     color: var(--text-dark);
 }
 
 .section-head p {
     color: var(--text-light);
-    margin-top: 0.25rem;
-    font-size: 0.95rem;
+    margin-top: 0.35rem;
+    font-size: 0.9rem;
 }
 
 .section-head a {
     white-space: nowrap;
-    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
     color: var(--text-dark);
-    border-bottom: 2px solid var(--primary-color);
+    border-bottom: 1px solid var(--text-dark);
     padding-bottom: 2px;
+}
+
+.section-head a:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Small uppercase kicker above a heading — the backbone of the type system. */
+.eyebrow {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 500;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+}
+
+.eyebrow--light {
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .section-head a:hover {
@@ -2055,4 +2081,817 @@ input[type="number"]::-webkit-outer-spin-button {
     .deal-band__media {
         min-height: 240px;
     }
+}
+
+/* ============================================================
+   Commerce upgrade — modern premium retail
+   Flat ink signalling, minimal ornament, no red sale badges.
+   ============================================================ */
+
+/* ---- Announcement bar ----
+   Sits above the sticky navbar in normal flow, so it scrolls away naturally. */
+.announce {
+    position: relative;
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.announce__inner {
+    max-width: var(--max-width-1400);
+    margin: auto;
+    padding: 0.6rem 2.5rem;
+    text-align: center;
+    min-height: 2.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.announce__msg {
+    display: inline-block;
+    animation: announceFade 0.5s ease;
+}
+
+@keyframes announceFade {
+    from { opacity: 0; transform: translateY(3px); }
+    to   { opacity: 1; transform: none; }
+}
+
+.announce__link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+}
+
+.announce__close {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: inherit;
+    opacity: 0.6;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0.25rem;
+}
+
+.announce__close:hover { opacity: 1; }
+
+/* ---- Product card ---- */
+.pcard {
+    display: flex;
+    flex-direction: column;
+    background: var(--white);
+}
+
+.pcard__media {
+    position: relative;
+    overflow: hidden;
+    background: var(--extra-light);
+    aspect-ratio: 4 / 5;
+}
+
+.pcard__media img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+}
+
+.pcard:hover .pcard__media img { transform: scale(1.04); }
+
+
+.pcard__wish {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-content: center;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--text-dark);
+    font-size: 1.05rem;
+    line-height: 1;
+    opacity: 0;
+    transition: opacity 0.25s ease, color 0.2s ease;
+}
+
+.pcard:hover .pcard__wish,
+.pcard__wish.is-on,
+.pcard__wish:focus-visible { opacity: 1; }
+
+.pcard__wish.is-on { color: var(--primary-color); }
+
+/* Keep the heart reachable on touch devices, where there is no hover. */
+@media (hover: none) {
+    .pcard__wish { opacity: 1; }
+}
+
+.pcard__add {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--text-dark);
+    color: var(--white);
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    padding: 0.7rem 0;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+}
+
+.pcard:hover .pcard__add { transform: none; }
+
+@media (hover: none) {
+    .pcard__add { position: static; transform: none; }
+}
+
+.pcard__body {
+    padding: 0.75rem 0.15rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.28rem;
+}
+
+.pcard__brand {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.pcard__name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.pcard__price {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.1rem;
+}
+
+.pcard__now {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.pcard__was {
+    font-size: 0.78rem;
+    color: var(--text-light);
+}
+
+/* Muted ink, not the brand red — sale stays informative, never shouty. */
+.pcard__off {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #3f7d58;
+}
+
+.pcard__rating {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.7rem;
+    color: var(--text-light);
+}
+
+/* ---- Collection rail ---- */
+
+
+
+.rail__actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.rail__viewall {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+    color: var(--text-dark);
+    border-bottom: 1px solid var(--text-dark);
+    padding-bottom: 2px;
+}
+
+.rail__viewall:hover { color: var(--primary-color); border-color: var(--primary-color); }
+
+/* Square, thin-bordered controls — deliberately not chunky filled circles. */
+.rail__nav { display: none; gap: 0.4rem; }
+
+@media (min-width: 768px) {
+    .rail__nav { display: flex; }
+}
+
+.rail__nav button {
+    width: 2.25rem;
+    height: 2.25rem;
+    display: grid;
+    place-content: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 2px;
+    background: var(--white);
+    color: var(--text-dark);
+    font-size: 1.15rem;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.rail__nav button:hover:not(:disabled) {
+    border-color: var(--text-dark);
+}
+
+.rail__nav button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.rail__track {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 0.25rem;
+}
+
+.rail__track::-webkit-scrollbar { display: none; }
+
+.rail__item {
+    flex: 0 0 auto;
+    width: 65%;
+    scroll-snap-align: start;
+}
+
+@media (min-width: 640px) { .rail__item { width: 38%; } }
+@media (min-width: 1024px) { .rail__item { width: 23.5%; } }
+
+/* ---- Sticky filter/sort bar on department pages ---- */
+.filter-bar {
+    position: sticky;
+    top: 4.4rem;
+    z-index: 900;
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: saturate(180%) blur(10px);
+    border-bottom: 1px solid #eef1f5;
+}
+
+.filter-bar__inner {
+    max-width: var(--max-width-1400);
+    margin: auto;
+    padding: 0.85rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.filter-bar__group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.filter-bar__group::-webkit-scrollbar { display: none; }
+
+.filter-bar__label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--text-light);
+    white-space: nowrap;
+    margin-right: 0.15rem;
+}
+
+.filter-bar__meta {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    white-space: nowrap;
+}
+
+.filter-bar select {
+    border: 1px solid #e2e8f0;
+    border-radius: 2px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    background: var(--white);
+    color: var(--text-dark);
+}
+
+.filter-bar select:focus { outline: none; border-color: var(--text-dark); }
+
+/* Audience pills (used for the all-audience footwear/lifestyle pages) */
+.aud-pill {
+    font-size: 0.78rem;
+    padding: 0.35rem 0.85rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    color: var(--text-dark);
+    white-space: nowrap;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.aud-pill:hover { border-color: var(--text-dark); }
+
+.aud-pill--active {
+    background: var(--text-dark);
+    border-color: var(--text-dark);
+    color: var(--white);
+}
+
+/* ---- Department landing: subcategory row ---- */
+.subcat-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+@media (min-width: 640px) { .subcat-row { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .subcat-row { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+
+.subcat {
+    display: block;
+    text-align: center;
+}
+
+.subcat__media {
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: var(--extra-light);
+    border-radius: 2px;
+}
+
+.subcat__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.subcat:hover .subcat__media img { transform: scale(1.05); }
+
+.subcat__name {
+    margin-top: 0.6rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+/* ---- Wishlist page empty state ---- */
+.wish-empty {
+    text-align: center;
+    padding: 5rem 1rem;
+    color: var(--text-light);
+}
+
+.wish-empty i {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+/* ============================================================
+   Department page system — modern premium retail
+   ============================================================ */
+
+/* ---- Full editorial department hero (root + /categories/<audience>) ---- */
+.dept-hero {
+    position: relative;
+    min-height: min(72vh, 640px);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    color: #fff;
+    background: #111;
+}
+
+.dept-hero__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+    z-index: 0;
+    animation: heroZoom 18s ease-out forwards;
+}
+
+@keyframes heroZoom {
+    from { transform: scale(1.06); }
+    to   { transform: scale(1); }
+}
+
+/* Left-weighted scrim keeps the copy legible without greying the whole image. */
+.dept-hero__scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+        linear-gradient(90deg, rgba(8, 12, 20, 0.78) 0%, rgba(8, 12, 20, 0.45) 45%, rgba(8, 12, 20, 0.08) 100%),
+        linear-gradient(180deg, rgba(8, 12, 20, 0.35) 0%, rgba(8, 12, 20, 0.1) 40%);
+}
+
+.dept-hero__inner {
+    position: relative;
+    z-index: 2;
+    max-width: var(--max-width-1400);
+    width: 100%;
+    margin: 0 auto;
+    padding: 3rem 1rem;
+}
+
+.dept-hero__title {
+    font-family: var(--header-font);
+    font-size: clamp(2.25rem, 6vw, 4.25rem);
+    font-weight: 700;
+    line-height: 1.03;
+    letter-spacing: -0.02em;
+    max-width: 15ch;
+}
+
+.dept-hero__sub {
+    margin-top: 1rem;
+    max-width: 46ch;
+    font-size: clamp(0.95rem, 1.3vw, 1.075rem);
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+/* Outlined light CTA — restrained, no filled brand-red block on imagery. */
+.btn-ghost-light {
+    display: inline-block;
+    margin-top: 1.75rem;
+    padding: 0.85rem 2.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    border-radius: 2px;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.btn-ghost-light:hover {
+    background: #fff;
+    color: var(--text-dark);
+}
+
+.dept-hero__inner > .eyebrow,
+.dept-hero__title,
+.dept-hero__sub,
+.btn-ghost-light {
+    animation: heroRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.dept-hero__title { animation-delay: 0.08s; }
+.dept-hero__sub { animation-delay: 0.16s; }
+.btn-ghost-light { animation-delay: 0.24s; }
+
+@keyframes heroRise {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* ---- Compact header for listing / sub-category pages ---- */
+.page-head {
+    border-bottom: 1px solid #eef1f5;
+    background: var(--white);
+}
+
+.page-head__inner {
+    max-width: var(--max-width-1400);
+    margin: 0 auto;
+    padding: 2.5rem 1rem 1.75rem;
+}
+
+.page-head__crumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.page-head__crumbs a:hover { color: var(--text-dark); }
+.page-head__crumbs span { opacity: 0.55; }
+
+.page-head__title {
+    font-family: var(--header-font);
+    font-size: clamp(1.9rem, 4vw, 2.85rem);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    color: var(--text-dark);
+    margin-top: 0.65rem;
+}
+
+/* ---- Service promise strip ---- */
+.service-strip {
+    border-bottom: 1px solid #eef1f5;
+    background: var(--extra-light);
+}
+
+.service-strip__inner {
+    max-width: var(--max-width-1400);
+    margin: 0 auto;
+    padding: 0.85rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.service-strip__inner::-webkit-scrollbar { display: none; }
+
+.service-strip__inner span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    font-size: 0.76rem;
+    letter-spacing: 0.04em;
+    color: var(--text-light);
+}
+
+.service-strip__inner i {
+    font-size: 1rem;
+    color: var(--text-dark);
+}
+
+/* ---- Editorial break between the two rails ---- */
+.edit-band {
+    background: var(--text-dark);
+    color: #fff;
+}
+
+.edit-band__inner {
+    max-width: var(--max-width-1400);
+    margin: 0 auto;
+    padding: 3.5rem 1rem;
+    text-align: center;
+}
+
+.edit-band__inner h2 {
+    font-family: var(--header-font);
+    font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.edit-band__inner p {
+    margin: 0.75rem auto 0;
+    max-width: 52ch;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* ---- Nav polish: premium retail spacing & letterforms ---- */
+.nav__links .link a {
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.11em;
+}
+
+.nav__links { gap: 1.6rem; }
+
+.nav__logo a {
+    font-size: 1.6rem;
+    letter-spacing: -0.02em;
+}
+
+.nav__icons { gap: 1.4rem; }
+
+/* Tighter section rhythm than the old 5rem block padding. */
+.section__container { padding: 4rem 1rem; }
+
+@media (max-width: 640px) {
+    .section__container { padding: 2.75rem 1rem; }
+    .dept-hero { min-height: 62vh; }
+}
+
+/* ============================================================
+   Shop All — filter sidebar & pagination
+   ============================================================ */
+
+.shop-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+@media (min-width: 768px) {
+    .shop-layout {
+        flex-direction: row;
+        gap: 3rem;
+        align-items: flex-start;
+    }
+}
+
+/* ---- Filter sidebar ---- */
+.filters {
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .filters {
+        width: 15rem;
+        flex-shrink: 0;
+        position: sticky;
+        top: 8.5rem;
+    }
+}
+
+.filters__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.9rem;
+}
+
+.filters__head h3 {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.filters__clear {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    border-bottom: 1px solid currentColor;
+    transition: color 0.2s ease;
+}
+
+.filters__clear:hover { color: var(--primary-color); }
+
+.filter-group {
+    border-top: 1px solid #eef1f5;
+    padding: 1.15rem 0;
+}
+
+.filter-group__title {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.7rem;
+}
+
+.filter-opt {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.3rem 0;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: color 0.15s ease;
+    text-transform: capitalize;
+}
+
+.filter-opt:hover { color: var(--text-dark); }
+
+.filter-opt input {
+    accent-color: var(--text-dark);
+    width: 0.9rem;
+    height: 0.9rem;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.filter-opt--on {
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+/* Muted department tag next to a category name */
+.filter-opt__tag {
+    font-size: 0.68rem;
+    color: #b0b8c4;
+    text-transform: none;
+}
+
+/* Colour swatch dot */
+.filter-swatch {
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 999px;
+    border: 1px solid #dfe4ea;
+    flex-shrink: 0;
+}
+
+/* Scrollable list when a facet has lots of options */
+.filter-scroll {
+    max-height: 13rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+/* ---- Mobile filter toggle ---- */
+.filters__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 2px;
+    padding: 0.5rem 1rem;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dark);
+    background: var(--white);
+}
+
+@media (min-width: 768px) {
+    .filters__toggle { display: none; }
+    .filters__body { display: block !important; }
+}
+
+/* ---- Pagination ---- */
+.pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+}
+
+.pager button {
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.6rem;
+    display: grid;
+    place-content: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 2px;
+    background: var(--white);
+    color: var(--text-dark);
+    font-size: 0.82rem;
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.pager button:hover:not(:disabled):not(.pager__page--on) {
+    border-color: var(--text-dark);
+}
+
+.pager button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.pager__page--on {
+    background: var(--text-dark);
+    border-color: var(--text-dark);
+    color: var(--white);
+    font-weight: 500;
+}
+
+.pager__gap {
+    color: var(--text-light);
+    padding: 0 0.15rem;
+    user-select: none;
+}
+
+/* ---- Empty results ---- */
+.shop-empty {
+    text-align: center;
+    padding: 4.5rem 1rem;
+    color: var(--text-light);
+}
+
+.shop-empty i {
+    font-size: 2.75rem;
+    display: block;
+    margin-bottom: 0.75rem;
 }
