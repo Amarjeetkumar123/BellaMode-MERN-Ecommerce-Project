@@ -3,9 +3,11 @@ import OrderSummary from './OrderSummary'
 import { useDispatch } from 'react-redux'
 import { removeFromCart, updateQuantity } from '../../redux/features/cart/cartSlice';
 import { formatINR } from '../../utils/formatCurrency';
+import { useDrawer } from '../../hooks/useDrawer';
 
 const CartModel = ({ products, isOpen, onClose }) => {
     const dispatch = useDispatch();
+    useDrawer(isOpen, onClose);
     const handleQuantity = (type, id) => dispatch(updateQuantity({ type, _id: id }));
     const handleRemove = (e, id) => { e.preventDefault(); dispatch(removeFromCart({ _id: id })); };
 
@@ -19,6 +21,7 @@ const CartModel = ({ products, isOpen, onClose }) => {
             {/* Drawer — above the navbar */}
             <div
                 style={{ height: '100vh' }}
+                role='dialog' aria-modal='true' aria-label='Shopping cart'
                 className={`fixed z-[1002] right-0 top-0 md:w-[420px] w-full bg-white flex flex-col shadow-2xl transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
             >
                 {/* Header */}

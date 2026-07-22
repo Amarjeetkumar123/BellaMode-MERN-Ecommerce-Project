@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "../App";
 import CategoryPage from "../pages/category/CategoryPage";
+import NotFound from "../pages/NotFound";
 import Search from "../pages/search/Search";
 import ShopPage from "../pages/shop/ShopPage";
 import SingleProduct from "../pages/shop/productDetails/SingleProduct";
@@ -51,7 +52,10 @@ const router = createBrowserRouter([
                     { path: "manage-users", element: <PrivateRoute roles={["SUPERADMIN"]}><ManageUsers /></PrivateRoute> },
                 ],
             },
+            // Catch-all: unknown URLs render a branded 404 inside the normal layout.
+            { path: "*", element: <NotFound /> },
         ],
+        errorElement: <NotFound />,
     },
     { path: "/login", element: <Login /> },
     { path: "/register", element: <Register /> },

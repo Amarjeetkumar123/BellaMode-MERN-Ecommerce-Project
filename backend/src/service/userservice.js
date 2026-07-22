@@ -1,7 +1,19 @@
 const userDao = require('../dbhelper/userdao');
 const generateToken = require('../middleware/generateToken');
 const { asyncHandler, sendSuccess, sendError, buildPagination } = require('../utils/commonUtils');
-const { MESSAGES } = require('../constants/constants');
+const { MESSAGES, TOKEN_EXPIRY } = require('../constants/constants');
+
+// The JWT is delivered as an httpOnly cookie so page scripts (and therefore any
+// XSS) cannot read it. Cross-site deployments need COOKIE_SAMESITE=none +
+// COOKIE_SECURE=true; same-origin dev works with the lax default.
+const AUTH_COOKIE = 'token';
+const cookieOptions = () => ({
+    httpOnly: true,
+    secure: process.env.COOKIE_SECURE === 'true',
+    sameSite: process.env.COOKIE_SAMESITE || 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/',
+});
 
 // Shape a user document for API responses (never leak the password hash).
 function toPublicUser(user) {
@@ -35,11 +47,14 @@ exports.login = asyncHandler(async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) return sendError(res, 401, MESSAGES.INVALID_CREDENTIALS);
     const token = generateToken(user);
+    res.cookie(AUTH_COOKIE, token, cookieOptions());
+    // `token` stays in the body for non-browser API clients; browsers use the cookie.
     return sendSuccess(res, 200, MESSAGES.LOGIN_SUCCESS, { token, user: toPublicUser(user) });
 });
 
-// Token is stateless (Authorization header) — logout is a client-side clear.
+// Clears the httpOnly cookie; the JWT itself stays stateless.
 exports.logout = asyncHandler(async (req, res) => {
+    res.clearCookie(AUTH_COOKIE, { ...cookieOptions(), maxAge: undefined });
     return sendSuccess(res, 200, MESSAGES.LOGOUT_SUCCESS);
 });
 

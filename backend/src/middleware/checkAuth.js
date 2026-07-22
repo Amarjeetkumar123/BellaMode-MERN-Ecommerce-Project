@@ -6,7 +6,9 @@ const { TOKEN_SECRET, MESSAGES } = require('../constants/constants');
 // Uses the custom next(isSuccess, code, body) contract so it composes with and/or middleware.
 module.exports = (req, res, next) => {
     try {
-        let token = req.headers.authorization;
+        // Prefer the httpOnly cookie; the Authorization header remains supported
+        // for API clients and tooling.
+        let token = (req.cookies && req.cookies.token) || req.headers.authorization;
         if (!token) {
             return next(false, 401, { success: false, message: MESSAGES.AUTH_FAILED });
         }

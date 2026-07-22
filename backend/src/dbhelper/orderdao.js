@@ -40,10 +40,68 @@ async function updateOrderById(id, data) {
     return Order.findByIdAndUpdate(id, { $set: { ...data, update_date: Date.now() } }, { new: true });
 }
 
+
+// ---- analytics ----
+// Aggregated in Mongo so the dashboard never derives totals from a capped page.
+async function getOrderStats(sinceMs) {
+    const [totals] = await Order.aggregate([
+        { $group: { _id: null, revenue: { $sum: '$totalPrice' }, count: { $sum: 1 } } },
+    ]);
+
+    const byStatus = await Order.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]);
+
+    const windowMatch = { create_date: { $gte: sinceMs } };
+
+    const [windowTotals] = await Order.aggregate([
+        { $match: windowMatch },
+        { $group: { _id: null, revenue: { $sum: '$totalPrice' }, count: { $sum: 1 } } },
+    ]);
+
+    // One bucket per calendar day (UTC) within the window.
+    const daily = await Order.aggregate([
+        { $match: windowMatch },
+        {
+            $group: {
+                _id: { $dateToString: { format: '%Y-%m-%d', date: { $toDate: '$create_date' } } },
+                revenue: { $sum: '$totalPrice' },
+                count: { $sum: 1 },
+            },
+        },
+        { $sort: { _id: 1 } },
+    ]);
+
+    // Units sold per product, across every order.
+    const topProducts = await Order.aggregate([
+        { $unwind: '$items' },
+        {
+            $group: {
+                _id: '$items.name',
+                units: { $sum: '$items.quantity' },
+                revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
+            },
+        },
+        { $sort: { units: -1 } },
+        { $limit: 5 },
+    ]);
+
+    return {
+        revenueAll: totals?.revenue || 0,
+        ordersAll: totals?.count || 0,
+        revenueWindow: windowTotals?.revenue || 0,
+        ordersWindow: windowTotals?.count || 0,
+        byStatus: byStatus.map((s) => ({ status: s._id, count: s.count })),
+        daily: daily.map((d) => ({ date: d._id, revenue: d.revenue, count: d.count })),
+        topProducts: topProducts.map((t) => ({ name: t._id, units: t.units, revenue: t.revenue })),
+    };
+}
+
 module.exports = {
     getOrders,
     getOrdersCount,
     getOrderById,
     saveOrder,
     updateOrderById,
+    getOrderStats,
 };

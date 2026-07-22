@@ -7,6 +7,7 @@ import {
 } from '../../../redux/features/products/productsApi'
 import { useGetCategoriesQuery } from '../../../redux/features/categories/categoriesApi'
 import ImageInput from '../../../components/ImageInput'
+import AdminPager from './AdminPager'
 import { formatINR } from '../../../utils/formatCurrency'
 import { card, input, primaryBtn, ghostBtn, titleFont } from './adminUI'
 
@@ -14,19 +15,25 @@ const AUDIENCES = ['men', 'women', 'kids', 'unisex'];
 const blank = { name: '', description: '', price: '', oldPrice: '', audience: 'men', category: '', brand: '', colors: '', sizes: '', stock: '', image: '', isTrending: false, isFeatured: false };
 
 const ManageProducts = () => {
-    const { data, isLoading } = useGetProductsQuery({ limit: 100 });
+    const [page, setPage] = useState(1);
+    const [search, setSearch] = useState('');
+    // Search runs server-side: filtering only the current page would hide matches
+    // that live on other pages.
+    const q = search.trim();
+    const { data, isLoading } = useGetProductsQuery({ limit: 20, page, ...(q ? { search: q } : {}) });
     const { data: catData } = useGetCategoriesQuery();
     const [createProduct] = useCreateProductMutation();
     const [updateProduct] = useUpdateProductMutation();
     const [deleteProduct] = useDeleteProductMutation();
 
     const products = data?.data?.products || [];
+    const totalPages = data?.data?.totalPages || 1;
+    const total = data?.data?.total || products.length;
     const categories = catData?.data?.categories || [];
 
     const [form, setForm] = useState(blank);
     const [editingId, setEditingId] = useState(null);
     const [msg, setMsg] = useState('');
-    const [search, setSearch] = useState('');
     const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
     // Categories for the audience currently selected in the form.
@@ -44,14 +51,7 @@ const ManageProducts = () => {
         return { ...f, audience, category: stillValid ? f.category : '' };
     });
 
-    const q = search.trim().toLowerCase();
-    const filtered = q
-        ? products.filter((p) =>
-            p.name.toLowerCase().includes(q) ||
-            (p.brand || '').toLowerCase().includes(q) ||
-            (p.audience || '').toLowerCase().includes(q) ||
-            (p.category?.name || '').toLowerCase().includes(q))
-        : products;
+    const filtered = products;
 
     const startEdit = (p) => {
         setEditingId(p._id);
@@ -145,7 +145,7 @@ const ManageProducts = () => {
                     <i className='ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-text-light'></i>
                     <input
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                         placeholder='Search products by name, brand, category…'
                         className={`${input} !pl-9`}
                     />
@@ -188,6 +188,7 @@ const ManageProducts = () => {
                             </tbody>
                         </table>
                     </div>
+                    <AdminPager page={page} totalPages={totalPages} total={total} onChange={setPage} label='products' />
                 </div>
             )}
         </div>

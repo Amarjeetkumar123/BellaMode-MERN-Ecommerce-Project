@@ -8,7 +8,13 @@ const { ROLES } = require('../src/constants/constants');
 
 async function run() {
     const email = process.env.ADMIN_EMAIL || 'superadmin@wearly.com';
-    const password = process.env.ADMIN_PASSWORD || 'Admin@123';
+    const password = process.env.ADMIN_PASSWORD || (() => {
+        if ((process.env.NODE_ENV || 'development') !== 'development') {
+            throw new Error('ADMIN_PASSWORD must be set when NODE_ENV is not "development".');
+        }
+        console.warn('⚠  ADMIN_PASSWORD not set — using the dev-only default.');
+        return 'Admin@123';
+    })();
     const username = process.env.ADMIN_NAME || 'Wearly Superadmin';
 
     await connectDB();

@@ -5,12 +5,14 @@ import { addToCart } from '../../redux/features/cart/cartSlice'
 import { toCartProduct } from '../shop/ProductCard'
 import { formatINR } from '../../utils/formatCurrency'
 import { useWishlist } from '../../hooks/useWishlist'
+import { useDrawer } from '../../hooks/useDrawer'
 
 // Slide-in wishlist, mirroring CartModel: a sibling overlay + drawer so the
 // dim never gets trapped inside the navbar's stacking context.
 const WishlistDrawer = ({ isOpen, onClose }) => {
     const dispatch = useDispatch();
     const { items, toggle, isLoggedIn } = useWishlist();
+    useDrawer(isOpen, onClose);
 
     const handleAddToCart = (product) => dispatch(addToCart(toCartProduct(product)));
     const handleRemove = (id) => toggle(id);
@@ -25,6 +27,7 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
             {/* Drawer — above the navbar */}
             <div
                 style={{ height: '100vh' }}
+                role='dialog' aria-modal='true' aria-label='Wishlist'
                 className={`fixed z-[1002] right-0 top-0 md:w-[420px] w-full bg-white flex flex-col shadow-2xl transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
             >
                 {/* Header */}

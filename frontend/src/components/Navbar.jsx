@@ -11,6 +11,7 @@ import { useGetCategoriesQuery } from '../redux/features/categories/categoriesAp
 import { AUDIENCES, LIFESTYLE, FOOTWEAR_DEPT } from '../data/catalog';
 import { useActiveAudiences } from '../hooks/useActiveAudiences';
 import { useWishlist } from '../hooks/useWishlist';
+import { useDrawer } from '../hooks/useDrawer';
 
 const ADMIN_ROLES = ['ADMIN', 'SUPERADMIN'];
 const AUDIENCE_IMG = AUDIENCES.reduce((acc, a) => ({ ...acc, [a.key]: a.image }), {});
@@ -45,6 +46,9 @@ const Navbar = () => {
     const [openMenu, setOpenMenu] = useState(null); // audience key of the open mega-menu
     const [searchOpen, setSearchOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const closeMobile = () => setMobileOpen(false);
+    useDrawer(mobileOpen, closeMobile);
 
     const submitSearch = (e) => {
         e.preventDefault();
@@ -90,6 +94,17 @@ const Navbar = () => {
         <>
         <header className='fixed-nav-bar w-nav' onMouseLeave={() => setOpenMenu(null)}>
             <nav className='max-w-screen-2xl mx-auto px-4 py-3 flex justify-between items-center'>
+                {/* Mobile menu trigger — .nav__links is hidden under 900px, so without
+                    this there is no way to reach the departments on a phone. */}
+                <button
+                    className='nav__burger'
+                    aria-label='Open menu'
+                    aria-expanded={mobileOpen}
+                    onClick={() => setMobileOpen(true)}
+                >
+                    <i className='ri-menu-line'></i>
+                </button>
+
                 <ul className='nav__links'>
                     {/* Departments: the shopper audiences, then Footwear, then everything else. */}
                     {menu.map((m) => (
@@ -211,6 +226,61 @@ const Navbar = () => {
         </header>
         {isCartOpen && <CartModel products={products} isOpen={isCartOpen} onClose={handleCartToggle} />}
         {isWishlistOpen && <WishlistDrawer isOpen={isWishlistOpen} onClose={handleWishlistToggle} />}
+
+        {/* ---- Mobile menu ---- */}
+        {mobileOpen && (
+            <>
+                <div className='fixed z-[1000] inset-0 bg-black/50' onClick={closeMobile} />
+                <div className='mobile-nav' role='dialog' aria-modal='true' aria-label='Menu' style={{ height: '100vh' }}>
+                    <div className='mobile-nav__head'>
+                        <span className='mobile-nav__brand'>{brandName}</span>
+                        <button onClick={closeMobile} aria-label='Close menu'><i className='ri-close-line'></i></button>
+                    </div>
+
+                    <div className='mobile-nav__body'>
+                        {/* Each department, with its categories inline so nothing is buried */}
+                        {menu.map((m) => (
+                            <div key={m.key} className='mobile-nav__group'>
+                                <Link to={`/categories/${m.key}`} onClick={closeMobile} className='mobile-nav__dept'>
+                                    {m.label}
+                                </Link>
+                                <div className='mobile-nav__subs'>
+                                    {catsFor(m.key).slice(0, 8).map((c) => (
+                                        <Link key={c._id} to={`/categories/${c.slug}`} onClick={closeMobile}>{c.name}</Link>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+
+                        <div className='mobile-nav__group'>
+                            <span className='mobile-nav__label'>Footwear &amp; Lifestyle</span>
+                            <div className='mobile-nav__subs'>
+                                {(lifestyleCats.length ? lifestyleCats.map((c) => ({ slug: c.slug, name: c.name, id: c._id }))
+                                    : LIFESTYLE.map((l) => ({ slug: l.slug, name: l.label, id: l.key })))
+                                    .map((c) => (
+                                        <Link key={c.id} to={`/categories/${c.slug}`} onClick={closeMobile}>{c.name}</Link>
+                                    ))}
+                            </div>
+                        </div>
+
+                        <div className='mobile-nav__group'>
+                            <Link to='/shop' onClick={closeMobile} className='mobile-nav__dept'>Shop All</Link>
+                        </div>
+                    </div>
+
+                    <div className='mobile-nav__foot'>
+                        {user ? (
+                            <>
+                                <Link to='/dashboard' onClick={closeMobile}><i className='ri-user-line'></i> My Account</Link>
+                                <button onClick={() => { closeMobile(); handleLogout(); }}><i className='ri-logout-box-r-line'></i> Logout</button>
+                            </>
+                        ) : (
+                            <Link to='/login' onClick={closeMobile}><i className='ri-user-line'></i> Sign In</Link>
+                        )}
+                    </div>
+                </div>
+            </>
+        )}
         </>
     );
 };

@@ -15,6 +15,8 @@ router.post('/', andMiddleware([checkAuth, validateCreateOrderSchema]), orderSer
 router.get('/myorders', andMiddleware([checkAuth]), orderService.getMyOrders);
 
 // ---- admin ----
+// NOTE: must stay above `/:id`, otherwise "stats" is parsed as an order id.
+router.get('/stats', andMiddleware([checkAuth, checkRole(...ADMIN)]), orderService.getOrderStats);
 router.get('/', andMiddleware([checkAuth, checkRole(...ADMIN)]), orderService.getAllOrders);
 router.patch('/:id/status', andMiddleware([checkAuth, checkRole(...ADMIN), validateUpdateOrderStatusSchema]), orderService.updateOrderStatus);
 

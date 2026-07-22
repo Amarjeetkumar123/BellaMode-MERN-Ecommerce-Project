@@ -1,13 +1,17 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// Only the (non-sensitive) user profile is persisted, so the UI knows who is
+// signed in after a reload. The JWT lives in an httpOnly cookie and is
+// deliberately never written to localStorage.
 const loadFromLocalStorage = () => {
     try {
+        // Clear any token left over from the previous localStorage-based scheme.
+        localStorage.removeItem("token");
         const user = localStorage.getItem("user");
-        const token = localStorage.getItem("token");
-        return { user: user ? JSON.parse(user) : null, token: token || null };
+        return { user: user ? JSON.parse(user) : null };
     } catch (error) {
         console.error("Error loading auth from localStorage:", error);
-        return { user: null, token: null };
+        return { user: null };
     }
 };
 
@@ -18,19 +22,13 @@ const authSlice = createSlice({
     initialState,
     reducers: {
         setUser: (state, action) => {
-            const { user, token } = action.payload;
+            const { user } = action.payload;
             state.user = user;
             localStorage.setItem("user", JSON.stringify(user));
-            if (token) {
-                state.token = token;
-                localStorage.setItem("token", token);
-            }
         },
         logout: (state) => {
             state.user = null;
-            state.token = null;
             localStorage.removeItem("user");
-            localStorage.removeItem("token");
         },
     },
 });

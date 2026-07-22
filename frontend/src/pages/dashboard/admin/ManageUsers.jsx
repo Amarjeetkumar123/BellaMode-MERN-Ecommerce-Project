@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { useGetUsersQuery, useUpdateUserRoleMutation, useDeleteUserMutation } from '../../../redux/features/auth/authApi'
 import avatarImg from '../../../assets/avatar.png'
 import { card, input, titleFont } from './adminUI'
+import AdminPager from './AdminPager'
 
 const ROLES = ['USER', 'ADMIN', 'SUPERADMIN'];
 const ROLE_PILL = {
@@ -13,10 +14,13 @@ const ROLE_PILL = {
 
 const ManageUsers = () => {
     const { user: me } = useSelector((s) => s.auth);
-    const { data, isLoading } = useGetUsersQuery({ limit: 100 });
+    const [page, setPage] = useState(1);
+    const { data, isLoading } = useGetUsersQuery({ limit: 20, page });
     const [updateRole] = useUpdateUserRoleMutation();
     const [deleteUser] = useDeleteUserMutation();
     const users = data?.data?.users || [];
+    const totalPages = data?.data?.totalPages || 1;
+    const total = data?.data?.total || users.length;
 
     if (isLoading) return <p>Loading…</p>;
 
@@ -61,6 +65,7 @@ const ManageUsers = () => {
                         </tbody>
                     </table>
                 </div>
+                <AdminPager page={page} totalPages={totalPages} total={total} onChange={setPage} label='users' />
             </div>
         </div>
     );

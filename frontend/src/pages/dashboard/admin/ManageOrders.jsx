@@ -1,14 +1,18 @@
 import React from 'react'
 import { useGetAllOrdersQuery, useUpdateOrderStatusMutation } from '../../../redux/features/orders/ordersApi'
 import { formatINR } from '../../../utils/formatCurrency'
+import AdminPager from './AdminPager'
 import { card, input, titleFont, statusPill } from './adminUI'
 
 const STATUSES = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
 
 const ManageOrders = () => {
-    const { data, isLoading } = useGetAllOrdersQuery({ limit: 100 });
+    const [page, setPage] = useState(1);
+    const { data, isLoading } = useGetAllOrdersQuery({ limit: 20, page });
     const [updateStatus] = useUpdateOrderStatusMutation();
     const orders = data?.data?.orders || [];
+    const totalPages = data?.data?.totalPages || 1;
+    const total = data?.data?.total || orders.length;
 
     const handleStatus = async (id, status) => { await updateStatus({ id, status }); };
 
@@ -51,6 +55,7 @@ const ManageOrders = () => {
                             </tbody>
                         </table>
                     </div>
+                    <AdminPager page={page} totalPages={totalPages} total={total} onChange={setPage} label='orders' />
                 </div>
             )}
         </div>

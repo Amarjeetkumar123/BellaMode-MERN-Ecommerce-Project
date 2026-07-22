@@ -32,11 +32,15 @@ const SingleProduct = () => {
     const [comment, setComment] = useState('');
     const [msg, setMsg] = useState('');
     const [added, setAdded] = useState(false);
+    const [activeImg, setActiveImg] = useState(0);
 
     if (isLoading) return <div className='section__container'>Loading…</div>;
     if (isError || !product) return <div className='section__container'>Product not found.</div>;
 
     const image = (product.images && product.images[0]) || product.image;
+    // De-duplicated image list; falls back to the single image when that's all there is.
+    const gallery = [...new Set((product.images || []).filter(Boolean))];
+    if (gallery.length === 0 && image) gallery.push(image);
     const reviews = reviewData?.data?.reviews || [];
     const discount = product.oldPrice && product.oldPrice > product.price
         ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : 0;
@@ -79,15 +83,42 @@ const SingleProduct = () => {
                 </nav>
 
                 <div className='grid md:grid-cols-2 gap-10 lg:gap-16'>
-                    {/* Gallery */}
-                    <div className='relative'>
-                        <div className='rounded-2xl overflow-hidden bg-gray-50 aspect-[4/5]'>
-                            <img src={image} alt={product.name} className='w-full h-full object-cover' />
+                    {/* Gallery — thumbnails appear only when there's more than one image */}
+                    <div>
+                        <div className='relative rounded-2xl overflow-hidden bg-gray-50 aspect-[4/5]'>
+                            <img src={gallery[activeImg] || image} alt={product.name}
+                                className='w-full h-full object-cover' />
+                            {discount > 0 && (
+                                <span className='absolute top-4 left-4 bg-text-dark text-white text-xs font-semibold uppercase tracking-wider px-3 py-1.5 rounded'>
+                                    {discount}% off
+                                </span>
+                            )}
+                            {gallery.length > 1 && (
+                                <>
+                                    <button type='button' aria-label='Previous image' className='pdp-gal__nav left-3'
+                                        onClick={() => setActiveImg((i) => (i - 1 + gallery.length) % gallery.length)}>
+                                        <i className='ri-arrow-left-s-line'></i>
+                                    </button>
+                                    <button type='button' aria-label='Next image' className='pdp-gal__nav right-3'
+                                        onClick={() => setActiveImg((i) => (i + 1) % gallery.length)}>
+                                        <i className='ri-arrow-right-s-line'></i>
+                                    </button>
+                                </>
+                            )}
                         </div>
-                        {discount > 0 && (
-                            <span className='absolute top-4 left-4 bg-primary text-white text-sm font-semibold px-3 py-1.5 rounded-full'>
-                                -{discount}% OFF
-                            </span>
+
+                        {gallery.length > 1 && (
+                            <div className='pdp-thumbs'>
+                                {gallery.map((src, i) => (
+                                    <button key={src + i} type='button'
+                                        aria-label={`View image ${i + 1}`}
+                                        aria-current={i === activeImg}
+                                        className={`pdp-thumb ${i === activeImg ? 'is-on' : ''}`}
+                                        onClick={() => setActiveImg(i)}>
+                                        <img src={src} alt='' loading='lazy' />
+                                    </button>
+                                ))}
+                            </div>
                         )}
                     </div>
 

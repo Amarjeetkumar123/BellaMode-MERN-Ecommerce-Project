@@ -14,6 +14,10 @@ const ordersApi = createApi({
             query: () => ({ url: "/myorders", method: "GET" }),
             providesTags: ["Orders"],
         }),
+        getOrderStats: builder.query({
+            query: (params) => ({ url: "/stats", method: "GET", params }),
+            providesTags: ["Orders"],
+        }),
         getAllOrders: builder.query({
             query: (params) => ({ url: "/", method: "GET", params }),
             providesTags: ["Orders"],
@@ -32,6 +36,7 @@ export const {
     useCreateOrderMutation,
     useGetMyOrdersQuery,
     useGetAllOrdersQuery,
+    useGetOrderStatsQuery,
     useGetOrderQuery,
     useUpdateOrderStatusMutation,
 } = ordersApi;

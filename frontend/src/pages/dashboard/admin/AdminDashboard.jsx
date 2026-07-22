@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useGetProductsQuery } from '../../../redux/features/products/productsApi'
-import { useGetAllOrdersQuery } from '../../../redux/features/orders/ordersApi'
+import { useGetAllOrdersQuery, useGetOrderStatsQuery } from '../../../redux/features/orders/ordersApi'
 import { useGetCategoriesQuery } from '../../../redux/features/categories/categoriesApi'
 import { formatINR } from '../../../utils/formatCurrency'
 import { TrendChart, BarList, SERIES } from './Charts'
@@ -43,26 +43,25 @@ const AdminDashboard = () => {
     const [days, setDays] = useState(30);
 
     const { data: prod } = useGetProductsQuery({ limit: 100 });
-    const { data: orders } = useGetAllOrdersQuery({ limit: 200 });
+    // Totals come from a Mongo aggregation, NOT a page of orders — otherwise
+    // revenue silently under-reports once the store passes one page of results.
+    const { data: statsRes } = useGetOrderStatsQuery({ days });
+    const { data: orders } = useGetAllOrdersQuery({ limit: 5 });
     const { data: cats } = useGetCategoriesQuery();
 
+    const stats = statsRes?.data;
     const orderList = useMemo(() => orders?.data?.orders || [], [orders]);
     const productList = prod?.data?.products || [];
 
     const analytics = useMemo(() => {
+        // Zero-fill every day in the window so quiet days stay visible.
         const now = Date.now();
-        const cutoff = now - days * 86400000;
-        const inRange = orderList.filter((o) => Number(o.create_date) >= cutoff);
-
-        // --- revenue per day across the window (zero-filled so gaps stay visible) ---
         const byDay = new Map();
         for (let i = days - 1; i >= 0; i--) {
-            const d = new Date(now - i * 86400000);
-            byDay.set(d.toISOString().slice(0, 10), 0);
+            byDay.set(new Date(now - i * 86400000).toISOString().slice(0, 10), 0);
         }
-        inRange.forEach((o) => {
-            const key = new Date(Number(o.create_date)).toISOString().slice(0, 10);
-            if (byDay.has(key)) byDay.set(key, byDay.get(key) + (o.totalPrice || 0));
+        (stats?.daily || []).forEach((d) => {
+            if (byDay.has(d.date)) byDay.set(d.date, d.revenue);
         });
         const trend = [...byDay.entries()].map(([iso, value]) => {
             const d = new Date(iso);
@@ -73,12 +72,7 @@ const AdminDashboard = () => {
             };
         });
 
-        // --- order pipeline ---
-        const statusCount = {};
-        orderList.forEach((o) => {
-            const s = (o.status || 'PENDING').toUpperCase();
-            statusCount[s] = (statusCount[s] || 0) + 1;
-        });
+        const statusCount = Object.fromEntries((stats?.byStatus || []).map((s) => [(s.status || '').toUpperCase(), s.count]));
         const statusRows = STATUS_ORDER
             .filter((s) => statusCount[s])
             .map((s) => ({
@@ -87,32 +81,33 @@ const AdminDashboard = () => {
                 color: STATUS_COLOR[s],
             }));
 
-        // --- best sellers, by units actually ordered ---
-        const unitsByName = new Map();
-        orderList.forEach((o) => (o.items || []).forEach((it) => {
-            const n = it.name || 'Unknown';
-            unitsByName.set(n, (unitsByName.get(n) || 0) + (it.quantity || 0));
+        const topProducts = (stats?.topProducts || []).map((t) => ({
+            label: t.name,
+            value: t.units,
+            meta: t.units === 1 ? 'unit' : 'units',
         }));
-        const topProducts = [...unitsByName.entries()]
-            .sort((a, b) => b[1] - a[1]).slice(0, 5)
-            .map(([label, value]) => ({ label, value, meta: value === 1 ? 'unit' : 'units' }));
 
-        // --- catalogue mix by department ---
+        // Catalogue mix is a product-side metric, so it stays client-side.
         const audCount = {};
         productList.forEach((p) => { audCount[p.audience] = (audCount[p.audience] || 0) + 1; });
         const mix = Object.entries(audCount)
             .sort((a, b) => b[1] - a[1])
             .map(([k, v]) => ({ label: k.charAt(0).toUpperCase() + k.slice(1), value: v, meta: 'products' }));
 
-        const revenueWindow = inRange.reduce((s, o) => s + (o.totalPrice || 0), 0);
-        const revenueAll = orderList.reduce((s, o) => s + (o.totalPrice || 0), 0);
-        const aov = inRange.length ? Math.round(revenueWindow / inRange.length) : 0;
+        const ordersWindow = stats?.ordersWindow || 0;
+        const revenueWindow = stats?.revenueWindow || 0;
+        const aov = ordersWindow ? Math.round(revenueWindow / ordersWindow) : 0;
         const lowStock = productList.filter((p) => (p.stock ?? 0) <= 5).length;
 
-        return { trend, statusRows, topProducts, mix, revenueWindow, revenueAll, ordersWindow: inRange.length, aov, lowStock };
-    }, [orderList, productList, days]);
+        return {
+            trend, statusRows, topProducts, mix,
+            revenueWindow, revenueAll: stats?.revenueAll || 0,
+            ordersWindow, ordersAll: stats?.ordersAll || 0,
+            aov, lowStock,
+        };
+    }, [stats, productList, days]);
 
-    const recent = orderList.slice(0, 5);
+    const recent = orderList;
     const rangeLabel = RANGES.find((r) => r.days === days)?.label || `${days} days`;
 
     return (
@@ -139,7 +134,7 @@ const AdminDashboard = () => {
                     sub={`${formatINR(analytics.revenueAll)} all time`}
                     icon='ri-money-rupee-circle-line' tint='bg-green-100 text-green-600' />
                 <Stat label={`Orders · ${rangeLabel}`} value={analytics.ordersWindow}
-                    sub={`${orders?.data?.total ?? orderList.length} all time`}
+                    sub={`${analytics.ordersAll} all time`}
                     icon='ri-shopping-bag-line' tint='bg-indigo-100 text-indigo-600' />
                 <Stat label='Avg. order value' value={formatINR(analytics.aov)}
                     sub={rangeLabel} icon='ri-bar-chart-2-line' tint='bg-blue-100 text-blue-600' />

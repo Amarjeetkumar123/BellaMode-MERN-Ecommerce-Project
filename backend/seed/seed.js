@@ -11,13 +11,28 @@ const Product = require('../src/models/product.model');
 const Setting = require('../src/models/setting.model');
 const Banner = require('../src/models/banner.model');
 const Blog = require('../src/models/blog.model');
+const Order = require('../src/models/order.model');
 const { ROLES } = require('../src/constants/constants');
 const { slugify } = require('../src/utils/commonUtils');
 const { CATEGORIES, PRODUCTS, SETTINGS, BANNERS, BLOGS } = require('./seedData');
 
+// A weak default is fine for a local dev database but must never reach a real
+// deployment, so anything other than development requires an explicit password.
+function resolveAdminPassword() {
+    const fromEnv = process.env.ADMIN_PASSWORD;
+    if (fromEnv) return fromEnv;
+    if ((process.env.NODE_ENV || 'development') !== 'development') {
+        throw new Error(
+            'ADMIN_PASSWORD must be set when NODE_ENV is not "development" — refusing to seed a well-known default password.'
+        );
+    }
+    console.warn('⚠  ADMIN_PASSWORD not set — using the dev-only default. Set ADMIN_PASSWORD before deploying.');
+    return 'Admin@123';
+}
+
 async function seedSuperadmin() {
     const email = process.env.ADMIN_EMAIL || 'admin@wearly.com';
-    const password = process.env.ADMIN_PASSWORD || 'Admin@123';
+    const password = resolveAdminPassword();
     const username = process.env.ADMIN_NAME || 'Wearly Admin';
 
     let admin = await User.findOne({ email });
@@ -52,6 +67,13 @@ async function seedCategories() {
 }
 
 async function seedProducts(categoryMap, authorId) {
+    // Orders embed product refs, so wiping products without clearing orders
+    // leaves line items pointing at documents that no longer exist.
+    const orphaned = await Order.countDocuments({});
+    if (orphaned > 0) {
+        await Order.deleteMany({});
+        console.log(`✓ ${orphaned} order(s) cleared (their products are being replaced)`);
+    }
     await Product.deleteMany({});
     const docs = PRODUCTS.map((p) => {
         // Lifestyle categories (Footwear, Watches, …) are shared `unisex` categories, but the
