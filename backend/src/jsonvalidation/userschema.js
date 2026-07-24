@@ -39,6 +39,6 @@ exports.updateUserRoleSchema = {
     additionalProperties: false,
     required: ['role'],
     properties: {
-        role: { enum: ['SUPERADMIN', 'ADMIN', 'USER'] },
+        role: { enum: ['SUPERADMIN', 'SELLER', 'USER'] },
     },
 };

@@ -13,7 +13,7 @@ import { useActiveAudiences } from '../hooks/useActiveAudiences';
 import { useWishlist } from '../hooks/useWishlist';
 import { useDrawer } from '../hooks/useDrawer';
 
-const ADMIN_ROLES = ['ADMIN', 'SUPERADMIN'];
+const ADMIN_ROLES = ['SELLER', 'SUPERADMIN'];
 const AUDIENCE_IMG = AUDIENCES.reduce((acc, a) => ({ ...acc, [a.key]: a.image }), {});
 
 const Navbar = () => {

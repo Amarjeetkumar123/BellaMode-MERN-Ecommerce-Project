@@ -1,3 +1,5 @@
+const logger = require('../../config/logger');
+
 // Detects whether `next` is our custom next(isSuccess, code, body) or the plain express next().
 function checkIfNextIsCustomNext(next) {
     const match = next.toString().match(/\(([^)]*)\)/);
@@ -23,7 +25,7 @@ function fetchResponseForNextFailure(next, res, failResponseCode, failureReason)
             );
         }
     } catch (error) {
-        console.log(error);
+        logger.error(error.message, { stack: error.stack });
     }
 }
 

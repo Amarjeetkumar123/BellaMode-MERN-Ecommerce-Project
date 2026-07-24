@@ -6,13 +6,17 @@ const TOKEN_SECRET = process.env.JWT_SECRET;
 const TOKEN_EXPIRY = process.env.JWT_EXPIRY || '7d';
 
 const ROLES = {
-    SUPERADMIN: 'SUPERADMIN',
-    ADMIN: 'ADMIN',
-    USER: 'USER',
+    SUPERADMIN: 'SUPERADMIN', // platform owner — acts across all stores
+    SELLER: 'SELLER',         // shop owner — manages only their own store
+    USER: 'USER',             // customer
 };
 
-// Everyone who is allowed to manage the catalog / orders / cms.
-const ADMIN_ROLES = [ROLES.SUPERADMIN, ROLES.ADMIN];
+// Roles allowed to manage a store's catalog / orders / cms / settings.
+// (A SELLER is scoped to their own store by resolveStore; a SUPERADMIN can act on any.)
+const SELLER_ROLES = [ROLES.SUPERADMIN, ROLES.SELLER];
+
+// Back-compat alias — same set, clearer name at call sites that predate multi-seller.
+const ADMIN_ROLES = SELLER_ROLES;
 
 // The audiences a product/category can target (unisex store).
 const AUDIENCES = ['men', 'women', 'kids', 'unisex'];
@@ -66,6 +70,7 @@ module.exports = {
     TOKEN_SECRET,
     TOKEN_EXPIRY,
     ROLES,
+    SELLER_ROLES,
     ADMIN_ROLES,
     AUDIENCES,
     ORDER_STATUS,

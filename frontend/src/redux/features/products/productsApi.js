@@ -10,6 +10,11 @@ const productsApi = createApi({
             query: (params) => ({ url: "/", method: "GET", params }),
             providesTags: ["Products"],
         }),
+        // Seller dashboard — only the caller's own store (store-scoped server-side).
+        getMyProducts: builder.query({
+            query: (params) => ({ url: "/mine", method: "GET", params }),
+            providesTags: ["Products"],
+        }),
         getProductFilters: builder.query({
             query: (params) => ({ url: "/filters", method: "GET", params }),
         }),
@@ -34,6 +39,7 @@ const productsApi = createApi({
 
 export const {
     useGetProductsQuery,
+    useGetMyProductsQuery,
     useGetProductFiltersQuery,
     useGetProductQuery,
     useCreateProductMutation,

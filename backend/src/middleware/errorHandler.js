@@ -1,7 +1,9 @@
+const logger = require('../config/logger');
+
 // Centralized error handler — standard express (err, req, res, next) signature; mounted last.
 // eslint-disable-next-line no-unused-vars
 module.exports = (err, req, res, next) => {
-    console.error(err);
+    logger.error(`${req.method} ${req.originalUrl} — ${err.message}`, { stack: err.stack });
 
     // Mongoose duplicate key
     if (err.code === 11000) {

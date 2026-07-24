@@ -5,7 +5,7 @@ import avatarImg from '../../../assets/avatar.png'
 import { card, input, titleFont } from './adminUI'
 import AdminPager from './AdminPager'
 
-const ROLES = ['USER', 'ADMIN', 'SUPERADMIN'];
+const ROLES = ['USER', 'SELLER', 'SUPERADMIN'];
 const ROLE_PILL = {
     SUPERADMIN: 'bg-purple-100 text-purple-700',
     ADMIN: 'bg-blue-100 text-blue-700',

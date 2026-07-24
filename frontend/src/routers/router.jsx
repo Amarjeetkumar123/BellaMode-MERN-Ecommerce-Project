@@ -22,7 +22,7 @@ import AddNewPost from "../pages/dashboard/admin/AddNewPost";
 import DashboardSettings from "../pages/dashboard/admin/DashboardSettings";
 import ManageUsers from "../pages/dashboard/admin/ManageUsers";
 
-const ADMIN = ["ADMIN", "SUPERADMIN"];
+const STORE_MGR = ["SELLER", "SUPERADMIN"];
 
 const router = createBrowserRouter([
     {
@@ -43,12 +43,12 @@ const router = createBrowserRouter([
                     { path: "", element: <UserDashboard /> },
                     { path: "profile", element: <Profile /> },
                     { path: "orders", element: <MyOrders /> },
-                    { path: "admin", element: <PrivateRoute roles={ADMIN}><AdminDashboard /></PrivateRoute> },
-                    { path: "manage-products", element: <PrivateRoute roles={ADMIN}><ManageProducts /></PrivateRoute> },
-                    { path: "manage-categories", element: <PrivateRoute roles={ADMIN}><ManageCategories /></PrivateRoute> },
-                    { path: "manage-orders", element: <PrivateRoute roles={ADMIN}><ManageOrders /></PrivateRoute> },
-                    { path: "add-new-post", element: <PrivateRoute roles={ADMIN}><AddNewPost /></PrivateRoute> },
-                    { path: "settings", element: <PrivateRoute roles={ADMIN}><DashboardSettings /></PrivateRoute> },
+                    { path: "admin", element: <PrivateRoute roles={STORE_MGR}><AdminDashboard /></PrivateRoute> },
+                    { path: "manage-products", element: <PrivateRoute roles={STORE_MGR}><ManageProducts /></PrivateRoute> },
+                    { path: "manage-categories", element: <PrivateRoute roles={STORE_MGR}><ManageCategories /></PrivateRoute> },
+                    { path: "manage-orders", element: <PrivateRoute roles={STORE_MGR}><ManageOrders /></PrivateRoute> },
+                    { path: "add-new-post", element: <PrivateRoute roles={STORE_MGR}><AddNewPost /></PrivateRoute> },
+                    { path: "settings", element: <PrivateRoute roles={STORE_MGR}><DashboardSettings /></PrivateRoute> },
                     { path: "manage-users", element: <PrivateRoute roles={["SUPERADMIN"]}><ManageUsers /></PrivateRoute> },
                 ],
             },

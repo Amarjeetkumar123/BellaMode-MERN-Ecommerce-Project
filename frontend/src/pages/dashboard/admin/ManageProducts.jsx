@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import {
-    useGetProductsQuery,
+    useGetMyProductsQuery,
     useCreateProductMutation,
     useUpdateProductMutation,
     useDeleteProductMutation,
 } from '../../../redux/features/products/productsApi'
-import { useGetCategoriesQuery } from '../../../redux/features/categories/categoriesApi'
+import { useGetMyCategoriesQuery } from '../../../redux/features/categories/categoriesApi'
 import ImageInput from '../../../components/ImageInput'
 import AdminPager from './AdminPager'
 import { formatINR } from '../../../utils/formatCurrency'
@@ -20,8 +20,8 @@ const ManageProducts = () => {
     // Search runs server-side: filtering only the current page would hide matches
     // that live on other pages.
     const q = search.trim();
-    const { data, isLoading } = useGetProductsQuery({ limit: 20, page, ...(q ? { search: q } : {}) });
-    const { data: catData } = useGetCategoriesQuery();
+    const { data, isLoading } = useGetMyProductsQuery({ limit: 20, page, ...(q ? { search: q } : {}) });
+    const { data: catData } = useGetMyCategoriesQuery();
     const [createProduct] = useCreateProductMutation();
     const [updateProduct] = useUpdateProductMutation();
     const [deleteProduct] = useDeleteProductMutation();

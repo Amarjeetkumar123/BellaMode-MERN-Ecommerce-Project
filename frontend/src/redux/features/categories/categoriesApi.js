@@ -10,6 +10,11 @@ const categoriesApi = createApi({
             query: (params) => ({ url: "/", method: "GET", params }),
             providesTags: ["Categories"],
         }),
+        // Seller dashboard — only the caller's own store.
+        getMyCategories: builder.query({
+            query: (params) => ({ url: "/mine", method: "GET", params }),
+            providesTags: ["Categories"],
+        }),
         createCategory: builder.mutation({
             query: (body) => ({ url: "/", method: "POST", body }),
             invalidatesTags: ["Categories"],
@@ -27,6 +32,7 @@ const categoriesApi = createApi({
 
 export const {
     useGetCategoriesQuery,
+    useGetMyCategoriesQuery,
     useCreateCategoryMutation,
     useUpdateCategoryMutation,
     useDeleteCategoryMutation,

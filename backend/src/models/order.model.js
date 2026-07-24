@@ -1,5 +1,6 @@
 const { Schema, model } = require('mongoose');
 const { withMsTimestamps } = require('./modelHelpers');
+const { tenantPlugin } = require('../context/storeContext');
 const { ORDER_STATUS, PAYMENT_METHOD, PAYMENT_STATUS, CURRENCY } = require('../constants/constants');
 
 const orderItemSchema = new Schema(
@@ -30,6 +31,9 @@ const shippingAddressSchema = new Schema(
 );
 
 const orderSchema = new Schema({
+    // The store this order is fulfilled by. Phase 1 is one store per order; a
+    // marketplace cart spanning sellers is split into per-store orders in a later phase.
+    store: { type: Schema.Types.ObjectId, ref: 'Store', required: true, index: true },
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     items: { type: [orderItemSchema], required: true },
     itemsPrice: { type: Number, required: true },
@@ -62,6 +66,8 @@ const orderSchema = new Schema({
 
 withMsTimestamps(orderSchema);
 orderSchema.index({ user: 1, create_date: -1 });
+orderSchema.index({ store: 1, create_date: -1 });
+orderSchema.plugin(tenantPlugin);
 
 const Order = model('Order', orderSchema);
 module.exports = Order;

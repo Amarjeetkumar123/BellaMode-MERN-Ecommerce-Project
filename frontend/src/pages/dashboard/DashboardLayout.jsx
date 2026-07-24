@@ -5,7 +5,7 @@ import avatarImg from '../../assets/avatar.png'
 import { useLogoutUserMutation } from '../../redux/features/auth/authApi'
 import { logout } from '../../redux/features/auth/authSlice'
 
-const ADMIN_ROLES = ['ADMIN', 'SUPERADMIN'];
+const ADMIN_ROLES = ['SELLER', 'SUPERADMIN'];
 
 const DashboardLayout = () => {
     const { user } = useSelector((s) => s.auth);

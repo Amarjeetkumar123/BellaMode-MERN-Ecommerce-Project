@@ -1,9 +1,11 @@
 const { Schema, model } = require('mongoose');
 const { withMsTimestamps } = require('./modelHelpers');
+const { tenantPlugin } = require('../context/storeContext');
 const { BANNER_POSITION } = require('../constants/constants');
 
-// Homepage content blocks (hero/promo/deal) — admin-managed, drives dynamic sections.
+// Homepage content blocks (hero/promo/deal) — store-managed, drives dynamic sections.
 const bannerSchema = new Schema({
+    store: { type: Schema.Types.ObjectId, ref: 'Store', required: true, index: true },
     title: { type: String, default: '' },
     subtitle: { type: String, default: '' },
     image: { type: String, default: '' },
@@ -19,6 +21,7 @@ const bannerSchema = new Schema({
 });
 
 withMsTimestamps(bannerSchema);
+bannerSchema.plugin(tenantPlugin);
 
 const Banner = model('Banner', bannerSchema);
 module.exports = Banner;

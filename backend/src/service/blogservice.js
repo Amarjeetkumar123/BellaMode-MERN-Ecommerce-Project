@@ -6,7 +6,7 @@ async function uniqueSlug(title) {
     let candidate = slug;
     let i = 1;
     // eslint-disable-next-line no-await-in-loop
-    while (await blogDao.getBlogBySlug(candidate)) {
+    while (await blogDao.getBlogBySlug(candidate, { global: true })) {
         candidate = `${slug}-${i++}`;
     }
     return candidate;
@@ -33,20 +33,20 @@ exports.getBlog = asyncHandler(async (req, res) => {
 
 exports.createBlog = asyncHandler(async (req, res) => {
     const slug = await uniqueSlug(req.body.title);
-    const blog = await blogDao.saveBlog({ ...req.body, slug, author: req.userId, authorName: req.name });
+    const blog = await blogDao.saveBlog({ ...req.body, slug, store: req.storeId, author: req.userId, authorName: req.name });
     return sendSuccess(res, 201, 'Blog created successfully.', { blog });
 });
 
 exports.updateBlog = asyncHandler(async (req, res) => {
     const data = { ...req.body };
     if (data.title) data.slug = await uniqueSlug(data.title);
-    const blog = await blogDao.updateBlogById(req.params.id, data);
+    const blog = await blogDao.updateBlogById(req.params.id, data, req.storeId);
     if (!blog) return sendError(res, 404, 'Blog not found.');
     return sendSuccess(res, 200, 'Blog updated successfully.', { blog });
 });
 
 exports.deleteBlog = asyncHandler(async (req, res) => {
-    const blog = await blogDao.deleteBlogById(req.params.id);
+    const blog = await blogDao.deleteBlogById(req.params.id, req.storeId);
     if (!blog) return sendError(res, 404, 'Blog not found.');
     return sendSuccess(res, 200, 'Blog deleted successfully.');
 });

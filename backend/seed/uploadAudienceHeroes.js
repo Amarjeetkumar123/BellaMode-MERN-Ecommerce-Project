@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
 const connectDB = require('../src/config/db');
+const logger = require('../src/config/logger');
 const Setting = require('../src/models/setting.model');
 const { cloudinary, isCloudinaryConfigured } = require('../src/config/cloudinary');
 
@@ -27,7 +28,7 @@ function findFile(aud) {
 
 async function run() {
     if (!isCloudinaryConfigured()) {
-        console.error('✗ Cloudinary is not configured (set CLOUDINARY_CLOUD_NAME / API_KEY / API_SECRET in .env).');
+        logger.error('✗ Cloudinary is not configured (set CLOUDINARY_CLOUD_NAME / API_KEY / API_SECRET in .env).');
         process.exit(1);
     }
     await connectDB();
@@ -35,29 +36,29 @@ async function run() {
     const heroes = {};
     for (const aud of AUDIENCES) {
         const file = findFile(aud);
-        if (!file) { console.log(`– hero-${aud}: no file found, skipping`); continue; }
+        if (!file) { logger.info(`– hero-${aud}: no file found, skipping`); continue; }
         process.stdout.write(`↑ uploading hero-${aud} … `);
         const res = await cloudinary.uploader.upload(file, { folder: 'wearly/heroes' });
         heroes[aud] = res.secure_url;
-        console.log(res.secure_url);
+        logger.info(res.secure_url);
     }
 
     if (!Object.keys(heroes).length) {
-        console.log('\nNothing uploaded. Add hero-<audience>.jpg files to frontend/src/assets/images/.');
+        logger.info('\nNothing uploaded. Add hero-<audience>.jpg files to frontend/src/assets/images/.');
         await mongoose.connection.close();
         process.exit(0);
     }
 
     const setKeys = Object.fromEntries(Object.entries(heroes).map(([k, v]) => [`audienceHeroImages.${k}`, v]));
     await Setting.findOneAndUpdate({ key: 'brand' }, { $set: { ...setKeys, update_date: Date.now() } }, { upsert: true });
-    console.log(`\n✓ Saved ${Object.keys(heroes).length} hero image URL(s) to settings.audienceHeroImages`);
+    logger.info(`\n✓ Saved ${Object.keys(heroes).length} hero image URL(s) to settings.audienceHeroImages`);
 
     await mongoose.connection.close();
     process.exit(0);
 }
 
 run().catch(async (err) => {
-    console.error('Upload failed:', err.message);
+    logger.error('Upload failed:', err.message);
     await mongoose.connection.close();
     process.exit(1);
 });

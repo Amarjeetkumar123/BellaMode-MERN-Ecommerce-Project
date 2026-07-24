@@ -4,6 +4,7 @@ class ProductFilter extends BaseFilter {
     constructor() {
         super();
         this.productIdArray = undefined;
+        this.storeArray = undefined;
         this.slugArray = undefined;
         this.audienceArray = undefined;
         this.categoryArray = undefined;

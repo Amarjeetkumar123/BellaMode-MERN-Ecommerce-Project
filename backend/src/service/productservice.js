@@ -15,7 +15,7 @@ async function uniqueSlug(name) {
     let candidate = slug;
     let i = 1;
     // eslint-disable-next-line no-await-in-loop
-    while (await productDao.getProductBySlug(candidate)) {
+    while (await productDao.getProductBySlug(candidate, { global: true })) {
         candidate = `${slug}-${i++}`;
     }
     return candidate;
@@ -50,20 +50,36 @@ async function buildProductFilter(query, { activeOnly } = {}) {
     return filter;
 }
 
-exports.listProducts = asyncHandler(async (req, res) => {
+// Shared list runner. `storeId` scopes to one store (seller dashboard); omitted →
+// global marketplace list. `activeOnly` hides inactive products from shoppers.
+async function runProductList(req, { storeId, activeOnly }) {
     const pagination = buildPagination(req.query);
     const sort = buildSort(req.query);
-    const filter = await buildProductFilter(req.query, { activeOnly: true });
+    const filter = await buildProductFilter(req.query, { activeOnly });
+    if (storeId) filter.storeArray = [storeId];
     const [products, total] = await Promise.all([
         productDao.getProducts(filter, undefined, sort, pagination, { path: 'category', select: 'name slug audience' }),
         productDao.getProductsCount(filter),
     ]);
-    return sendSuccess(res, 200, 'OK', {
+    return {
         products,
         total,
         page: pagination.page_number,
         totalPages: Math.ceil(total / pagination.page_size),
-    });
+    };
+}
+
+// GET /api/products — public marketplace, aggregated across all stores.
+exports.listProducts = asyncHandler(async (req, res) => {
+    const data = await runProductList(req, { activeOnly: true });
+    return sendSuccess(res, 200, 'OK', data);
+});
+
+// GET /api/products/mine — a seller's own catalogue (req.storeId from resolveStore),
+// including inactive products so they can manage everything.
+exports.listMyProducts = asyncHandler(async (req, res) => {
+    const data = await runProductList(req, { storeId: req.storeId });
+    return sendSuccess(res, 200, 'OK', data);
 });
 
 // Dynamic facets for the storefront filter sidebar.
@@ -84,20 +100,22 @@ exports.getProduct = asyncHandler(async (req, res) => {
 
 exports.createProduct = asyncHandler(async (req, res) => {
     const slug = await uniqueSlug(req.body.name);
-    const product = await productDao.saveProduct({ ...req.body, slug, author: req.userId });
+    // store + author come from the authenticated seller context, never the body.
+    const product = await productDao.saveProduct({ ...req.body, slug, store: req.storeId, author: req.userId });
     return sendSuccess(res, 201, 'Product created successfully.', { product });
 });
 
 exports.updateProduct = asyncHandler(async (req, res) => {
     const data = { ...req.body };
     if (data.name) data.slug = await uniqueSlug(data.name);
-    const product = await productDao.updateProductById(req.params.id, data);
+    // Scoped to the caller's store — another store's id resolves to null → 404.
+    const product = await productDao.updateProductById(req.params.id, data, req.storeId);
     if (!product) return sendError(res, 404, 'Product not found.');
     return sendSuccess(res, 200, 'Product updated successfully.', { product });
 });
 
 exports.deleteProduct = asyncHandler(async (req, res) => {
-    const product = await productDao.deleteProductById(req.params.id);
+    const product = await productDao.deleteProductById(req.params.id, req.storeId);
     if (!product) return sendError(res, 404, 'Product not found.');
     return sendSuccess(res, 200, 'Product deleted successfully.');
 });

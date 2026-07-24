@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import {
-    useGetCategoriesQuery,
+    useGetMyCategoriesQuery,
     useCreateCategoryMutation,
     useUpdateCategoryMutation,
     useDeleteCategoryMutation,
@@ -12,7 +12,7 @@ const AUDIENCES = ['men', 'women', 'kids', 'unisex'];
 const blank = { name: '', audience: 'men', image: '', sortOrder: 0 };
 
 const ManageCategories = () => {
-    const { data, isLoading } = useGetCategoriesQuery();
+    const { data, isLoading } = useGetMyCategoriesQuery();
     const [createCategory] = useCreateCategoryMutation();
     const [updateCategory] = useUpdateCategoryMutation();
     const [deleteCategory] = useDeleteCategoryMutation();

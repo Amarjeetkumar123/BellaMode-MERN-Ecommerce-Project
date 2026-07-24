@@ -2,9 +2,12 @@ const { Schema, model } = require('mongoose');
 const { withMsTimestamps } = require('./modelHelpers');
 const { CURRENCY } = require('../constants/constants');
 
-// Singleton brand/site settings — a single document powers dynamic branding.
+// Per-store brand/site settings — one document per store powers that store's
+// dynamic branding. (Was a singleton keyed by 'brand'; now keyed by `store`.)
 const settingSchema = new Schema({
-    key: { type: String, default: 'brand', unique: true },
+    store: { type: Schema.Types.ObjectId, ref: 'Store', required: true, unique: true, index: true },
+    // Legacy singleton key, kept nullable for the migration; no longer unique.
+    key: { type: String },
     brandName: { type: String, default: 'Wearly' },
     logoUrl: { type: String, default: '' },
     heroTagline: { type: String, default: 'Style for everyone.' },

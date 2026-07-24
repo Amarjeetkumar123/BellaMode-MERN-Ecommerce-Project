@@ -5,6 +5,7 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 
 const connectDB = require('../src/config/db');
+const logger = require('../src/config/logger');
 const User = require('../src/models/user.model');
 const Category = require('../src/models/category.model');
 const Product = require('../src/models/product.model');
@@ -12,6 +13,7 @@ const Setting = require('../src/models/setting.model');
 const Banner = require('../src/models/banner.model');
 const Blog = require('../src/models/blog.model');
 const Order = require('../src/models/order.model');
+const Store = require('../src/models/store.model');
 const { ROLES } = require('../src/constants/constants');
 const { slugify } = require('../src/utils/commonUtils');
 const { CATEGORIES, PRODUCTS, SETTINGS, BANNERS, BLOGS } = require('./seedData');
@@ -26,7 +28,7 @@ function resolveAdminPassword() {
             'ADMIN_PASSWORD must be set when NODE_ENV is not "development" — refusing to seed a well-known default password.'
         );
     }
-    console.warn('⚠  ADMIN_PASSWORD not set — using the dev-only default. Set ADMIN_PASSWORD before deploying.');
+    logger.warn('⚠  ADMIN_PASSWORD not set — using the dev-only default. Set ADMIN_PASSWORD before deploying.');
     return 'Admin@123';
 }
 
@@ -41,24 +43,42 @@ async function seedSuperadmin() {
         admin.username = username;
         admin.password = password; // re-hashed by pre-save hook
         await admin.save();
-        console.log(`✓ Superadmin updated: ${email}`);
+        logger.info(`✓ Superadmin updated: ${email}`);
     } else {
         admin = new User({ username, email, password, role: ROLES.SUPERADMIN });
         await admin.save();
-        console.log(`✓ Superadmin created: ${email} / ${password}`);
+        logger.info(`✓ Superadmin created: ${email} / ${password}`);
     }
     return admin;
 }
 
-async function seedCategories() {
+// Store #1 — the platform's own store, owner = the seeded superadmin.
+async function seedStore(ownerId) {
+    let store = await Store.findOne({ slug: 'wearly' });
+    if (!store) {
+        store = await Store.create({ owner: ownerId, name: 'Wearly', slug: 'wearly', status: 'approved' });
+        logger.info('✓ Store #1 created (wearly)');
+    } else {
+        store.owner = ownerId;
+        store.status = 'approved';
+        await store.save();
+        logger.info('✓ Store #1 updated (wearly)');
+    }
+    // Link the superadmin to their store for resolveStore.
+    await User.findByIdAndUpdate(ownerId, { store: store._id });
+    return store._id;
+}
+
+async function seedCategories(storeId) {
     await Category.deleteMany({});
     const docs = CATEGORIES.map((c) => ({
         ...c,
+        store: storeId,
         slug: slugify(`${c.name}-${c.audience}`),
         isActive: true,
     }));
     const created = await Category.insertMany(docs);
-    console.log(`✓ ${created.length} categories seeded`);
+    logger.info(`✓ ${created.length} categories seeded`);
 
     // Map "audience::CategoryName" → category _id for product linking.
     const map = new Map();
@@ -66,13 +86,13 @@ async function seedCategories() {
     return map;
 }
 
-async function seedProducts(categoryMap, authorId) {
+async function seedProducts(categoryMap, authorId, storeId) {
     // Orders embed product refs, so wiping products without clearing orders
     // leaves line items pointing at documents that no longer exist.
     const orphaned = await Order.countDocuments({});
     if (orphaned > 0) {
         await Order.deleteMany({});
-        console.log(`✓ ${orphaned} order(s) cleared (their products are being replaced)`);
+        logger.info(`✓ ${orphaned} order(s) cleared (their products are being replaced)`);
     }
     await Product.deleteMany({});
     const docs = PRODUCTS.map((p) => {
@@ -81,6 +101,7 @@ async function seedProducts(categoryMap, authorId) {
         // `categoryAudience` lets a men's shoe live in the unisex Footwear category.
         const categoryId = categoryMap.get(`${p.categoryAudience || p.audience}::${p.categoryName}`);
         return {
+            store: storeId,
             name: p.name,
             slug: slugify(`${p.name}-${p.audience}`),
             description: p.description || '',
@@ -102,48 +123,55 @@ async function seedProducts(categoryMap, authorId) {
         };
     });
     const created = await Product.insertMany(docs);
-    console.log(`✓ ${created.length} products seeded`);
+    logger.info(`✓ ${created.length} products seeded`);
 }
 
-async function seedSettings() {
-    await Setting.findOneAndUpdate({ key: 'brand' }, { $set: SETTINGS }, { upsert: true, setDefaultsOnInsert: true });
-    console.log('✓ Brand settings seeded');
+async function seedSettings(storeId) {
+    // Drop the stale unique index on the legacy `key` field if it lingers.
+    try { await Setting.collection.dropIndex('key_1'); } catch (e) { /* not present */ }
+    // Remove any pre-multi-seller singleton settings (no store) so it can't linger.
+    await Setting.deleteMany({ store: { $exists: false } });
+    const { key, ...rest } = SETTINGS; // drop the legacy singleton key
+    await Setting.findOneAndUpdate({ store: storeId }, { $set: { ...rest, store: storeId } }, { upsert: true, setDefaultsOnInsert: true });
+    logger.info('✓ Brand settings seeded');
 }
 
-async function seedBanners() {
+async function seedBanners(storeId) {
     await Banner.deleteMany({});
-    await Banner.insertMany(BANNERS.map((b) => ({ ...b, isActive: true })));
-    console.log(`✓ ${BANNERS.length} banners seeded`);
+    await Banner.insertMany(BANNERS.map((b) => ({ ...b, store: storeId, isActive: true })));
+    logger.info(`✓ ${BANNERS.length} banners seeded`);
 }
 
-async function seedBlogs(authorId) {
+async function seedBlogs(authorId, storeId) {
     await Blog.deleteMany({});
     const docs = BLOGS.map((b) => ({
         ...b,
+        store: storeId,
         slug: slugify(b.title),
         author: authorId,
         authorName: 'Wearly Editorial',
         isPublished: true,
     }));
     await Blog.insertMany(docs);
-    console.log(`✓ ${docs.length} blogs seeded`);
+    logger.info(`✓ ${docs.length} blogs seeded`);
 }
 
 async function run() {
     await connectDB();
     const admin = await seedSuperadmin();
-    const categoryMap = await seedCategories();
-    await seedProducts(categoryMap, admin._id);
-    await seedSettings();
-    await seedBanners();
-    await seedBlogs(admin._id);
-    console.log('\n✅ Seed complete.');
+    const storeId = await seedStore(admin._id);
+    const categoryMap = await seedCategories(storeId);
+    await seedProducts(categoryMap, admin._id, storeId);
+    await seedSettings(storeId);
+    await seedBanners(storeId);
+    await seedBlogs(admin._id, storeId);
+    logger.info('\n✅ Seed complete.');
     await mongoose.connection.close();
     process.exit(0);
 }
 
 run().catch(async (err) => {
-    console.error('Seed failed:', err);
+    logger.error(`Seed failed: ${err.message}`, { stack: err.stack });
     await mongoose.connection.close();
     process.exit(1);
 });

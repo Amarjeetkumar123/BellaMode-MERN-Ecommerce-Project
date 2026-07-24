@@ -22,13 +22,15 @@ const userSchema = new Schema({
     password: { type: String, required: true },
     role: {
         type: String,
-        enum: [ROLES.SUPERADMIN, ROLES.ADMIN, ROLES.USER],
+        enum: [ROLES.SUPERADMIN, ROLES.SELLER, ROLES.USER],
         default: ROLES.USER,
     },
     profileImage: String,
     bio: { type: String, maxlength: 200 },
     profession: String,
     phone: String,
+    // A SELLER's own store (quick "my store" lookup for resolveStore). Null for customers.
+    store: { type: Schema.Types.ObjectId, ref: 'Store', default: null, index: true },
     addresses: [addressSchema],
     // Account-synced wishlist — product refs, so saves follow the user across devices.
     wishlist: [{ type: Schema.Types.ObjectId, ref: 'Product' }],

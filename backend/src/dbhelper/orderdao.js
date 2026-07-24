@@ -1,4 +1,5 @@
 const Order = require('../models/order.model');
+const { LoggerClass } = require('../exception/LoggerClass');
 const {
     createMongoAndFilterForColumns,
     modifyMongoQuery,
@@ -6,11 +7,12 @@ const {
     fetchDataCount,
 } = require('./mongohelpers');
 
-const FILTER_COLUMNS = ['_id', 'user', 'status', 'paymentStatus'];
+const FILTER_COLUMNS = ['_id', 'store', 'user', 'status', 'paymentStatus'];
 
 function getRawJsonQuery(filter = {}) {
     const filterJson = {};
     if (filter.orderIdArray) filterJson._id = filter.orderIdArray;
+    if (filter.storeArray) filterJson.store = filter.storeArray;
     if (filter.userArray) filterJson.user = filter.userArray;
     if (filter.statusArray) filterJson.status = filter.statusArray;
     if (filter.paymentStatusArray) filterJson.paymentStatus = filter.paymentStatusArray;
@@ -18,41 +20,64 @@ function getRawJsonQuery(filter = {}) {
 }
 
 async function getOrders(filter, columnsRequired, sortParams, paginationParams, populate) {
+    const loggerClass = new LoggerClass('getOrders::', arguments);
     const query = Order.find(getRawJsonQuery(filter));
     modifyMongoQuery(query, columnsRequired, sortParams, paginationParams);
     if (populate) query.populate(populate);
-    return fetchData(query);
+    const orders = await fetchData(query);
+    loggerClass.writeDebugLogs(orders);
+    return orders;
 }
 
 async function getOrdersCount(filter) {
-    return fetchDataCount(Order.find(getRawJsonQuery(filter)));
+    const loggerClass = new LoggerClass('getOrdersCount::', arguments);
+    const count = await fetchDataCount(Order.find(getRawJsonQuery(filter)));
+    loggerClass.writeDebugLogs(count);
+    return count;
 }
 
 async function getOrderById(id) {
-    return Order.findById(id).populate('user', 'username email');
+    const loggerClass = new LoggerClass('getOrderById::', arguments);
+    const order = await Order.findById(id).populate('user', 'username email');
+    loggerClass.writeDebugLogs(order);
+    return order;
 }
 
 async function saveOrder(data) {
-    return new Order(data).save();
+    const loggerClass = new LoggerClass('saveOrder::', arguments);
+    const order = await new Order(data).save();
+    loggerClass.writeDebugLogs(order);
+    return order;
 }
 
-async function updateOrderById(id, data) {
-    return Order.findByIdAndUpdate(id, { $set: { ...data, update_date: Date.now() } }, { new: true });
+async function updateOrderById(id, data, storeId) {
+    const loggerClass = new LoggerClass('updateOrderById::', arguments);
+    const match = storeId ? { _id: id, store: storeId } : { _id: id };
+    const order = await Order.findOneAndUpdate(match, { $set: { ...data, update_date: Date.now() } }, { new: true, skipTenant: true });
+    loggerClass.writeDebugLogs(order);
+    return order;
 }
 
 
 // ---- analytics ----
 // Aggregated in Mongo so the dashboard never derives totals from a capped page.
-async function getOrderStats(sinceMs) {
+// `storeId` scopes to one store — aggregation is NOT covered by the tenant plugin,
+// so every pipeline explicitly starts from the same base $match.
+async function getOrderStats(sinceMs, storeId) {
+    const loggerClass = new LoggerClass('getOrderStats::', arguments);
+    const base = storeId ? { store: new (require('mongoose').Types.ObjectId)(String(storeId)) } : {};
+
     const [totals] = await Order.aggregate([
+        { $match: base },
         { $group: { _id: null, revenue: { $sum: '$totalPrice' }, count: { $sum: 1 } } },
     ]);
 
     const byStatus = await Order.aggregate([
+        { $match: base },
         { $group: { _id: '$status', count: { $sum: 1 } } },
     ]);
 
-    const windowMatch = { create_date: { $gte: sinceMs } };
+    const windowMatch = { ...base, create_date: { $gte: sinceMs } };
 
     const [windowTotals] = await Order.aggregate([
         { $match: windowMatch },
@@ -72,8 +97,9 @@ async function getOrderStats(sinceMs) {
         { $sort: { _id: 1 } },
     ]);
 
-    // Units sold per product, across every order.
+    // Units sold per product, across this store's orders.
     const topProducts = await Order.aggregate([
+        { $match: base },
         { $unwind: '$items' },
         {
             $group: {
@@ -86,7 +112,7 @@ async function getOrderStats(sinceMs) {
         { $limit: 5 },
     ]);
 
-    return {
+    const stats = {
         revenueAll: totals?.revenue || 0,
         ordersAll: totals?.count || 0,
         revenueWindow: windowTotals?.revenue || 0,
@@ -95,6 +121,8 @@ async function getOrderStats(sinceMs) {
         daily: daily.map((d) => ({ date: d._id, revenue: d.revenue, count: d.count })),
         topProducts: topProducts.map((t) => ({ name: t._id, units: t.units, revenue: t.revenue })),
     };
+    loggerClass.writeDebugLogs(stats);
+    return stats;
 }
 
 module.exports = {

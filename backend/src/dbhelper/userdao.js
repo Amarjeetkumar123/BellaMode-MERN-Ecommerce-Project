@@ -1,4 +1,5 @@
 const User = require('../models/user.model');
+const { LoggerClass } = require('../exception/LoggerClass');
 const {
     createMongoAndFilterForColumns,
     modifyMongoQuery,
@@ -23,67 +24,99 @@ function getRawJsonQuery(userFilter = {}) {
 }
 
 async function getUsers(userFilter, columnsRequired, sortParams, paginationParams) {
+    const loggerClass = new LoggerClass('getUsers::', arguments);
     const query = User.find(getRawJsonQuery(userFilter));
     modifyMongoQuery(query, columnsRequired, sortParams, paginationParams);
-    return fetchData(query);
+    const users = await fetchData(query);
+    loggerClass.writeDebugLogs(users);
+    return users;
 }
 
 async function getUsersCount(userFilter) {
-    return fetchDataCount(User.find(getRawJsonQuery(userFilter)));
+    const loggerClass = new LoggerClass('getUsersCount::', arguments);
+    const count = await fetchDataCount(User.find(getRawJsonQuery(userFilter)));
+    loggerClass.writeDebugLogs(count);
+    return count;
 }
 
 async function getUserById(id) {
-    return User.findById(id);
+    const loggerClass = new LoggerClass('getUserById::', arguments);
+    const user = await User.findById(id);
+    loggerClass.writeDebugLogs(user);
+    return user;
 }
 
 async function getUserByEmail(email) {
-    return User.findOne({ email });
+    const loggerClass = new LoggerClass('getUserByEmail::', arguments);
+    const user = await User.findOne({ email });
+    loggerClass.writeDebugLogs(user);
+    return user;
 }
 
 // Detects an existing user matching either email or username (register conflict check).
 async function findExistingUser(email, username) {
-    return User.findOne({ $or: [{ email }, { username }] });
+    const loggerClass = new LoggerClass('findExistingUser::', arguments);
+    const user = await User.findOne({ $or: [{ email }, { username }] });
+    loggerClass.writeDebugLogs(user);
+    return user;
 }
 
 async function saveUser(userData) {
-    const user = new User(userData);
-    return user.save();
+    const loggerClass = new LoggerClass('saveUser::', arguments);
+    const user = await new User(userData).save();
+    loggerClass.writeDebugLogs(user);
+    return user;
 }
 
 async function updateUserById(id, data) {
-    return User.findByIdAndUpdate(id, { $set: { ...data, update_date: Date.now() } }, { new: true });
+    const loggerClass = new LoggerClass('updateUserById::', arguments);
+    const user = await User.findByIdAndUpdate(id, { $set: { ...data, update_date: Date.now() } }, { new: true });
+    loggerClass.writeDebugLogs(user);
+    return user;
 }
 
 async function deleteUserById(id) {
-    return User.findByIdAndDelete(id);
+    const loggerClass = new LoggerClass('deleteUserById::', arguments);
+    const user = await User.findByIdAndDelete(id);
+    loggerClass.writeDebugLogs(user);
+    return user;
 }
 
 // ---- wishlist (account-synced product refs on the user doc) ----
 
 // Returns the caller's wishlist with each product populated, newest saves last.
 async function getWishlist(userId) {
+    const loggerClass = new LoggerClass('getWishlist::', arguments);
     const user = await User.findById(userId).populate({
         path: 'wishlist',
         populate: { path: 'category', select: 'name slug audience' },
     });
-    return user ? user.wishlist : [];
+    const wishlist = user ? user.wishlist : [];
+    loggerClass.writeDebugLogs(wishlist);
+    return wishlist;
 }
 
 // $addToSet keeps the save idempotent — hearting twice is a no-op.
 async function addToWishlist(userId, productId) {
-    return User.findByIdAndUpdate(
+    const loggerClass = new LoggerClass('addToWishlist::', arguments);
+    const user = await User.findByIdAndUpdate(
         userId,
         { $addToSet: { wishlist: productId }, $set: { update_date: Date.now() } },
         { new: true }
     );
+    loggerClass.writeDebugLogs(user);
+    return user;
 }
 
 async function removeFromWishlist(userId, productId) {
-    return User.findByIdAndUpdate(
+    const loggerClass = new LoggerClass('removeFromWishlist::', arguments);
+    const user = await User.findByIdAndUpdate(
         userId,
         { $pull: { wishlist: productId }, $set: { update_date: Date.now() } },
         { new: true }
     );
+    loggerClass.writeDebugLogs(user);
+    return user;
 }
 
 module.exports = {

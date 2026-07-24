@@ -1,6 +1,6 @@
 const { MESSAGES } = require('../constants/constants');
 
-// Variadic role guard: checkRole('SUPERADMIN','ADMIN').
+// Variadic role guard: checkRole('SUPERADMIN','SELLER').
 // Must run AFTER checkAuth (which sets req.role). Custom next(isSuccess, code, body) contract.
 module.exports = (...allowedRoles) => {
     return (req, res, next) => {
