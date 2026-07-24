@@ -128,10 +128,18 @@ const SingleProduct = () => {
                             <span className='text-xs uppercase tracking-widest text-text-light font-semibold'>{product.brand}</span>
                         )}
                         <h1 className='text-3xl font-extrabold text-text-dark mt-1 mb-3' style={{ fontFamily: 'var(--header-font)' }}>{product.name}</h1>
-                        <div className='flex items-center gap-2 mb-5'>
+                        <div className='flex items-center gap-2 mb-3'>
                             <RatingStars rating={product.rating} />
                             <span className='text-sm text-text-light'>{product.rating?.toFixed(1) || '0.0'} · {product.numReviews || 0} reviews</span>
                         </div>
+                        {product.store?.slug && (
+                            <p className='text-sm text-text-light mb-5'>
+                                Sold by{' '}
+                                <Link to={`/store/${product.store.slug}`} className='font-medium text-text-dark hover:text-primary'>
+                                    <i className='ri-store-2-line mr-0.5'></i>{product.store.name}
+                                </Link>
+                            </p>
+                        )}
 
                         <div className='flex items-end gap-3 mb-6'>
                             <span className='text-3xl font-bold text-text-dark'>{formatINR(product.price)}</span>

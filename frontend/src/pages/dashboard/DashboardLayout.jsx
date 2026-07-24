@@ -26,10 +26,14 @@ const DashboardLayout = () => {
         { to: '/dashboard/manage-products', label: 'Products', icon: 'ri-t-shirt-line' },
         { to: '/dashboard/manage-categories', label: 'Categories', icon: 'ri-price-tag-3-line' },
         { to: '/dashboard/manage-orders', label: 'Orders', icon: 'ri-shopping-bag-line' },
+        { to: '/dashboard/payouts', label: 'Earnings', icon: 'ri-money-rupee-circle-line' },
         { to: '/dashboard/add-new-post', label: 'Blog Posts', icon: 'ri-article-line' },
         { to: '/dashboard/settings', label: 'Settings', icon: 'ri-settings-3-line' },
     ];
-    if (isSuperadmin) adminLinks.push({ to: '/dashboard/manage-users', label: 'Users', icon: 'ri-group-line' });
+    if (isSuperadmin) {
+        adminLinks.push({ to: '/dashboard/manage-stores', label: 'Stores', icon: 'ri-store-2-line' });
+        adminLinks.push({ to: '/dashboard/manage-users', label: 'Users', icon: 'ri-group-line' });
+    }
 
     const links = isAdmin ? adminLinks : userLinks;
 

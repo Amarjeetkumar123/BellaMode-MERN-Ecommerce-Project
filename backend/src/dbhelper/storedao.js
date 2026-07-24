@@ -23,10 +23,11 @@ function getRawJsonQuery(storeFilter = {}) {
     return createMongoAndFilterForColumns(filterJson, FILTER_COLUMNS, RANGE_COLUMNS, ARRAY_COLUMNS, SEARCH_COLUMNS);
 }
 
-async function getStores(storeFilter, columnsRequired, sortParams, paginationParams) {
+async function getStores(storeFilter, columnsRequired, sortParams, paginationParams, populate) {
     const loggerClass = new LoggerClass('getStores::', arguments);
     const query = Store.find(getRawJsonQuery(storeFilter));
     modifyMongoQuery(query, columnsRequired, sortParams, paginationParams);
+    if (populate) query.populate(populate);
     const stores = await fetchData(query);
     loggerClass.writeDebugLogs(stores);
     return stores;
@@ -53,11 +54,28 @@ async function getStoreBySlug(slug) {
     return store;
 }
 
+async function getStoreBySubdomain(subdomain) {
+    const loggerClass = new LoggerClass('getStoreBySubdomain::', arguments);
+    const store = await Store.findOne({ subdomain });
+    loggerClass.writeDebugLogs(store);
+    return store;
+}
+
 async function getStoreByOwner(ownerId) {
     const loggerClass = new LoggerClass('getStoreByOwner::', arguments);
     const store = await Store.findOne({ owner: ownerId });
     loggerClass.writeDebugLogs(store);
     return store;
+}
+
+// Ids of every approved store. The public marketplace scopes product/facet queries
+// to this set so pending/suspended sellers' catalogues never surface to shoppers.
+async function getApprovedStoreIds() {
+    const loggerClass = new LoggerClass('getApprovedStoreIds::', arguments);
+    const stores = await Store.find({ status: 'approved' }).select('_id').setOptions({ skipTenant: true });
+    const ids = stores.map((s) => s._id);
+    loggerClass.writeDebugLogs(ids);
+    return ids;
 }
 
 // The platform's default store (oldest = Store #1). Powers public storefront
@@ -88,7 +106,9 @@ module.exports = {
     getStoresCount,
     getStoreById,
     getStoreBySlug,
+    getStoreBySubdomain,
     getStoreByOwner,
+    getApprovedStoreIds,
     getDefaultStore,
     saveStore,
     updateStoreById,

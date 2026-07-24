@@ -12,6 +12,11 @@ const errorHandler = require('./src/middleware/errorHandler');
 const app = express();
 const port = process.env.PORT || 5000;
 
+// Behind a reverse proxy (TLS terminator / load balancer), trust X-Forwarded-*
+// so req.hostname reflects the real storefront host (e.g. acme.wearly.com) used
+// by subdomain resolution.
+app.set('trust proxy', true);
+
 // ---- middleware ----
 app.use(cookieParser());
 app.use(requestLogger);
@@ -22,11 +27,24 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
     .split(',')
     .map((o) => o.trim())
     .filter(Boolean);
+// Any subdomain of ROOT_DOMAIN is a legitimate storefront origin (acme.wearly.com),
+// so allow them without listing each store explicitly.
+function isAllowedOrigin(origin) {
+    if (allowedOrigins.includes(origin)) return true;
+    if (!process.env.ROOT_DOMAIN) return false;
+    try {
+        const host = new URL(origin).hostname.toLowerCase();
+        const root = process.env.ROOT_DOMAIN.toLowerCase();
+        return host === root || host.endsWith(`.${root}`);
+    } catch (e) {
+        return false;
+    }
+}
 app.use(
     cors({
         origin: (origin, callback) => {
             // allow non-browser clients (no origin) and any allowlisted origin
-            if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+            if (!origin || isAllowedOrigin(origin)) return callback(null, true);
             return callback(new Error('Not allowed by CORS'));
         },
         credentials: true,
@@ -42,6 +60,7 @@ app.use('/api/orders', require('./src/routes/order.route'));
 app.use('/api/payments', require('./src/routes/payment.route'));
 app.use('/api/wishlist', require('./src/routes/wishlist.route'));
 app.use('/api/stores', require('./src/routes/store.route'));
+app.use('/api/storefronts', require('./src/routes/storefront.route'));
 app.use('/api/settings', require('./src/routes/setting.route'));
 app.use('/api/banners', require('./src/routes/banner.route'));
 app.use('/api/blogs', require('./src/routes/blog.route'));

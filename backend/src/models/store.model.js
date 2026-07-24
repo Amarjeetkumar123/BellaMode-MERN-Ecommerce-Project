@@ -11,8 +11,12 @@ const storeSchema = new Schema({
     // Lifecycle for the (later) onboarding/approval flow. New stores start pending;
     // the migrated Store #1 is created approved.
     status: { type: String, enum: ['pending', 'approved', 'suspended'], default: 'pending', index: true },
-    // Platform commission %, applied in the (later) Razorpay Route payouts phase.
+    // Platform commission %, applied to each order's item revenue at payout time.
     commissionRate: { type: Number, default: 0, min: 0, max: 100 },
+    // Razorpay Route linked-account id (acc_…). Obtained when the seller completes
+    // Razorpay's onboarding; without it, this store's split can't be routed and its
+    // share stays in the platform account until the account is linked.
+    razorpayAccountId: { type: String, default: '' },
     // Forward-compat routing stubs — unused in Phase 1, wired up in the Storefronts phase.
     subdomain: { type: String, unique: true, sparse: true },
     domains: { type: [String], default: [] },

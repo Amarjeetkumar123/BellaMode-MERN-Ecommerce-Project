@@ -50,7 +50,9 @@ async function getProductsCount(filter) {
 
 async function getProductById(id) {
     const loggerClass = new LoggerClass('getProductById::', arguments);
-    const product = await Product.findById(id).populate('category', 'name slug audience');
+    const product = await Product.findById(id)
+        .populate('category', 'name slug audience')
+        .populate('store', 'name slug status');
     loggerClass.writeDebugLogs(product);
     return product;
 }
@@ -59,7 +61,9 @@ async function getProductById(id) {
 // since product slugs are globally unique in Phase 1.
 async function getProductBySlug(slug, { global } = {}) {
     const loggerClass = new LoggerClass('getProductBySlug::', arguments);
-    const query = Product.findOne({ slug }).populate('category', 'name slug audience');
+    const query = Product.findOne({ slug })
+        .populate('category', 'name slug audience')
+        .populate('store', 'name slug status');
     if (global) query.setOptions({ skipTenant: true });
     const product = await query;
     loggerClass.writeDebugLogs(product);

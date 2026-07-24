@@ -1,6 +1,8 @@
+const crypto = require('crypto');
 const orderDao = require('../dbhelper/orderdao');
 const productDao = require('../dbhelper/productdao');
 const storeDao = require('../dbhelper/storedao');
+const { computeSplit, round2 } = require('../utils/commission');
 const { asyncHandler, sendSuccess, sendError, buildPagination } = require('../utils/commonUtils');
 const {
     ROLES,
@@ -13,17 +15,12 @@ const {
     CURRENCY,
 } = require('../constants/constants');
 
-function round2(n) {
-    return Math.round(n * 100) / 100;
-}
-
-// Builds order line-items from DB products (never trusts client-sent prices) and computes totals.
-// Also captures each item's store; Phase 1 supports one store per order, so a cart
-// spanning multiple sellers is rejected (marketplace order-splitting is a later phase).
-async function buildOrderTotals(items) {
-    const lineItems = [];
-    const storeIds = new Set();
-    let itemsPrice = 0;
+// Validates the cart against the DB (never trusting client prices) and groups its
+// line-items by fulfilling store. A multi-seller cart yields one draft order per
+// store; each is priced independently (tax + free-shipping threshold applied per store)
+// and split into commission/seller amounts using that store's commissionRate.
+async function buildOrderGroups(items) {
+    const byStore = new Map(); // storeId -> { lineItems, itemsPrice }
     for (const item of items) {
         // eslint-disable-next-line no-await-in-loop
         const product = await productDao.getProductById(item.product);
@@ -32,14 +29,21 @@ async function buildOrderTotals(items) {
             err.status = 404;
             throw err;
         }
+        if (!product.store) {
+            const err = new Error(`"${product.name}" is not linked to a store.`);
+            err.status = 400;
+            throw err;
+        }
         if (product.stock < item.quantity) {
             const err = new Error(`Insufficient stock for "${product.name}".`);
             err.status = 400;
             throw err;
         }
-        if (product.store) storeIds.add(String(product.store));
-        itemsPrice += product.price * item.quantity;
-        lineItems.push({
+        const storeId = String(product.store._id || product.store);
+        if (!byStore.has(storeId)) byStore.set(storeId, { lineItems: [], itemsPrice: 0 });
+        const bucket = byStore.get(storeId);
+        bucket.itemsPrice += product.price * item.quantity;
+        bucket.lineItems.push({
             product: product._id,
             name: product.name,
             image: product.images && product.images[0],
@@ -49,47 +53,63 @@ async function buildOrderTotals(items) {
             color: item.color,
         });
     }
-    if (storeIds.size > 1) {
-        const err = new Error('Cart spans multiple sellers — please check out one seller at a time.');
-        err.status = 400;
-        throw err;
+
+    const drafts = [];
+    for (const [storeId, { lineItems, itemsPrice }] of byStore) {
+        // eslint-disable-next-line no-await-in-loop
+        const store = await storeDao.getStoreById(storeId);
+        const tax = round2(itemsPrice * TAX_RATE);
+        const shippingPrice = itemsPrice >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+        const totalPrice = round2(itemsPrice + tax + shippingPrice);
+        const { commissionAmount, sellerAmount } = computeSplit(itemsPrice, store?.commissionRate);
+        drafts.push({ store: storeId, lineItems, itemsPrice: round2(itemsPrice), tax, shippingPrice, totalPrice, commissionAmount, sellerAmount });
     }
-    const tax = round2(itemsPrice * TAX_RATE);
-    const shippingPrice = itemsPrice >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
-    const totalPrice = round2(itemsPrice + tax + shippingPrice);
-    return { lineItems, store: [...storeIds][0], itemsPrice: round2(itemsPrice), tax, shippingPrice, totalPrice };
+    return drafts;
 }
 
-// POST /api/orders
+// POST /api/orders — places one order per seller in the cart, all sharing a
+// paymentGroup so a single Razorpay (Route) payment can settle them together.
 exports.createOrder = asyncHandler(async (req, res) => {
     const { items, shippingAddress, paymentMethod } = req.body;
-    const { lineItems, store, itemsPrice, tax, shippingPrice, totalPrice } = await buildOrderTotals(items);
+    const drafts = await buildOrderGroups(items);
+    const paymentGroup = crypto.randomUUID();
 
-    const order = await orderDao.saveOrder({
-        store,
-        user: req.userId,
-        items: lineItems,
-        itemsPrice,
-        tax,
-        shippingPrice,
-        totalPrice,
-        currency: CURRENCY,
-        shippingAddress,
-        paymentMethod,
-        paymentStatus: PAYMENT_STATUS.PENDING,
-        status: ORDER_STATUS.PENDING,
-    });
-
-    // Decrement stock now that the order is placed.
-    for (const li of lineItems) {
+    const orders = [];
+    for (const d of drafts) {
         // eslint-disable-next-line no-await-in-loop
-        const p = await productDao.getProductById(li.product);
-        // eslint-disable-next-line no-await-in-loop
-        await productDao.updateProductById(li.product, { stock: Math.max(0, p.stock - li.quantity) });
+        const order = await orderDao.saveOrder({
+            store: d.store,
+            user: req.userId,
+            paymentGroup,
+            items: d.lineItems,
+            itemsPrice: d.itemsPrice,
+            tax: d.tax,
+            shippingPrice: d.shippingPrice,
+            totalPrice: d.totalPrice,
+            commissionAmount: d.commissionAmount,
+            sellerAmount: d.sellerAmount,
+            currency: CURRENCY,
+            shippingAddress,
+            paymentMethod,
+            paymentStatus: PAYMENT_STATUS.PENDING,
+            status: ORDER_STATUS.PENDING,
+        });
+        orders.push(order);
     }
 
+    // Decrement stock now that the orders are placed.
+    for (const d of drafts) {
+        for (const li of d.lineItems) {
+            // eslint-disable-next-line no-await-in-loop
+            const p = await productDao.getProductById(li.product);
+            // eslint-disable-next-line no-await-in-loop
+            await productDao.updateProductById(li.product, { stock: Math.max(0, p.stock - li.quantity) }, d.store);
+        }
+    }
+
+    const grandTotal = round2(orders.reduce((s, o) => s + o.totalPrice, 0));
     const needsPayment = paymentMethod === PAYMENT_METHOD.RAZORPAY;
-    return sendSuccess(res, 201, 'Order placed successfully.', { order, needsPayment });
+    return sendSuccess(res, 201, 'Order placed successfully.', { orders, paymentGroup, grandTotal, needsPayment });
 });
 
 // GET /api/orders/myorders

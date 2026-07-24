@@ -48,7 +48,7 @@ exports.listStores = asyncHandler(async (req, res) => {
     if (req.query.status) filter.statusArray = [req.query.status];
     if (req.query.search) filter.searchObj = { search_text: req.query.search };
     const [stores, total] = await Promise.all([
-        storeDao.getStores(filter, undefined, { create_date: -1 }, pagination),
+        storeDao.getStores(filter, undefined, { create_date: -1 }, pagination, { path: 'owner', select: 'username email' }),
         storeDao.getStoresCount(filter),
     ]);
     return sendSuccess(res, 200, 'OK', { stores, total, totalPages: Math.ceil(total / pagination.page_size) });

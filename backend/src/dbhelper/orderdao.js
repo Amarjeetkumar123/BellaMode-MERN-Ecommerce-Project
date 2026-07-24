@@ -43,6 +43,23 @@ async function getOrderById(id) {
     return order;
 }
 
+// All sibling orders from one checkout. skipTenant: a payment spans stores, so this
+// must never be narrowed by tenant context.
+async function getOrdersByPaymentGroup(paymentGroup) {
+    const loggerClass = new LoggerClass('getOrdersByPaymentGroup::', arguments);
+    const orders = await Order.find({ paymentGroup }).setOptions({ skipTenant: true }).populate('store', 'name razorpayAccountId');
+    loggerClass.writeDebugLogs(orders);
+    return orders;
+}
+
+// Applies the same update to every order in a group (e.g. mark the whole group paid).
+async function updateOrdersByPaymentGroup(paymentGroup, data) {
+    const loggerClass = new LoggerClass('updateOrdersByPaymentGroup::', arguments);
+    const result = await Order.updateMany({ paymentGroup }, { $set: { ...data, update_date: Date.now() } }, { skipTenant: true });
+    loggerClass.writeDebugLogs(result);
+    return result;
+}
+
 async function saveOrder(data) {
     const loggerClass = new LoggerClass('saveOrder::', arguments);
     const order = await new Order(data).save();
@@ -129,6 +146,8 @@ module.exports = {
     getOrders,
     getOrdersCount,
     getOrderById,
+    getOrdersByPaymentGroup,
+    updateOrdersByPaymentGroup,
     saveOrder,
     updateOrderById,
     getOrderStats,

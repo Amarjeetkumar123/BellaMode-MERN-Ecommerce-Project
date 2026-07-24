@@ -9,6 +9,8 @@ const editableProps = {
     name: { type: 'string', minLength: 1, maxLength: 60 },
     slug: { type: 'string', pattern: slugPattern, minLength: 2, maxLength: 40 },
     subdomain: { type: 'string', pattern: slugPattern, minLength: 2, maxLength: 40 },
+    // Razorpay Route linked-account id (acc_…); empty string clears it.
+    razorpayAccountId: { type: 'string', pattern: '^(acc_[A-Za-z0-9]+)?$', maxLength: 40 },
 };
 
 exports.createStoreSchema = {

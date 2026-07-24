@@ -13,6 +13,7 @@ import paymentsApi from "./features/payments/paymentsApi";
 import uploadApi from "./features/upload/uploadApi";
 import wishlistApi from "./features/wishlist/wishlistApi";
 import storeApi from "./features/stores/storeApi";
+import storefrontApi from "./features/storefronts/storefrontApi";
 
 const apis = [
     authApi,
@@ -27,6 +28,7 @@ const apis = [
     uploadApi,
     wishlistApi,
     storeApi,
+    storefrontApi,
 ];
 
 export const store = configureStore({

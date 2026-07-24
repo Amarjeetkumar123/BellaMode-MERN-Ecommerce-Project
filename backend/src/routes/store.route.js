@@ -15,6 +15,7 @@ const orderService = require('../service/orderservice');
 const bannerService = require('../service/bannerservice');
 const blogService = require('../service/blogservice');
 const settingService = require('../service/settingservice');
+const payoutService = require('../service/payoutservice');
 
 const {
     validateCreateStoreSchema,
@@ -81,6 +82,11 @@ blogRouter.post('/', andMiddleware([validateCreateBlogSchema]), blogService.crea
 blogRouter.patch('/:id', andMiddleware([validateUpdateBlogSchema]), blogService.updateBlog);
 blogRouter.delete('/:id', blogService.deleteBlog);
 router.use('/:storeId/blogs', ownerGuard(), blogRouter);
+
+// ---- payouts (seller earnings, read-only) ----
+const payoutRouter = express.Router({ mergeParams: true });
+payoutRouter.get('/', payoutService.listPayouts);
+router.use('/:storeId/payouts', ownerGuard(), payoutRouter);
 
 // ---- settings ----
 const settingRouter = express.Router({ mergeParams: true });

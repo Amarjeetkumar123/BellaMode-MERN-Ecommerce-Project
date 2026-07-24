@@ -31,10 +31,17 @@ const shippingAddressSchema = new Schema(
 );
 
 const orderSchema = new Schema({
-    // The store this order is fulfilled by. Phase 1 is one store per order; a
-    // marketplace cart spanning sellers is split into per-store orders in a later phase.
+    // The store this order is fulfilled by. One order = one store; a cart spanning
+    // sellers is split into sibling per-store orders sharing one paymentGroup.
     store: { type: Schema.Types.ObjectId, ref: 'Store', required: true, index: true },
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    // Groups the sibling orders created by a single multi-seller checkout, so one
+    // Razorpay payment (with Route transfers) settles all of them at once.
+    paymentGroup: { type: String, index: true },
+    // Split economics for this order: the platform's cut and the seller's net,
+    // computed from itemsPrice × store.commissionRate at checkout.
+    commissionAmount: { type: Number, default: 0 },
+    sellerAmount: { type: Number, default: 0 },
     items: { type: [orderItemSchema], required: true },
     itemsPrice: { type: Number, required: true },
     tax: { type: Number, default: 0 },
@@ -56,6 +63,8 @@ const orderSchema = new Schema({
         orderId: String,
         paymentId: String,
         signature: String,
+        // Route transfer id (trf_…) crediting this order's seller share.
+        transferId: String,
     },
     status: {
         type: String,

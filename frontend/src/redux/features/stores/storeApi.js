@@ -7,7 +7,7 @@ import { createBaseQuery } from "../baseQuery";
 const storeApi = createApi({
     reducerPath: "storeApi",
     baseQuery: createBaseQuery("/api/stores"),
-    tagTypes: ["Store", "StoreProducts", "StoreCategories", "StoreOrders", "StoreSettings", "StoreBanners"],
+    tagTypes: ["Store", "StoreProducts", "StoreCategories", "StoreOrders", "StoreSettings", "StoreBanners", "StorePayouts"],
     endpoints: (builder) => ({
         // ---- store CRUD ----
         listStores: builder.query({
@@ -81,6 +81,12 @@ const storeApi = createApi({
             invalidatesTags: ["StoreOrders"],
         }),
 
+        // ---- payouts (seller earnings) ----
+        getStorePayouts: builder.query({
+            query: ({ storeId, ...params }) => ({ url: `/${storeId}/payouts`, method: "GET", params }),
+            providesTags: ["StorePayouts"],
+        }),
+
         // ---- settings ----
         getStoreSettings: builder.query({
             query: (storeId) => ({ url: `/${storeId}/settings`, method: "GET" }),
@@ -128,6 +134,7 @@ export const {
     useGetStoreOrdersQuery,
     useGetStoreOrderStatsQuery,
     useUpdateStoreOrderStatusMutation,
+    useGetStorePayoutsQuery,
     useGetStoreSettingsQuery,
     useUpdateStoreSettingsMutation,
     useCreateStoreBannerMutation,

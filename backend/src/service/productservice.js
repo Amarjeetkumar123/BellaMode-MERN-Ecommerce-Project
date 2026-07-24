@@ -1,5 +1,6 @@
 const productDao = require('../dbhelper/productdao');
 const categoryDao = require('../dbhelper/categorydao');
+const storeDao = require('../dbhelper/storedao');
 const {
     asyncHandler,
     sendSuccess,
@@ -50,13 +51,41 @@ async function buildProductFilter(query, { activeOnly } = {}) {
     return filter;
 }
 
+const NO_MATCH = '000000000000000000000000';
+
+// The set of store ids a shopper is allowed to see (approved stores only). Falls
+// back to a non-matching sentinel when nothing is approved, so an empty marketplace
+// returns zero products rather than leaking every store.
+async function approvedStoreScope() {
+    const ids = await storeDao.getApprovedStoreIds();
+    return ids.length ? ids.map(String) : [NO_MATCH];
+}
+
+// Resolves a ?store param (slug OR id) to a store id, or null if it doesn't exist.
+async function resolveStoreId(param) {
+    if (isValidObjectId(param)) return param;
+    const store = await storeDao.getStoreBySlug(param);
+    return store ? String(store._id) : null;
+}
+
+// The store scope for a public list: a single approved store when ?store is given
+// (non-matching sentinel if it's missing or not approved), else all approved stores.
+async function publicStoreScope(storeParam) {
+    const scope = await approvedStoreScope();
+    if (!storeParam) return scope;
+    const one = await resolveStoreId(storeParam);
+    return one && scope.includes(String(one)) ? [String(one)] : [NO_MATCH];
+}
+
 // Shared list runner. `storeId` scopes to one store (seller dashboard); omitted →
-// global marketplace list. `activeOnly` hides inactive products from shoppers.
-async function runProductList(req, { storeId, activeOnly }) {
+// global marketplace list constrained to approved stores. `activeOnly` hides
+// inactive products from shoppers.
+async function runProductList(req, { storeId, activeOnly, approvedOnly }) {
     const pagination = buildPagination(req.query);
     const sort = buildSort(req.query);
     const filter = await buildProductFilter(req.query, { activeOnly });
     if (storeId) filter.storeArray = [storeId];
+    else if (approvedOnly) filter.storeArray = await publicStoreScope(req.query.store);
     const [products, total] = await Promise.all([
         productDao.getProducts(filter, undefined, sort, pagination, { path: 'category', select: 'name slug audience' }),
         productDao.getProductsCount(filter),
@@ -69,9 +98,9 @@ async function runProductList(req, { storeId, activeOnly }) {
     };
 }
 
-// GET /api/products — public marketplace, aggregated across all stores.
+// GET /api/products — public marketplace, aggregated across all approved stores.
 exports.listProducts = asyncHandler(async (req, res) => {
-    const data = await runProductList(req, { activeOnly: true });
+    const data = await runProductList(req, { activeOnly: true, approvedOnly: true });
     return sendSuccess(res, 200, 'OK', data);
 });
 
@@ -82,9 +111,11 @@ exports.listMyProducts = asyncHandler(async (req, res) => {
     return sendSuccess(res, 200, 'OK', data);
 });
 
-// Dynamic facets for the storefront filter sidebar.
+// Dynamic facets for the storefront filter sidebar (approved stores only, so the
+// sidebar never advertises colours/sizes that only exist in hidden catalogues).
 exports.getFilters = asyncHandler(async (req, res) => {
     const filter = await buildProductFilter(req.query, { activeOnly: true });
+    filter.storeArray = await publicStoreScope(req.query.store);
     const facets = await productDao.getFilterFacets(filter);
     return sendSuccess(res, 200, 'OK', facets);
 });
@@ -95,6 +126,10 @@ exports.getProduct = asyncHandler(async (req, res) => {
         ? await productDao.getProductById(idOrSlug)
         : await productDao.getProductBySlug(idOrSlug);
     if (!product) return sendError(res, 404, 'Product not found.');
+    // A product from a pending/suspended store is not shoppable on the public PDP.
+    const storeId = product.store && (product.store._id || product.store);
+    const approved = (await approvedStoreScope()).map(String);
+    if (!storeId || !approved.includes(String(storeId))) return sendError(res, 404, 'Product not found.');
     return sendSuccess(res, 200, 'OK', { product });
 });
 

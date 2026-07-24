@@ -43,7 +43,9 @@ const Checkout = () => {
         if (products.length === 0) return setError('Your cart is empty.');
         try {
             const res = await createOrder({ items: orderItems, shippingAddress: address, paymentMethod }).unwrap();
-            const order = res.data.order;
+            // A cart spanning multiple sellers becomes several orders sharing one
+            // paymentGroup; a single Razorpay payment (with Route splits) settles them.
+            const { paymentGroup } = res.data;
 
             if (paymentMethod === 'COD') {
                 finishSuccess();
@@ -53,7 +55,7 @@ const Checkout = () => {
             // Razorpay flow
             const loaded = await loadRazorpayScript();
             if (!loaded) return setError('Failed to load payment gateway.');
-            const payRes = await createPaymentOrder({ orderId: order._id }).unwrap();
+            const payRes = await createPaymentOrder({ paymentGroup }).unwrap();
             const { razorpayOrderId, amount, currency, keyId } = payRes.data;
 
             const rzp = new window.Razorpay({
@@ -61,14 +63,14 @@ const Checkout = () => {
                 amount,
                 currency,
                 name: 'Wearly',
-                description: `Order ${order._id}`,
+                description: 'Wearly order',
                 order_id: razorpayOrderId,
                 prefill: { name: address.fullName, contact: address.phone, email: user?.email },
                 theme: { color: '#d3213c' },
                 handler: async (response) => {
                     try {
                         await verifyPayment({
-                            orderId: order._id,
+                            paymentGroup,
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature,
