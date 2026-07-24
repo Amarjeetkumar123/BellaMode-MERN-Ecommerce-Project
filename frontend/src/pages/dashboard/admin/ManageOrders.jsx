@@ -1,5 +1,6 @@
-import React from 'react'
-import { useGetAllOrdersQuery, useUpdateOrderStatusMutation } from '../../../redux/features/orders/ordersApi'
+import React, { useState } from 'react'
+import { useGetStoreOrdersQuery, useUpdateStoreOrderStatusMutation } from '../../../redux/features/stores/storeApi'
+import { useMyStoreId } from '../../../hooks/useMyStoreId'
 import { formatINR } from '../../../utils/formatCurrency'
 import AdminPager from './AdminPager'
 import { card, input, titleFont, statusPill } from './adminUI'
@@ -7,14 +8,15 @@ import { card, input, titleFont, statusPill } from './adminUI'
 const STATUSES = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
 
 const ManageOrders = () => {
+    const storeId = useMyStoreId();
     const [page, setPage] = useState(1);
-    const { data, isLoading } = useGetAllOrdersQuery({ limit: 20, page });
-    const [updateStatus] = useUpdateOrderStatusMutation();
+    const { data, isLoading } = useGetStoreOrdersQuery({ storeId, limit: 20, page });
+    const [updateStatus] = useUpdateStoreOrderStatusMutation();
     const orders = data?.data?.orders || [];
     const totalPages = data?.data?.totalPages || 1;
     const total = data?.data?.total || orders.length;
 
-    const handleStatus = async (id, status) => { await updateStatus({ id, status }); };
+    const handleStatus = async (id, status) => { await updateStatus({ storeId, id, status }); };
 
     if (isLoading) return <p>Loading…</p>;
 

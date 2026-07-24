@@ -28,7 +28,7 @@ exports.listCategories = asyncHandler(async (req, res) => {
     return sendSuccess(res, 200, 'OK', { categories });
 });
 
-// GET /api/categories/mine — a seller's own categories (req.storeId from resolveStore).
+// GET /api/stores/:storeId/categories — a seller's own categories (req.storeId from loadOwnedStore).
 exports.listMyCategories = asyncHandler(async (req, res) => {
     const categories = await categoryDao.getCategories(buildCategoryFilter(req, req.storeId), undefined, { sortOrder: 1, create_date: -1 });
     return sendSuccess(res, 200, 'OK', { categories });

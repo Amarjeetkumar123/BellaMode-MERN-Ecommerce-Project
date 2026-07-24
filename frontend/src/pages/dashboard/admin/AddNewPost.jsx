@@ -1,18 +1,17 @@
 import React, { useState } from 'react'
-import {
-    useGetBlogsQuery,
-    useCreateBlogMutation,
-    useDeleteBlogMutation,
-} from '../../../redux/features/blogs/blogsApi'
+import { useGetBlogsQuery } from '../../../redux/features/blogs/blogsApi'
+import { useCreateStoreBlogMutation, useDeleteStoreBlogMutation } from '../../../redux/features/stores/storeApi'
+import { useMyStoreId } from '../../../hooks/useMyStoreId'
 import ImageInput from '../../../components/ImageInput'
 import { card, input, primaryBtn, titleFont } from './adminUI'
 
 const blank = { title: '', subtitle: '', content: '', image: '' };
 
 const AddNewPost = () => {
+    const storeId = useMyStoreId();
     const { data } = useGetBlogsQuery({ all: 'true' });
-    const [createBlog] = useCreateBlogMutation();
-    const [deleteBlog] = useDeleteBlogMutation();
+    const [createBlog] = useCreateStoreBlogMutation();
+    const [deleteBlog] = useDeleteStoreBlogMutation();
     const blogs = data?.data?.blogs || [];
 
     const [form, setForm] = useState(blank);
@@ -23,7 +22,7 @@ const AddNewPost = () => {
         e.preventDefault();
         setMsg('');
         try {
-            await createBlog(form).unwrap();
+            await createBlog({ storeId, ...form }).unwrap();
             setForm(blank);
             setMsg('Post published.');
         } catch (err) { setMsg(err?.data?.message || 'Failed.'); }
@@ -49,7 +48,7 @@ const AddNewPost = () => {
                         <div className='p-3'>
                             <p className='font-medium line-clamp-1'>{b.title}</p>
                             <p className='text-xs text-text-light line-clamp-1'>{b.subtitle}</p>
-                            <button onClick={() => window.confirm('Delete post?') && deleteBlog(b._id)} className='text-primary text-sm hover:underline mt-2'>Delete</button>
+                            <button onClick={() => window.confirm('Delete post?') && deleteBlog({ storeId, id: b._id })} className='text-primary text-sm hover:underline mt-2'>Delete</button>
                         </div>
                     </div>
                 ))}

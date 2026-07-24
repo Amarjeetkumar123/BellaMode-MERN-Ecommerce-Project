@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import {
-    useGetMyProductsQuery,
-    useCreateProductMutation,
-    useUpdateProductMutation,
-    useDeleteProductMutation,
-} from '../../../redux/features/products/productsApi'
-import { useGetMyCategoriesQuery } from '../../../redux/features/categories/categoriesApi'
+    useGetStoreProductsQuery,
+    useCreateStoreProductMutation,
+    useUpdateStoreProductMutation,
+    useDeleteStoreProductMutation,
+    useGetStoreCategoriesQuery,
+} from '../../../redux/features/stores/storeApi'
+import { useMyStoreId } from '../../../hooks/useMyStoreId'
 import ImageInput from '../../../components/ImageInput'
 import AdminPager from './AdminPager'
 import { formatINR } from '../../../utils/formatCurrency'
@@ -15,16 +16,17 @@ const AUDIENCES = ['men', 'women', 'kids', 'unisex'];
 const blank = { name: '', description: '', price: '', oldPrice: '', audience: 'men', category: '', brand: '', colors: '', sizes: '', stock: '', image: '', isTrending: false, isFeatured: false };
 
 const ManageProducts = () => {
+    const storeId = useMyStoreId();
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
     // Search runs server-side: filtering only the current page would hide matches
     // that live on other pages.
     const q = search.trim();
-    const { data, isLoading } = useGetMyProductsQuery({ limit: 20, page, ...(q ? { search: q } : {}) });
-    const { data: catData } = useGetMyCategoriesQuery();
-    const [createProduct] = useCreateProductMutation();
-    const [updateProduct] = useUpdateProductMutation();
-    const [deleteProduct] = useDeleteProductMutation();
+    const { data, isLoading } = useGetStoreProductsQuery({ storeId, limit: 20, page, ...(q ? { search: q } : {}) });
+    const { data: catData } = useGetStoreCategoriesQuery({ storeId });
+    const [createProduct] = useCreateStoreProductMutation();
+    const [updateProduct] = useUpdateStoreProductMutation();
+    const [deleteProduct] = useDeleteStoreProductMutation();
 
     const products = data?.data?.products || [];
     const totalPages = data?.data?.totalPages || 1;
@@ -85,8 +87,8 @@ const ManageProducts = () => {
         };
         if (form.oldPrice) payload.oldPrice = Number(form.oldPrice);
         try {
-            if (editingId) await updateProduct({ id: editingId, ...payload }).unwrap();
-            else await createProduct(payload).unwrap();
+            if (editingId) await updateProduct({ storeId, id: editingId, ...payload }).unwrap();
+            else await createProduct({ storeId, ...payload }).unwrap();
             setMsg(editingId ? 'Product updated.' : 'Product created.');
             reset();
         } catch (err) {
@@ -96,7 +98,7 @@ const ManageProducts = () => {
 
     const handleDelete = async (id) => {
         if (!window.confirm('Delete this product?')) return;
-        await deleteProduct(id);
+        await deleteProduct({ storeId, id });
     };
 
     return (

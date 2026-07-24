@@ -142,7 +142,7 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
 exports.getOrderStats = asyncHandler(async (req, res) => {
     const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 365);
     const since = Date.now() - days * 86400000;
-    // Scoped to the seller's store (req.storeId from resolveStore).
+    // Scoped to the seller's store (req.storeId from loadOwnedStore).
     const stats = await orderDao.getOrderStats(since, req.storeId);
     return sendSuccess(res, 200, 'OK', { ...stats, days });
 });

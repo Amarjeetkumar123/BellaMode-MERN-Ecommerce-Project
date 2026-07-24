@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { useGetSettingsQuery, useUpdateSettingsMutation } from '../../../redux/features/settings/settingsApi'
+import { useGetBannersQuery } from '../../../redux/features/banners/bannersApi'
 import {
-    useGetBannersQuery,
-    useCreateBannerMutation,
-    useDeleteBannerMutation,
-} from '../../../redux/features/banners/bannersApi'
+    useGetStoreSettingsQuery,
+    useUpdateStoreSettingsMutation,
+    useCreateStoreBannerMutation,
+    useDeleteStoreBannerMutation,
+} from '../../../redux/features/stores/storeApi'
+import { useMyStoreId } from '../../../hooks/useMyStoreId'
 import ImageInput from '../../../components/ImageInput'
 import { card, input, primaryBtn, ghostBtn, titleFont } from './adminUI'
 
@@ -22,11 +24,12 @@ const PRESETS = [
 ];
 
 const DashboardSettings = () => {
-    const { data: settingsData } = useGetSettingsQuery();
-    const [updateSettings] = useUpdateSettingsMutation();
+    const storeId = useMyStoreId();
+    const { data: settingsData } = useGetStoreSettingsQuery(storeId, { skip: !storeId });
+    const [updateSettings] = useUpdateStoreSettingsMutation();
     const { data: bannerData } = useGetBannersQuery({ all: 'true' });
-    const [createBanner] = useCreateBannerMutation();
-    const [deleteBanner] = useDeleteBannerMutation();
+    const [createBanner] = useCreateStoreBannerMutation();
+    const [deleteBanner] = useDeleteStoreBannerMutation();
 
     const [brand, setBrand] = useState({ brandName: '', heroTagline: '', logoUrl: '', contactEmail: '', contactPhone: '' });
     const [audienceImages, setAudienceImages] = useState({ men: '', women: '', kids: '', footwear: '' });
@@ -70,7 +73,7 @@ const DashboardSettings = () => {
             messages: announcement.messages.map((m) => m.trim()).filter(Boolean),
         };
         try {
-            await updateSettings({ ...brand, audienceImages, audienceHeroImages, activeAudiences: active, announcement: cleanAnnouncement }).unwrap();
+            await updateSettings({ storeId, ...brand, audienceImages, audienceHeroImages, activeAudiences: active, announcement: cleanAnnouncement }).unwrap();
             setMsg('Brand settings saved.');
         }
         catch (err) { setMsg(err?.data?.message || 'Failed.'); }
@@ -78,7 +81,7 @@ const DashboardSettings = () => {
 
     const addBanner = async (e) => {
         e.preventDefault();
-        try { await createBanner(banner).unwrap(); setBanner(bannerBlank); }
+        try { await createBanner({ storeId, ...banner }).unwrap(); setBanner(bannerBlank); }
         catch (err) { setMsg(err?.data?.message || 'Failed.'); }
     };
 
@@ -233,7 +236,7 @@ const DashboardSettings = () => {
                             <div className='p-3'>
                                 <p className='text-sm font-medium'>{b.title}</p>
                                 <p className='text-xs text-text-light capitalize'>{b.position}</p>
-                                <button onClick={() => window.confirm('Delete banner?') && deleteBanner(b._id)} className='text-primary text-sm hover:underline mt-1'>Delete</button>
+                                <button onClick={() => window.confirm('Delete banner?') && deleteBanner({ storeId, id: b._id })} className='text-primary text-sm hover:underline mt-1'>Delete</button>
                             </div>
                         </div>
                     ))}

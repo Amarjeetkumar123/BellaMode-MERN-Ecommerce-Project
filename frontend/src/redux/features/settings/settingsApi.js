@@ -1,6 +1,8 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { createBaseQuery } from "../baseQuery";
 
+// Public storefront settings read only (default/marketplace store). A seller edits
+// their own store's settings via storeApi under /api/stores/:storeId/settings.
 const settingsApi = createApi({
     reducerPath: "settingsApi",
     baseQuery: createBaseQuery("/api/settings"),
@@ -10,12 +12,8 @@ const settingsApi = createApi({
             query: () => ({ url: "/", method: "GET" }),
             providesTags: ["Settings"],
         }),
-        updateSettings: builder.mutation({
-            query: (body) => ({ url: "/", method: "PATCH", body }),
-            invalidatesTags: ["Settings"],
-        }),
     }),
 });
 
-export const { useGetSettingsQuery, useUpdateSettingsMutation } = settingsApi;
+export const { useGetSettingsQuery } = settingsApi;
 export default settingsApi;

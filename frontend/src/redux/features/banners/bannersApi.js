@@ -1,6 +1,8 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { createBaseQuery } from "../baseQuery";
 
+// Public banner reads only. Seller banner management lives in storeApi under
+// /api/stores/:storeId/banners.
 const bannersApi = createApi({
     reducerPath: "bannersApi",
     baseQuery: createBaseQuery("/api/banners"),
@@ -10,26 +12,9 @@ const bannersApi = createApi({
             query: (params) => ({ url: "/", method: "GET", params }),
             providesTags: ["Banners"],
         }),
-        createBanner: builder.mutation({
-            query: (body) => ({ url: "/", method: "POST", body }),
-            invalidatesTags: ["Banners"],
-        }),
-        updateBanner: builder.mutation({
-            query: ({ id, ...body }) => ({ url: `/${id}`, method: "PATCH", body }),
-            invalidatesTags: ["Banners"],
-        }),
-        deleteBanner: builder.mutation({
-            query: (id) => ({ url: `/${id}`, method: "DELETE" }),
-            invalidatesTags: ["Banners"],
-        }),
     }),
 });
 
-export const {
-    useGetBannersQuery,
-    useCreateBannerMutation,
-    useUpdateBannerMutation,
-    useDeleteBannerMutation,
-} = bannersApi;
+export const { useGetBannersQuery } = bannersApi;
 
 export default bannersApi;

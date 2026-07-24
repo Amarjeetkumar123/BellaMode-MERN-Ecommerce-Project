@@ -12,7 +12,7 @@ const ROLES = {
 };
 
 // Roles allowed to manage a store's catalog / orders / cms / settings.
-// (A SELLER is scoped to their own store by resolveStore; a SUPERADMIN can act on any.)
+// (A SELLER is scoped to their own store by loadOwnedStore; a SUPERADMIN can act on any.)
 const SELLER_ROLES = [ROLES.SUPERADMIN, ROLES.SELLER];
 
 // Back-compat alias — same set, clearer name at call sites that predate multi-seller.

@@ -1,8 +1,12 @@
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useGetProductsQuery } from '../../../redux/features/products/productsApi'
-import { useGetAllOrdersQuery, useGetOrderStatsQuery } from '../../../redux/features/orders/ordersApi'
-import { useGetCategoriesQuery } from '../../../redux/features/categories/categoriesApi'
+import {
+    useGetStoreProductsQuery,
+    useGetStoreCategoriesQuery,
+    useGetStoreOrdersQuery,
+    useGetStoreOrderStatsQuery,
+} from '../../../redux/features/stores/storeApi'
+import { useMyStoreId } from '../../../hooks/useMyStoreId'
 import { formatINR } from '../../../utils/formatCurrency'
 import { TrendChart, BarList, SERIES } from './Charts'
 
@@ -40,14 +44,15 @@ const Stat = ({ label, value, sub, icon, tint }) => (
 );
 
 const AdminDashboard = () => {
+    const storeId = useMyStoreId();
     const [days, setDays] = useState(30);
 
-    const { data: prod } = useGetProductsQuery({ limit: 100 });
+    const { data: prod } = useGetStoreProductsQuery({ storeId, limit: 100 });
     // Totals come from a Mongo aggregation, NOT a page of orders — otherwise
     // revenue silently under-reports once the store passes one page of results.
-    const { data: statsRes } = useGetOrderStatsQuery({ days });
-    const { data: orders } = useGetAllOrdersQuery({ limit: 5 });
-    const { data: cats } = useGetCategoriesQuery();
+    const { data: statsRes } = useGetStoreOrderStatsQuery({ storeId, days });
+    const { data: orders } = useGetStoreOrdersQuery({ storeId, limit: 5 });
+    const { data: cats } = useGetStoreCategoriesQuery({ storeId });
 
     const stats = statsRes?.data;
     const orderList = useMemo(() => orders?.data?.orders || [], [orders]);

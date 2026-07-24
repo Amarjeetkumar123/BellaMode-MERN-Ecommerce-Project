@@ -1,6 +1,9 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { createBaseQuery } from "../baseQuery";
 
+// Customer-facing order endpoints only (a buyer's own orders). Seller-dashboard
+// order views — list, stats, status — live in storeApi under
+// /api/stores/:storeId/orders.
 const ordersApi = createApi({
     reducerPath: "ordersApi",
     baseQuery: createBaseQuery("/api/orders"),
@@ -14,20 +17,8 @@ const ordersApi = createApi({
             query: () => ({ url: "/myorders", method: "GET" }),
             providesTags: ["Orders"],
         }),
-        getOrderStats: builder.query({
-            query: (params) => ({ url: "/stats", method: "GET", params }),
-            providesTags: ["Orders"],
-        }),
-        getAllOrders: builder.query({
-            query: (params) => ({ url: "/", method: "GET", params }),
-            providesTags: ["Orders"],
-        }),
         getOrder: builder.query({
             query: (id) => ({ url: `/${id}`, method: "GET" }),
-        }),
-        updateOrderStatus: builder.mutation({
-            query: ({ id, status }) => ({ url: `/${id}/status`, method: "PATCH", body: { status } }),
-            invalidatesTags: ["Orders"],
         }),
     }),
 });
@@ -35,10 +26,7 @@ const ordersApi = createApi({
 export const {
     useCreateOrderMutation,
     useGetMyOrdersQuery,
-    useGetAllOrdersQuery,
-    useGetOrderStatsQuery,
     useGetOrderQuery,
-    useUpdateOrderStatusMutation,
 } = ordersApi;
 
 export default ordersApi;

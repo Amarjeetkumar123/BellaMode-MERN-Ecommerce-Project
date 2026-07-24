@@ -75,7 +75,7 @@ exports.listProducts = asyncHandler(async (req, res) => {
     return sendSuccess(res, 200, 'OK', data);
 });
 
-// GET /api/products/mine — a seller's own catalogue (req.storeId from resolveStore),
+// GET /api/stores/:storeId/products — a seller's own catalogue (req.storeId from loadOwnedStore),
 // including inactive products so they can manage everything.
 exports.listMyProducts = asyncHandler(async (req, res) => {
     const data = await runProductList(req, { storeId: req.storeId });

@@ -29,7 +29,7 @@ const userSchema = new Schema({
     bio: { type: String, maxlength: 200 },
     profession: String,
     phone: String,
-    // A SELLER's own store (quick "my store" lookup for resolveStore). Null for customers.
+    // A SELLER's own store (quick "my store" lookup). Null for customers.
     store: { type: Schema.Types.ObjectId, ref: 'Store', default: null, index: true },
     addresses: [addressSchema],
     // Account-synced wishlist — product refs, so saves follow the user across devices.

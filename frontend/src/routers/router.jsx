@@ -21,6 +21,8 @@ import ManageOrders from "../pages/dashboard/admin/ManageOrders";
 import AddNewPost from "../pages/dashboard/admin/AddNewPost";
 import DashboardSettings from "../pages/dashboard/admin/DashboardSettings";
 import ManageUsers from "../pages/dashboard/admin/ManageUsers";
+import CreateStore from "../pages/dashboard/seller/CreateStore";
+import RequireStore from "../pages/dashboard/seller/RequireStore";
 
 const STORE_MGR = ["SELLER", "SUPERADMIN"];
 
@@ -43,12 +45,13 @@ const router = createBrowserRouter([
                     { path: "", element: <UserDashboard /> },
                     { path: "profile", element: <Profile /> },
                     { path: "orders", element: <MyOrders /> },
-                    { path: "admin", element: <PrivateRoute roles={STORE_MGR}><AdminDashboard /></PrivateRoute> },
-                    { path: "manage-products", element: <PrivateRoute roles={STORE_MGR}><ManageProducts /></PrivateRoute> },
-                    { path: "manage-categories", element: <PrivateRoute roles={STORE_MGR}><ManageCategories /></PrivateRoute> },
-                    { path: "manage-orders", element: <PrivateRoute roles={STORE_MGR}><ManageOrders /></PrivateRoute> },
-                    { path: "add-new-post", element: <PrivateRoute roles={STORE_MGR}><AddNewPost /></PrivateRoute> },
-                    { path: "settings", element: <PrivateRoute roles={STORE_MGR}><DashboardSettings /></PrivateRoute> },
+                    { path: "create-store", element: <CreateStore /> },
+                    { path: "admin", element: <PrivateRoute roles={STORE_MGR}><RequireStore><AdminDashboard /></RequireStore></PrivateRoute> },
+                    { path: "manage-products", element: <PrivateRoute roles={STORE_MGR}><RequireStore><ManageProducts /></RequireStore></PrivateRoute> },
+                    { path: "manage-categories", element: <PrivateRoute roles={STORE_MGR}><RequireStore><ManageCategories /></RequireStore></PrivateRoute> },
+                    { path: "manage-orders", element: <PrivateRoute roles={STORE_MGR}><RequireStore><ManageOrders /></RequireStore></PrivateRoute> },
+                    { path: "add-new-post", element: <PrivateRoute roles={STORE_MGR}><RequireStore><AddNewPost /></RequireStore></PrivateRoute> },
+                    { path: "settings", element: <PrivateRoute roles={STORE_MGR}><RequireStore><DashboardSettings /></RequireStore></PrivateRoute> },
                     { path: "manage-users", element: <PrivateRoute roles={["SUPERADMIN"]}><ManageUsers /></PrivateRoute> },
                 ],
             },

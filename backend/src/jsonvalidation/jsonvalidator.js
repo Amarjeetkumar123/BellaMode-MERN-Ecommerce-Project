@@ -14,6 +14,7 @@ const paymentschema = require('./paymentschema');
 const settingschema = require('./settingschema');
 const bannerschema = require('./bannerschema');
 const blogschema = require('./blogschema');
+const storeschema = require('./storeschema');
 
 const ajv = new Ajv({ allErrors: true, coerceTypes: false });
 addKeywords(ajv);
@@ -93,4 +94,8 @@ module.exports = {
     // ---- blog ----
     validateCreateBlogSchema: makeValidator(blogschema.createBlogSchema),
     validateUpdateBlogSchema: makeValidator(blogschema.updateBlogSchema),
+    // ---- store ----
+    validateCreateStoreSchema: makeValidator(storeschema.createStoreSchema),
+    validateUpdateStoreSchema: makeValidator(storeschema.updateStoreSchema),
+    validateUpdateStoreStatusSchema: makeValidator(storeschema.updateStoreStatusSchema),
 };

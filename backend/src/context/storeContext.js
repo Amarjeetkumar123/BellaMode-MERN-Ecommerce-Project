@@ -1,6 +1,6 @@
 const { AsyncLocalStorage } = require('async_hooks');
 
-// Per-request tenant context. `resolveStore` enters a storeId for the current
+// Per-request tenant context. `loadOwnedStore` enters a storeId for the current
 // request; anything running inside that request can read it back. This powers the
 // Mongoose plugin backstop below without threading storeId through every call.
 const als = new AsyncLocalStorage();

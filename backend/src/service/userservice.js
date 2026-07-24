@@ -22,6 +22,8 @@ function toPublicUser(user) {
         username: user.username,
         email: user.email,
         role: user.role,
+        // The seller's own store id — the client uses it to address /api/stores/:storeId/… .
+        store: user.store || null,
         profileImage: user.profileImage,
         bio: user.bio,
         profession: user.profession,

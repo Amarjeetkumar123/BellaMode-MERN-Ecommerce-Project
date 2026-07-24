@@ -19,8 +19,15 @@ exports.getSettings = asyncHandler(async (req, res) => {
     return sendSuccess(res, 200, 'OK', { settings });
 });
 
-// PATCH /api/settings — seller updates their own store's settings (req.storeId
-// is set by resolveStore).
+// GET /api/stores/:storeId/settings — a seller reads their own store's settings
+// (req.storeId set by loadOwnedStore).
+exports.getStoreSettings = asyncHandler(async (req, res) => {
+    const settings = await settingDao.getSettings(req.storeId);
+    return sendSuccess(res, 200, 'OK', { settings });
+});
+
+// PATCH /api/stores/:storeId/settings — seller updates their own store's settings
+// (req.storeId set by loadOwnedStore).
 exports.updateSettings = asyncHandler(async (req, res) => {
     if (!req.storeId) return sendError(res, 403, 'No store context.');
     const settings = await settingDao.updateSettings(req.storeId, req.body);

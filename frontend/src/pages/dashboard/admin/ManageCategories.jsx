@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 import {
-    useGetMyCategoriesQuery,
-    useCreateCategoryMutation,
-    useUpdateCategoryMutation,
-    useDeleteCategoryMutation,
-} from '../../../redux/features/categories/categoriesApi'
+    useGetStoreCategoriesQuery,
+    useCreateStoreCategoryMutation,
+    useUpdateStoreCategoryMutation,
+    useDeleteStoreCategoryMutation,
+} from '../../../redux/features/stores/storeApi'
+import { useMyStoreId } from '../../../hooks/useMyStoreId'
 import ImageInput from '../../../components/ImageInput'
 import { card, input, primaryBtn, ghostBtn, titleFont } from './adminUI'
 
@@ -12,10 +13,11 @@ const AUDIENCES = ['men', 'women', 'kids', 'unisex'];
 const blank = { name: '', audience: 'men', image: '', sortOrder: 0 };
 
 const ManageCategories = () => {
-    const { data, isLoading } = useGetMyCategoriesQuery();
-    const [createCategory] = useCreateCategoryMutation();
-    const [updateCategory] = useUpdateCategoryMutation();
-    const [deleteCategory] = useDeleteCategoryMutation();
+    const storeId = useMyStoreId();
+    const { data, isLoading } = useGetStoreCategoriesQuery({ storeId });
+    const [createCategory] = useCreateStoreCategoryMutation();
+    const [updateCategory] = useUpdateStoreCategoryMutation();
+    const [deleteCategory] = useDeleteStoreCategoryMutation();
     const categories = data?.data?.categories || [];
 
     const [form, setForm] = useState(blank);
@@ -29,15 +31,15 @@ const ManageCategories = () => {
         setMsg('');
         const payload = { name: form.name, audience: form.audience, image: form.image, sortOrder: Number(form.sortOrder) || 0 };
         try {
-            if (editingId) await updateCategory({ id: editingId, ...payload }).unwrap();
-            else await createCategory(payload).unwrap();
+            if (editingId) await updateCategory({ storeId, id: editingId, ...payload }).unwrap();
+            else await createCategory({ storeId, ...payload }).unwrap();
             reset();
             setMsg('Saved.');
         } catch (err) { setMsg(err?.data?.message || 'Save failed.'); }
     };
 
     const startEdit = (c) => { setEditingId(c._id); setForm({ name: c.name, audience: c.audience, image: c.image || '', sortOrder: c.sortOrder || 0 }); };
-    const handleDelete = async (id) => { if (window.confirm('Delete category?')) await deleteCategory(id); };
+    const handleDelete = async (id) => { if (window.confirm('Delete category?')) await deleteCategory({ storeId, id }); };
 
     return (
         <div>
