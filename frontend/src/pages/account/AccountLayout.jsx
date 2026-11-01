@@ -5,6 +5,7 @@ import { logout } from '../../redux/features/auth/authSlice'
 import { useGetMyOrdersQuery } from '../../redux/features/orders/ordersApi'
 import { isOpenOrder } from '../../data/orders'
 import { initialOf } from '../../utils/user'
+import { adminLinks, isAdminRole } from '../../data/adminNav'
 
 // The customer's account: side nav (a scrolling tab row on phones) + the page.
 const AccountLayout = () => {
@@ -35,6 +36,14 @@ const AccountLayout = () => {
                         <li><NavLink to='/dashboard/profile'><i className='ri-user-line'></i>Profile and addresses</NavLink></li>
                         <li><button type='button' className='out' onClick={signOut}><i className='ri-logout-box-r-line'></i>Sign out</button></li>
                     </ul>
+                    {isAdminRole(user?.role) && (
+                        <>
+                            <p className='wf-anav__h'>Admin panel</p>
+                            <ul className='wf-anav'>
+                                {adminLinks(user.role).map((l) => <li key={l.to}><NavLink to={l.to}><i className={l.icon}></i>{l.label}</NavLink></li>)}
+                            </ul>
+                        </>
+                    )}
                 </nav>
             </aside>
             <section><Outlet /></section>

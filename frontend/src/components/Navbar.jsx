@@ -5,8 +5,7 @@ import CartModel from '../pages/shop/CartModel';
 import WishlistDrawer from '../pages/wishlist/WishlistDrawer';
 import { useLogoutUserMutation } from '../redux/features/auth/authApi';
 import { logout } from '../redux/features/auth/authSlice';
-import { useGetCategoriesQuery } from '../redux/features/categories/categoriesApi';
-import { AUDIENCES, LIFESTYLE, STORE_HOME, PRICE_BANDS, listingLink } from '../data/catalog';
+import { AUDIENCES } from '../data/catalog';
 import { useActiveAudiences } from '../hooks/useActiveAudiences';
 import { useWishlist } from '../hooks/useWishlist';
 import { initialOf } from '../utils/user';
@@ -33,15 +32,9 @@ const Navbar = () => {
     const navigate = useNavigate();
     const { pathname, search } = useLocation();
 
-    const { data: catData } = useGetCategoriesQuery();
     const { isActive, keys: activeKeys, settings } = useActiveAudiences();
     const { count: wishlistCount } = useWishlist();
     const stores = AUDIENCES.filter((a) => isActive(a.key));
-    const allCats = catData?.data?.categories || [];
-    const catsFor = (key) => allCats.filter((c) => c.audience === key).sort((a, b) => a.sortOrder - b.sortOrder);
-    const lifestyle = catsFor('unisex').length
-        ? catsFor('unisex')
-        : LIFESTYLE.map((l) => ({ slug: l.slug, name: l.label, audience: 'unisex' }));
 
     const brandName = settings?.brandName || 'Wearly Fashion';
     const [brandFirst, ...brandRest] = brandName.split(' ');
@@ -59,13 +52,12 @@ const Navbar = () => {
     // Which nav item is "current": a store (its home or a listing inside it) or Sale.
     const seg = pathname.split('/')[2];
     const current = pathname === '/' ? activeKeys[0]
-        : pathname.startsWith('/categories/') ? (isActive(seg) ? seg : allCats.find((c) => c.slug === seg)?.audience)
+        : pathname.startsWith('/categories/') ? (isActive(seg) ? seg : null)
         : pathname === '/shop' ? new URLSearchParams(search).get('store')
         : pathname === '/sale' ? 'sale'
         : null;
 
     // Sliding underline: sits under the current item, follows the pointer across the nav.
-    const headerRef = useRef(null);
     const storesRef = useRef(null);
     const ind = () => storesRef.current?.querySelector('.wf-ind');
     const itemEl = (key) => storesRef.current?.querySelector(`[data-key="${key}"]`);
@@ -80,10 +72,6 @@ const Navbar = () => {
         window.addEventListener('resize', slideHome);
         return () => window.removeEventListener('resize', slideHome);
     });
-    // The mega menu is fixed under the header, wherever the header currently sits.
-    const placeMega = () => headerRef.current?.style.setProperty('--wf-mega-top', `${headerRef.current.getBoundingClientRect().bottom}px`);
-    // A click on a store or inside its menu shuts the menu until the pointer leaves that item.
-    const [shut, setShut] = useState(null);
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 8);
@@ -128,6 +116,7 @@ const Navbar = () => {
         { label: "Settings", path: "/dashboard/settings", icon: "ri-settings-3-line" },
     ];
     if (isSuperadmin) adminMenus.push({ label: "Manage Users", path: "/dashboard/manage-users", icon: "ri-team-line" });
+    adminMenus.push({ label: "My profile", path: "/dashboard/profile", icon: "ri-user-line" });
     const userMenus = [
         { label: "My account", path: "/dashboard", icon: "ri-dashboard-line" },
         { label: "Orders", path: "/dashboard/orders", icon: "ri-box-3-line" },
@@ -148,7 +137,7 @@ const Navbar = () => {
 
     return (
         <>
-        <header ref={headerRef} className={`wf-header ${scrolled ? 'is-scrolled' : ''}`}>
+        <header className={`wf-header ${scrolled ? 'is-scrolled' : ''}`}>
             <div className='wf-wrap wf-header__bar'>
                 <Link to='/' className='wf-logo' aria-label={`${brandName} home`}>
                     {settings?.logoUrl
@@ -160,12 +149,10 @@ const Navbar = () => {
                     className='wf-stores'
                     ref={storesRef}
                     aria-label='Stores'
-                    onPointerEnter={placeMega}
-                    onFocus={placeMega}
                     onPointerLeave={slideHome}
                 >
                     {stores.map((s) => (
-                        <li key={s.key} className={shut === s.key ? 'is-shut' : undefined} onClick={() => setShut(s.key)} onPointerLeave={() => setShut(null)}>
+                        <li key={s.key}>
                             <Link
                                 to={s.to}
                                 data-key={s.key}
@@ -174,38 +161,6 @@ const Navbar = () => {
                             >
                                 <Roll>{s.label}</Roll>
                             </Link>
-                            <div className='wf-mega'>
-                                <div className='wf-wrap'>
-                                    <div>
-                                        <h3>Shop by category</h3>
-                                        <ul>
-                                            <li><Link to={s.to} className='is-red'>All {ALL_LABEL[s.key]}</Link></li>
-                                            {catsFor(s.key).map((c) => <li key={c._id}><Link to={listingLink(s.key, c)}>{c.name}</Link></li>)}
-                                        </ul>
-                                    </div>
-                                    {STORE_HOME[s.key]?.lifestyle && (
-                                        <div>
-                                            <h3>Footwear and accessories</h3>
-                                            <ul>{lifestyle.map((c) => <li key={c.slug}><Link to={listingLink(s.key, c)}>{c.name}</Link></li>)}</ul>
-                                        </div>
-                                    )}
-                                    <div>
-                                        <h3>Shop by price</h3>
-                                        <ul>{PRICE_BANDS.map((b) => <li key={b.value}><Link to={`${listingLink(s.key)}&priceRange=${b.value}`}>{b.label}</Link></li>)}</ul>
-                                        <h3>Collections</h3>
-                                        <ul>
-                                            <li><Link to={listingLink(s.key)}>All {ALL_LABEL[s.key]}</Link></li>
-                                            <li><Link to={`${listingLink(s.key)}&sort=newest`}>New in</Link></li>
-                                            <li><Link to={`${listingLink(s.key)}&sort=rating`}>Top rated</Link></li>
-                                            <li><Link to={`/sale?store=${s.key}`} className='is-red'>Sale</Link></li>
-                                        </ul>
-                                    </div>
-                                    <Link to={s.to} className='wf-mega__promo wf-glint'>
-                                        <img src={settings?.audienceHeroImages?.[s.key] || s.image} alt='' loading='lazy' />
-                                        <span>{STORE_HOME[s.key]?.kicker || s.label}</span>
-                                    </Link>
-                                </div>
-                            </div>
                         </li>
                     ))}
                     <li>

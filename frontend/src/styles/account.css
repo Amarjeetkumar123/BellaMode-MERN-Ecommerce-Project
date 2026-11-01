@@ -344,3 +344,7 @@ details[open] > summary .wf-pm::after { transform: rotate(0); }
     .wf-tickmark circle, .wf-tickmark path { animation: none; stroke-dashoffset: 0; }
     .wf-auth__ph img, .wf-auth__note { animation: none; }
 }
+
+/* admin panel links under the account nav (admins only) */
+.wf-anav__h { margin: 20px 0 6px; padding: 16px 14px 0; border-top: 1px solid var(--wf-line); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--wf-muted); }
+@media (max-width: 860px) { .wf-anav__h { margin: 14px 0 0; padding: 12px 0 4px; } }

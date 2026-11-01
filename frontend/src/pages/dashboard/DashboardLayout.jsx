@@ -4,8 +4,8 @@ import avatarImg from '../../assets/avatar.png'
 import { useLogoutUserMutation } from '../../redux/features/auth/authApi'
 import { logout } from '../../redux/features/auth/authSlice'
 import AccountLayout from '../account/AccountLayout'
+import { adminLinks, isAdminRole } from '../../data/adminNav'
 
-const ADMIN_ROLES = ['ADMIN', 'SUPERADMIN'];
 // the customer's own pages use the storefront account layout, for every role
 const ACCOUNT_PAGES = ['/dashboard', '/dashboard/orders', '/dashboard/profile'];
 
@@ -16,25 +16,16 @@ const DashboardLayout = () => {
     const [logoutUser] = useLogoutUserMutation();
     const { pathname } = useLocation();
 
-    const isAdmin = user && ADMIN_ROLES.includes(user.role);
-    const isSuperadmin = user && user.role === 'SUPERADMIN';
+    const isAdmin = isAdminRole(user?.role);
 
     const userLinks = [
         { to: '/dashboard', label: 'Overview', icon: 'ri-dashboard-line', end: true },
         { to: '/dashboard/profile', label: 'Profile', icon: 'ri-user-line' },
         { to: '/dashboard/orders', label: 'My Orders', icon: 'ri-shopping-bag-line' },
     ];
-    const adminLinks = [
-        { to: '/dashboard/admin', label: 'Admin Overview', icon: 'ri-dashboard-line' },
-        { to: '/dashboard/manage-products', label: 'Products', icon: 'ri-t-shirt-line' },
-        { to: '/dashboard/manage-categories', label: 'Categories', icon: 'ri-price-tag-3-line' },
-        { to: '/dashboard/manage-orders', label: 'Orders', icon: 'ri-shopping-bag-line' },
-        { to: '/dashboard/add-new-post', label: 'Blog Posts', icon: 'ri-article-line' },
-        { to: '/dashboard/settings', label: 'Settings', icon: 'ri-settings-3-line' },
-    ];
-    if (isSuperadmin) adminLinks.push({ to: '/dashboard/manage-users', label: 'Users', icon: 'ri-group-line' });
 
-    const links = isAdmin ? adminLinks : userLinks;
+    // admins also get their own account pages (profile, orders) at the end
+    const links = isAdmin ? [...adminLinks(user.role), { to: '/dashboard/profile', label: 'My profile', icon: 'ri-user-line' }] : userLinks;
     if (ACCOUNT_PAGES.includes(pathname.replace(/\/$/, ''))) return <AccountLayout />;
 
     const handleLogout = async () => {
