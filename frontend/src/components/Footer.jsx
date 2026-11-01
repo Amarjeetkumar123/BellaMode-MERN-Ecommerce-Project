@@ -1,84 +1,66 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import instaImg1 from "../assets/instagram-1.jpg"
-import instaImg2 from "../assets/instagram-2.jpg"
-import instaImg3 from "../assets/instagram-3.jpg"
-import instaImg4 from "../assets/instagram-4.jpg"
-import instaImg5 from "../assets/instagram-5.jpg"
-import instaImg6 from "../assets/instagram-6.jpg"
 import { AUDIENCES } from '../data/catalog'
 import { useActiveAudiences } from '../hooks/useActiveAudiences'
-
-const insta = [instaImg1, instaImg2, instaImg3, instaImg4, instaImg5, instaImg6];
 
 const Footer = () => {
     const { isActive, settings, copy } = useActiveAudiences();
     const { pathname } = useLocation();
-    const brandName = settings?.brandName || 'Wearly';
+    const brandName = settings?.brandName || 'Wearly Fashion';
     const [brandFirst, ...brandRest] = brandName.split(' ');
     const shopLinks = AUDIENCES.filter((a) => isActive(a.key));
     // The newsletter is storefront marketing — it has no place in the dashboard.
     const isDashboard = pathname.startsWith('/dashboard');
 
     return (
-        <>
-            {/* Newsletter band */}
-            {!isDashboard && (
-            <section className='newsletter'>
-                <div className='newsletter__inner'>
+        <footer className='wf-footer'>
+            <div className='wf-wrap'>
+                <div className='wf-foot'>
                     <div>
-                        <h3>Join the Wearly list</h3>
-                        <p>Get early access to new drops, exclusive offers & style tips — straight to your inbox.</p>
+                        <Link to='/' className='wf-logo' aria-label={`${brandName} home`}>
+                            <span>{brandFirst}</span>{brandRest.length ? ` ${brandRest.join(' ')}` : ''}
+                        </Link>
+                        <p>Curated fashion for {copy}: clothing, footwear, watches, perfumes and accessories, all in one place.</p>
+                        {!isDashboard && (
+                            <form className='wf-news' onSubmit={(e) => e.preventDefault()}>
+                                <label className='wf-sr' htmlFor='wf-em'>Email address</label>
+                                <input id='wf-em' type='email' placeholder='Email for new arrivals and offers' required autoComplete='email' />
+                                <button type='submit'>Subscribe</button>
+                            </form>
+                        )}
                     </div>
-                    <form className='newsletter__form' onSubmit={(e) => e.preventDefault()}>
-                        <input type='email' placeholder='Enter your email' aria-label='Email address' required />
-                        <button type='submit' className='btn'>Subscribe</button>
-                    </form>
-                </div>
-            </section>
-            )}
-
-            <footer className='section__container footer__container'>
-                <div className='footer__col'>
-                    <h4 className='footer__brand'>{brandFirst}{brandRest.length ? ` ${brandRest.join(' ')}` : ''}<span>.</span></h4>
-                    <p className='footer__about'>Curated fashion for {copy} — clothing, footwear, watches, perfumes and accessories, all in one place.</p>
-                    <div className='footer__social'>
-                        <a href='https://instagram.com' aria-label='Instagram'><i className='ri-instagram-line'></i></a>
-                        <a href='https://facebook.com' aria-label='Facebook'><i className='ri-facebook-circle-line'></i></a>
-                        <a href='https://twitter.com' aria-label='Twitter'><i className='ri-twitter-x-line'></i></a>
-                        <a href='https://youtube.com' aria-label='YouTube'><i className='ri-youtube-line'></i></a>
+                    <div>
+                        <h4>Shop</h4>
+                        <ul>
+                            {shopLinks.map((a) => <li key={a.key}><Link to={a.to}>{a.label}</Link></li>)}
+                            <li><Link to='/sale'>Sale</Link></li>
+                        </ul>
                     </div>
-                </div>
-                <div className='footer__col'>
-                    <h4>SHOP</h4>
-                    {shopLinks.map((a) => (
-                        <Link key={a.key} to={a.to}>{a.label}</Link>
-                    ))}
-                    <Link to='/categories/footwear-unisex'>Footwear</Link>
-                    <Link to='/categories/perfumes-unisex'>Perfumes</Link>
-                </div>
-                <div className='footer__col'>
-                    <h4>HELP</h4>
-                    <Link to='/shop'>Track your order</Link>
-                    <Link to='/shop'>Shipping & Returns</Link>
-                    <Link to='/shop'>Size Guide</Link>
-                    <Link to='/shop'>FAQs</Link>
-                    <a href='mailto:support@wearly.com'>Contact Us</a>
-                </div>
-                <div className='footer__col'>
-                    <h4>FOLLOW US</h4>
-                    <div className='instagram__grid'>
-                        {insta.map((src, i) => (
-                            <img key={i} src={src} alt='' loading='lazy' />
-                        ))}
+                    <div>
+                        <h4>Help</h4>
+                        <ul>
+                            <li><Link to='/dashboard/orders'>Track your order</Link></li>
+                            <li><Link to='/shop'>Shipping and returns</Link></li>
+                            <li><Link to='/shop'>Size guide</Link></li>
+                            <li><a href='mailto:support@wearly.com'>Contact us</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Follow us</h4>
+                        <ul>
+                            <li><a href='https://instagram.com' target='_blank' rel='noreferrer'>Instagram</a></li>
+                            <li><a href='https://facebook.com' target='_blank' rel='noreferrer'>Facebook</a></li>
+                            <li><a href='https://twitter.com' target='_blank' rel='noreferrer'>X (Twitter)</a></li>
+                            <li><a href='https://youtube.com' target='_blank' rel='noreferrer'>YouTube</a></li>
+                        </ul>
                     </div>
                 </div>
-            </footer>
-            <div className='footer__bar'>
-                <span>© 2025 {brandName}. All Rights Reserved.</span>
-                <span className='footer__pay'><i className='ri-visa-line'></i><i className='ri-mastercard-line'></i><i className='ri-secure-payment-line'></i> Secure payments</span>
+                <div className='wf-legal'>
+                    <span>© {new Date().getFullYear()} {brandName}. All prices in INR, inclusive of GST.</span>
+                    <span>UPI, cards, net banking and cash on delivery</span>
+                </div>
             </div>
-        </>
+        </footer>
     )
 }
 

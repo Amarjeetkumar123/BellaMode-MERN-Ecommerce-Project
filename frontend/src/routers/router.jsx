@@ -4,6 +4,7 @@ import CategoryPage from "../pages/category/CategoryPage";
 import NotFound from "../pages/NotFound";
 import Search from "../pages/search/Search";
 import ShopPage from "../pages/shop/ShopPage";
+import SalePage from "../pages/sale/SalePage";
 import SingleProduct from "../pages/shop/productDetails/SingleProduct";
 import Checkout from "../pages/checkout/Checkout";
 import Login from "../components/Login";
@@ -34,6 +35,7 @@ const router = createBrowserRouter([
             { path: "/categories/:categoryName", element: <CategoryPage /> },
             { path: "/search", element: <Search /> },
             { path: "/shop", element: <ShopPage /> },
+            { path: "/sale", element: <SalePage /> },
             { path: "/shop/:id", element: <SingleProduct /> },
             { path: "/checkout", element: <PrivateRoute><Checkout /></PrivateRoute> },
             {

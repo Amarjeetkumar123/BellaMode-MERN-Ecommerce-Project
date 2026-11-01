@@ -25,7 +25,9 @@ function getRawJsonQuery(filter = {}) {
     if (filter.isFeatured !== undefined) filterJson.isFeatured = filter.isFeatured;
     if (filter.isActive !== undefined) filterJson.isActive = filter.isActive;
     if (filter.searchObj) filterJson.search_params = filter.searchObj;
-    return createMongoAndFilterForColumns(filterJson, FILTER_COLUMNS, RANGE_COLUMNS, [], SEARCH_COLUMNS);
+    const mongoFilter = createMongoAndFilterForColumns(filterJson, FILTER_COLUMNS, RANGE_COLUMNS, [], SEARCH_COLUMNS);
+    if (filter.onSale) mongoFilter.$expr = { $gt: ['$oldPrice', '$price'] };
+    return mongoFilter;
 }
 
 async function getProducts(filter, columnsRequired, sortParams, paginationParams, populate) {

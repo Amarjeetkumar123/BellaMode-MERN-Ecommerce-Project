@@ -13,6 +13,7 @@ class ProductFilter extends BaseFilter {
         this.priceRange = undefined; // { from, to }
         this.isTrending = undefined;
         this.isFeatured = undefined;
+        this.onSale = undefined; // oldPrice > price
         this.isActive = undefined;
         this.searchObj = undefined; // { search_text, search_columns }
     }

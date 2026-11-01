@@ -1,240 +1,271 @@
-import React, { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import RatingStars from '../../../components/RatingStars'
-import { useGetProductQuery } from '../../../redux/features/products/productsApi'
+import { useGetProductQuery, useGetProductsQuery } from '../../../redux/features/products/productsApi'
 import { useGetReviewsByProductQuery, useAddReviewMutation } from '../../../redux/features/reviews/reviewsApi'
 import { addToCart } from '../../../redux/features/cart/cartSlice'
-import { toCartProduct } from '../ProductCard'
+import ProductCard, { toCartProduct } from '../ProductCard'
 import { formatINR } from '../../../utils/formatCurrency'
+import { useWishlist } from '../../../hooks/useWishlist'
+import { listingLink } from '../../../data/catalog'
 
-const TRUST = [
-    { icon: 'ri-truck-line', text: 'Free delivery over ₹999' },
-    { icon: 'ri-arrow-go-back-line', text: '30-day easy returns' },
-    { icon: 'ri-secure-payment-line', text: 'Secure checkout' },
-];
+const LABEL = { men: 'Men', women: 'Women', kids: 'Kids', unisex: 'Lifestyle' };
+// With a single photo, the gallery offers detail crops of it instead.
+const CROPS = [['1', '50% 40%'], ['1.7', '50% 22%'], ['1.8', '50% 62%'], ['2.3', '70% 88%']];
+const canHover = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 
-const SingleProduct = () => {
-    const { id } = useParams(); // slug or id
+const Stars = ({ value, size }) => (
+    <span className='wf-stars' aria-label={`${value} out of 5`}>
+        {[1, 2, 3, 4, 5].map((i) => <i key={i} className={i <= Math.round(value) ? '' : 'off'} style={size && { width: size, height: size }}></i>)}
+    </span>
+);
+
+const ProductView = ({ product }) => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { user } = useSelector((s) => s.auth);
+    const { isWished, toggle } = useWishlist();
+    const { data: reviewData } = useGetReviewsByProductQuery(product._id);
+    const [addReview, { isLoading: posting }] = useAddReviewMutation();
+    const { data: relData } = useGetProductsQuery({ category: product.category?.slug, limit: 5 }, { skip: !product.category?.slug });
 
-    const { data, isLoading, isError } = useGetProductQuery(id);
-    const product = data?.data?.product;
+    const images = [...new Set((product.images || []).filter(Boolean))];
+    const shots = images.length > 1 ? images.map((src) => [src, '1', '50% 50%']) : CROPS.map(([z, o]) => [images[0], z, o]);
+    const sizes = product.sizes || [];
+    const colors = product.colors || [];
+    const off = product.oldPrice > product.price ? Math.round((1 - product.price / product.oldPrice) * 100) : 0;
+    const stock = product.stock ?? 1;
+    const reviews = reviewData?.data?.reviews || [];
+    const related = (relData?.data?.products || []).filter((p) => p._id !== product._id).slice(0, 4);
+    const store = ['men', 'women', 'kids'].includes(product.audience) ? product.audience : null;
 
-    const { data: reviewData } = useGetReviewsByProductQuery(product?._id, { skip: !product?._id });
-    const [addReview, { isLoading: submitting }] = useAddReviewMutation();
-
-    const [size, setSize] = useState('');
-    const [color, setColor] = useState('');
+    const [shot, setShot] = useState(0);
+    const [zoom, setZoom] = useState(null);
+    const [color, setColor] = useState(colors[0] || '');
+    const [size, setSize] = useState(sizes.length === 1 ? sizes[0] : '');
     const [qty, setQty] = useState(1);
-    const [rating, setRating] = useState(5);
+    const [need, setNeed] = useState(0);
+    const [added, setAdded] = useState(false);
+    const [writing, setWriting] = useState(false);
+    const [stars, setStars] = useState(5);
     const [comment, setComment] = useState('');
     const [msg, setMsg] = useState('');
-    const [added, setAdded] = useState(false);
-    const [activeImg, setActiveImg] = useState(0);
+    const [barsIn, setBarsIn] = useState(false);
+    const [buybar, setBuybar] = useState(false);
+    const addRef = useRef(null);
+    const sizeRef = useRef(null);
 
-    if (isLoading) return <div className='section__container'>Loading…</div>;
-    if (isError || !product) return <div className='section__container'>Product not found.</div>;
+    useEffect(() => { const t = setTimeout(() => setBarsIn(true), 200); return () => clearTimeout(t); }, []);
+    // phone: price + Add to bag stay on screen once the main button scrolls away
+    useEffect(() => {
+        const io = new IntersectionObserver(([e]) => setBuybar(!e.isIntersecting && e.boundingClientRect.top < 0));
+        if (addRef.current) io.observe(addRef.current);
+        return () => io.disconnect();
+    }, []);
 
-    const image = (product.images && product.images[0]) || product.image;
-    // De-duplicated image list; falls back to the single image when that's all there is.
-    const gallery = [...new Set((product.images || []).filter(Boolean))];
-    if (gallery.length === 0 && image) gallery.push(image);
-    const reviews = reviewData?.data?.reviews || [];
-    const discount = product.oldPrice && product.oldPrice > product.price
-        ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : 0;
-    const inStock = (product.stock ?? 1) > 0;
-
-    const handleAddToCart = () => {
-        for (let i = 0; i < qty; i++) dispatch(addToCart({ ...toCartProduct(product), size, color }));
-        setAdded(true);
-        setTimeout(() => setAdded(false), 1800);
+    const ready = () => {
+        if (!sizes.length || size) return true;
+        setNeed((n) => n + 1); // re-triggers the shake
+        sizeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
     };
+    const add = () => dispatch(addToCart({ ...toCartProduct(product), ...(size && { size }), ...(color && { color }), quantity: qty }));
+    const addToBag = () => {
+        if (!ready()) return;
+        add();
+        setAdded(true);
+        setTimeout(() => setAdded(false), 1600);
+        window.dispatchEvent(new Event('wf:open-bag'));
+    };
+    const buyNow = () => { if (ready()) { add(); navigate('/checkout'); } };
 
-    const handleReview = async (e) => {
+    const postReview = async (e) => {
         e.preventDefault();
         setMsg('');
         try {
-            await addReview({ productId: product._id, rating: Number(rating), comment }).unwrap();
-            setComment('');
-            setMsg('Thanks for your review!');
+            await addReview({ productId: product._id, rating: stars, comment }).unwrap();
+            setComment(''); setWriting(false); setMsg('Thanks, your review is live.');
         } catch (err) {
-            setMsg(err?.data?.message || 'Could not submit review.');
+            setMsg(err?.data?.message || 'Could not post your review.');
         }
     };
 
+    // rating comes from real reviews only, so it can't disagree with the review count
+    const avg = reviews.length ? reviews.reduce((a, r) => a + r.rating, 0) / reviews.length : 0;
+    const dist = [5, 4, 3, 2, 1].map((s) => [s, reviews.length ? Math.round((reviews.filter((r) => Math.round(r.rating) === s).length / reviews.length) * 100) : 0]);
+    const [src, z, o] = shots[shot] || [];
+
     return (
-        <>
-            <section className='section__container !py-16'>
-                {/* Breadcrumb */}
-                <nav className='flex items-center gap-2 text-sm text-text-light mb-8'>
-                    <Link to='/' className='hover:text-primary'>Home</Link>
-                    <i className='ri-arrow-right-s-line'></i>
-                    <Link to='/shop' className='hover:text-primary'>Shop</Link>
-                    {product.category?.slug && (
-                        <>
-                            <i className='ri-arrow-right-s-line'></i>
-                            <Link to={`/categories/${product.category.slug}`} className='hover:text-primary'>{product.category.name}</Link>
-                        </>
-                    )}
-                    <i className='ri-arrow-right-s-line'></i>
-                    <span className='text-text-dark line-clamp-1'>{product.name}</span>
+        <main className='wf-page'>
+            <div className='wf-wrap wf-page-top'>
+                <nav className='wf-crumbs' aria-label='Breadcrumb'>
+                    {store ? <Link to={`/categories/${store}`} className='wf-u'>{LABEL[store]}</Link> : <Link to='/' className='wf-u'>Home</Link>}
+                    <span>/</span>
+                    {product.category && <><Link to={listingLink(store, product.category)} className='wf-u'>{product.category.name}</Link><span>/</span></>}
+                    <span>{product.name}</span>
                 </nav>
+            </div>
 
-                <div className='grid md:grid-cols-2 gap-10 lg:gap-16'>
-                    {/* Gallery — thumbnails appear only when there's more than one image */}
-                    <div>
-                        <div className='relative rounded-2xl overflow-hidden bg-gray-50 aspect-[4/5]'>
-                            <img src={gallery[activeImg] || image} alt={product.name}
-                                className='w-full h-full object-cover' />
-                            {discount > 0 && (
-                                <span className='absolute top-4 left-4 bg-text-dark text-white text-xs font-semibold uppercase tracking-wider px-3 py-1.5 rounded'>
-                                    {discount}% off
-                                </span>
-                            )}
-                            {gallery.length > 1 && (
-                                <>
-                                    <button type='button' aria-label='Previous image' className='pdp-gal__nav left-3'
-                                        onClick={() => setActiveImg((i) => (i - 1 + gallery.length) % gallery.length)}>
-                                        <i className='ri-arrow-left-s-line'></i>
-                                    </button>
-                                    <button type='button' aria-label='Next image' className='pdp-gal__nav right-3'
-                                        onClick={() => setActiveImg((i) => (i + 1) % gallery.length)}>
-                                        <i className='ri-arrow-right-s-line'></i>
-                                    </button>
-                                </>
-                            )}
+            <div className='wf-wrap wf-pdp'>
+                <div className='wf-gallery'>
+                    <div className='wf-thumbs'>
+                        {shots.map(([s, sz, so], i) => (
+                            <button key={i} type='button' className='wf-thumb' aria-label={`Photo ${i + 1}`} aria-current={i === shot} onClick={() => setShot(i)}>
+                                <img src={s} alt='' style={{ '--z': sz, '--o': so }} />
+                            </button>
+                        ))}
+                    </div>
+                    <div
+                        className={`wf-main-ph ${zoom ? 'zoom' : ''}`}
+                        style={zoom ? { '--zx': `${zoom[0]}%`, '--zy': `${zoom[1]}%` } : undefined}
+                        {...(canHover && {
+                            onPointerMove: (e) => { const r = e.currentTarget.getBoundingClientRect(); setZoom([((e.clientX - r.left) / r.width) * 100, ((e.clientY - r.top) / r.height) * 100]); },
+                            onPointerLeave: () => setZoom(null),
+                        })}
+                    >
+                        <img src={src} alt={product.name} style={{ '--z': z, '--o': o }} />
+                        {off > 0 && <span className='wf-card__badge'>{off}% off</span>}
+                        <span className='wf-hint'><i className='ri-zoom-in-line'></i> Hover to zoom</span>
+                    </div>
+                </div>
+
+                <div className='wf-buy'>
+                    {product.brand && <div className='wf-buy__brand'>{product.brand}</div>}
+                    <h1>{product.name}</h1>
+                    <a href='#reviews' className='wf-rating'><Stars value={avg} /> {avg ? avg.toFixed(1) : 'New'} <span className='wf-u'>{reviews.length} review{reviews.length === 1 ? '' : 's'}</span></a>
+                    <div className='wf-buy-price'>
+                        <b>{formatINR(product.price)}</b>
+                        {off > 0 && <><s aria-label={`was ${formatINR(product.oldPrice)}`}>{formatINR(product.oldPrice)}</s><span className='wf-save'>Save {formatINR(product.oldPrice - product.price)}</span></>}
+                    </div>
+                    <p className='wf-tax-note'>Inclusive of all taxes</p>
+
+                    {colors.length > 0 && (
+                        <div className='wf-opt'>
+                            <div className='wf-opt__head'>Colour <span>Selected: <b>{color}</b></span></div>
+                            <div className='wf-swatches'>
+                                {colors.map((c) => <button key={c} type='button' className='wf-sw' style={{ '--c': c }} title={c} aria-label={c} aria-pressed={c === color} onClick={() => setColor(c)} />)}
+                            </div>
                         </div>
+                    )}
+                    {sizes.length > 0 && (
+                        <div className={`wf-opt ${need ? 'need' : ''}`} key={need} ref={sizeRef}>
+                            <div className='wf-opt__head'>Size {sizes.length > 1 && <a href='#size-fit' className='wf-u'>Size guide</a>}</div>
+                            <div className='wf-sizes-lg'>
+                                {sizes.map((s) => <button key={s} type='button' aria-pressed={s === size} onClick={() => { setSize(s); setNeed(0); }}>{s}</button>)}
+                            </div>
+                            <p className='wf-err' role='alert'>Choose a size first</p>
+                        </div>
+                    )}
 
-                        {gallery.length > 1 && (
-                            <div className='pdp-thumbs'>
-                                {gallery.map((src, i) => (
-                                    <button key={src + i} type='button'
-                                        aria-label={`View image ${i + 1}`}
-                                        aria-current={i === activeImg}
-                                        className={`pdp-thumb ${i === activeImg ? 'is-on' : ''}`}
-                                        onClick={() => setActiveImg(i)}>
-                                        <img src={src} alt='' loading='lazy' />
-                                    </button>
+                    <div className='wf-row'>
+                        <div className='wf-qty'>
+                            <button type='button' onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label='One less'>−</button>
+                            <output>{qty}</output>
+                            <button type='button' onClick={() => setQty((q) => Math.min(Math.max(stock, 1), q + 1))} aria-label='One more'>+</button>
+                        </div>
+                        <button type='button' ref={addRef} className={`wf-btn ${added ? 'is-ok' : ''}`} onClick={addToBag} disabled={stock < 1}>
+                            {stock < 1 ? 'Out of stock' : added ? 'Added to bag ✓' : 'Add to bag'}
+                        </button>
+                        <button type='button' className='wf-sq' aria-label={isWished(product._id) ? 'Remove from wishlist' : 'Save to wishlist'} aria-pressed={isWished(product._id)} onClick={() => toggle(product._id)}>
+                            <i className={isWished(product._id) ? 'ri-heart-fill' : 'ri-heart-line'}></i>
+                        </button>
+                    </div>
+                    <button type='button' className='wf-btn wf-btn--line wf-btn--block' onClick={buyNow} disabled={stock < 1}>Buy now</button>
+                    <p className={`wf-stock ${stock < 1 ? 'out' : ''}`}>{stock < 1 ? 'Out of stock' : stock <= 5 ? `Only ${stock} left` : 'In stock, ships within 24 hours'}</p>
+
+                    <div className='wf-perks wf-perks--pdp'>
+                        <span><i className='ri-truck-line'></i>Free delivery above ₹999</span>
+                        <span><i className='ri-loop-left-line'></i>30-day easy returns</span>
+                        <span><i className='ri-hand-coin-line'></i>Cash on delivery</span>
+                    </div>
+                    <div className='wf-acc'>
+                        {product.description && <details open><summary>Description<i></i></summary><div><p>{product.description}</p></div></details>}
+                        {sizes.length > 0 && <details id='size-fit'><summary>Size and fit<i></i></summary><div><ul>
+                            {sizes.length === 1 ? <li>One size, fits most</li> : <><li>Regular fit, true to size</li><li>Available in {sizes.join(', ')}</li></>}
+                        </ul></div></details>}
+                        <details><summary>Delivery and returns<i></i></summary><div><ul>
+                            <li>Free delivery on orders above ₹999</li><li>Cash on delivery or online payment</li><li>30-day easy returns and exchanges</li>
+                        </ul></div></details>
+                    </div>
+                </div>
+            </div>
+
+            <section className='wf-wrap wf-reviews' id='reviews' aria-labelledby='wf-rv-h'>
+                <div className='wf-score'>
+                    <h2 className='wf-sr' id='wf-rv-h'>Customer reviews</h2>
+                    <b>{avg ? avg.toFixed(1) : '–'}</b>
+                    <Stars value={avg} size={20} />
+                    <p>{reviews.length ? `Based on ${reviews.length} review${reviews.length === 1 ? '' : 's'}` : 'No reviews yet'}</p>
+                    <div className='wf-bars'>
+                        {dist.map(([s, pc]) => (
+                            <div key={s}><span>{s}★</span><div className='wf-meter'><i style={{ width: barsIn ? `${pc}%` : 0 }}></i></div><small>{pc}%</small></div>
+                        ))}
+                    </div>
+                    {user
+                        ? <button type='button' className='wf-btn wf-btn--line' onClick={() => setWriting((w) => !w)}>{writing ? 'Cancel' : 'Write a review'}</button>
+                        : <p style={{ marginTop: 22 }}><Link to='/login' className='wf-u' style={{ fontWeight: 700 }}>Sign in</Link> to write a review.</p>}
+                </div>
+                <div>
+                    {msg && <p className='wf-msg' role='status' style={{ marginBottom: 16 }}>{msg}</p>}
+                    {writing && (
+                        <form className='wf-rform' onSubmit={postReview}>
+                            <div className='wf-rate' role='radiogroup' aria-label='Your rating'>
+                                {[5, 4, 3, 2, 1].map((s) => (
+                                    <span key={s} style={{ display: 'contents' }}>
+                                        <input type='radio' name='stars' id={`wf-r${s}`} checked={stars === s} onChange={() => setStars(s)} />
+                                        <label htmlFor={`wf-r${s}`} aria-label={`${s} stars`}></label>
+                                    </span>
                                 ))}
                             </div>
-                        )}
-                    </div>
-
-                    {/* Details */}
-                    <div>
-                        {product.brand && (
-                            <span className='text-xs uppercase tracking-widest text-text-light font-semibold'>{product.brand}</span>
-                        )}
-                        <h1 className='text-3xl font-extrabold text-text-dark mt-1 mb-3' style={{ fontFamily: 'var(--header-font)' }}>{product.name}</h1>
-                        <div className='flex items-center gap-2 mb-5'>
-                            <RatingStars rating={product.rating} />
-                            <span className='text-sm text-text-light'>{product.rating?.toFixed(1) || '0.0'} · {product.numReviews || 0} reviews</span>
-                        </div>
-
-                        <div className='flex items-end gap-3 mb-6'>
-                            <span className='text-3xl font-bold text-text-dark'>{formatINR(product.price)}</span>
-                            {product.oldPrice ? <s className='text-lg text-text-light'>{formatINR(product.oldPrice)}</s> : null}
-                            {discount > 0 && <span className='text-sm font-semibold text-green-600 mb-1'>You save {formatINR(product.oldPrice - product.price)}</span>}
-                        </div>
-
-                        <p className='text-text-light leading-relaxed mb-6'>{product.description}</p>
-
-                        {product.sizes?.length > 0 && (
-                            <div className='mb-5'>
-                                <strong className='block mb-2 text-sm'>Select Size</strong>
-                                <div className='flex flex-wrap gap-2'>
-                                    {product.sizes.map((s) => (
-                                        <button key={s} onClick={() => setSize(s)}
-                                            className={`min-w-[46px] px-3 py-2 border rounded-lg text-sm transition ${size === s ? 'bg-text-dark text-white border-text-dark' : 'hover:border-text-dark'}`}>{s}</button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        {product.colors?.length > 0 && (
-                            <div className='mb-6'>
-                                <strong className='block mb-2 text-sm'>Color</strong>
-                                <div className='flex flex-wrap gap-2'>
-                                    {product.colors.map((c) => (
-                                        <button key={c} onClick={() => setColor(c)}
-                                            className={`px-3 py-2 border rounded-lg text-sm capitalize transition ${color === c ? 'bg-text-dark text-white border-text-dark' : 'hover:border-text-dark'}`}>{c}</button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <div className='flex items-center gap-4 mb-6'>
-                            <div className='flex items-center border rounded-lg overflow-hidden'>
-                                <button onClick={() => setQty((q) => Math.max(1, q - 1))} className='px-3 py-2 text-lg hover:bg-gray-50'>−</button>
-                                <span className='px-4 py-2 min-w-[42px] text-center'>{qty}</span>
-                                <button onClick={() => setQty((q) => q + 1)} className='px-3 py-2 text-lg hover:bg-gray-50'>+</button>
-                            </div>
-                            <span className={`text-sm font-medium ${inStock ? 'text-green-600' : 'text-primary'}`}>
-                                <i className={`${inStock ? 'ri-checkbox-circle-line' : 'ri-close-circle-line'} mr-1`}></i>
-                                {inStock ? 'In stock' : 'Out of stock'}
-                            </span>
-                        </div>
-
-                        <div className='flex flex-col sm:flex-row gap-3 mb-8'>
-                            <button onClick={handleAddToCart} disabled={!inStock}
-                                className='flex-1 px-6 py-3.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition disabled:opacity-50 flex items-center justify-center gap-2'>
-                                <i className='ri-shopping-cart-2-line'></i>
-                                {added ? 'Added to Cart ✓' : 'Add to Cart'}
-                            </button>
-                            <Link to='/checkout' onClick={handleAddToCart}
-                                className='flex-1 px-6 py-3.5 border-2 border-text-dark text-text-dark rounded-lg font-semibold hover:bg-text-dark hover:text-white transition text-center'>
-                                Buy Now
-                            </Link>
-                        </div>
-
-                        <div className='grid grid-cols-3 gap-3 border-t pt-6'>
-                            {TRUST.map((t) => (
-                                <div key={t.text} className='flex flex-col items-center text-center gap-1.5 text-text-light'>
-                                    <i className={`${t.icon} text-2xl text-text-dark`}></i>
-                                    <span className='text-xs'>{t.text}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Reviews */}
-            <section className='section__container !pt-0'>
-                <h3 className='text-xl font-semibold mb-6' style={{ fontFamily: 'var(--header-font)' }}>Customer Reviews ({reviews.length})</h3>
-                <div className='space-y-4 mb-8'>
-                    {reviews.length === 0 && <p className='text-gray-500'>No reviews yet. Be the first!</p>}
+                            <label className='wf-sr' htmlFor='wf-rv-text'>Your review</label>
+                            <textarea id='wf-rv-text' required value={comment} onChange={(e) => setComment(e.target.value)} placeholder='What did you like or dislike? How was the fit?' />
+                            <button className='wf-btn' disabled={posting}>{posting ? 'Posting…' : 'Post review'}</button>
+                        </form>
+                    )}
+                    {reviews.length === 0 && !writing && <p className='wf-muted'>Be the first to review this.</p>}
                     {reviews.map((r) => (
-                        <div key={r._id} className='border-b pb-3'>
-                            <div className='flex items-center gap-2'>
-                                <span className='font-medium'>{r.userName || 'User'}</span>
-                                <RatingStars rating={r.rating} />
+                        <article key={r._id} className='wf-rv'>
+                            <div className='wf-rv__head'>
+                                <Stars value={r.rating} />
+                                <b>{r.userName || 'Customer'}</b>
+                                {r.create_date && <small>{new Date(r.create_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</small>}
                             </div>
-                            <p className='text-gray-600'>{r.comment}</p>
-                        </div>
+                            <p>{r.comment}</p>
+                        </article>
                     ))}
                 </div>
-
-                {user ? (
-                    <form onSubmit={handleReview} className='max-w-lg space-y-3'>
-                        <h4 className='font-medium'>Write a review</h4>
-                        <select value={rating} onChange={(e) => setRating(e.target.value)} className='border p-2 rounded'>
-                            {[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{n} star{n > 1 ? 's' : ''}</option>)}
-                        </select>
-                        <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder='Share your experience…'
-                            className='w-full border p-2 rounded' rows={3} />
-                        {msg && <p className='text-sm text-primary'>{msg}</p>}
-                        <button type='submit' disabled={submitting} className='px-5 py-2 bg-primary text-white rounded'>
-                            {submitting ? 'Submitting…' : 'Submit Review'}
-                        </button>
-                    </form>
-                ) : (
-                    <p className='text-gray-500'><Link to='/login' className='text-primary underline'>Log in</Link> to write a review.</p>
-                )}
             </section>
-        </>
+
+            {related.length > 0 && (
+                <section className='wf-wrap wf-related' aria-label='You may also like'>
+                    <div className='wf-bar'>
+                        <span className='wf-tab-label'>You may also like</span>
+                        <Link to={listingLink(store, product.category)} className='wf-u'>View all</Link>
+                    </div>
+                    <ProductCard products={related} />
+                </section>
+            )}
+
+            <div className={`wf-buybar ${buybar ? 'show' : ''}`}>
+                <div><small className='wf-muted'>{product.name}</small><br /><b>{formatINR(product.price)}</b></div>
+                <button type='button' className='wf-btn' onClick={addToBag} disabled={stock < 1}>Add to bag</button>
+            </div>
+        </main>
     );
+};
+
+const SingleProduct = () => {
+    const { id } = useParams(); // slug or id
+    const { data, isLoading, isError } = useGetProductQuery(id);
+    const product = data?.data?.product;
+    useEffect(() => { window.scrollTo(0, 0); }, [id]);
+
+    if (isLoading) return <main className='wf-page wf-wrap wf-page-top'><p className='wf-muted'>Loading…</p></main>;
+    if (isError || !product) {
+        return <main className='wf-page wf-wrap' style={{ padding: '96px 0' }}><p className='wf-empty'><b>Product not found</b><Link to='/' className='wf-u'>Back to the store</Link></p></main>;
+    }
+    // keyed so size, colour and photo reset when you open another product
+    return <ProductView key={product._id} product={product} />;
 };
 
 export default SingleProduct;

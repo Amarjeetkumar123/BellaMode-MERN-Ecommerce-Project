@@ -1,4 +1,6 @@
 import './App.css'
+import './styles/storefront.css'
+import './styles/pages.css'
 import { Outlet } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'

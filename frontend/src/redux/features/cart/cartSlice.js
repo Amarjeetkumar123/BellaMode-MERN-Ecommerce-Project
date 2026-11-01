@@ -8,17 +8,21 @@ const initialState = {
     taxRate: 0.05, // 5%
     grandTotal: 0,
 }
+// One line per product + size + colour: the same shirt in M and L is two lines.
+export const lineKey = (p) => [p._id, p.size || '', p.color || ''].join('|');
+const sameLine = (p, key) => (p.key || p._id) === key;
+
 const cartslice = createSlice({
     name: 'cart',
     initialState,
     reducers: {
+        // payload: product fields (+ size, color) and an optional quantity (default 1)
         addToCart: (state, action) => {
-            const isExits = state.products.find((product) => product._id === action.payload._id);
-            if (!isExits) {
-                state.products.push({ ...action.payload, quantity: 1 })
-            } else {
-                console.log("Product already added into the cart.");
-            }
+            const { quantity = 1, ...item } = action.payload;
+            const key = lineKey(item);
+            const line = state.products.find((p) => sameLine(p, key));
+            if (line) line.quantity += quantity;
+            else state.products.push({ ...item, key, quantity });
             state.selectedItems = setSelectedItems(state);
             state.totalPrice = setTotalPrice(state);
             state.tax = setTax(state);
@@ -26,7 +30,7 @@ const cartslice = createSlice({
         },
         updateQuantity: (state, action) => {
             const products = state.products.map((product) => {
-                if (product._id === action.payload._id) {
+                if (sameLine(product, action.payload.key || action.payload._id)) {
                     if (action.payload.type === 'increment') {
                         product.quantity += 1;
                     } else if (action.payload.type === 'decrement') {
@@ -43,7 +47,7 @@ const cartslice = createSlice({
             state.grandTotal = setGrandTotal(state);
         },
         removeFromCart: (state, action) => {
-            state.products = state.products.filter((product) => product._id !== action.payload._id);
+            state.products = state.products.filter((product) => !sameLine(product, action.payload.key || action.payload._id));
             state.selectedItems = setSelectedItems(state);
             state.totalPrice = setTotalPrice(state);
             state.tax = setTax(state);

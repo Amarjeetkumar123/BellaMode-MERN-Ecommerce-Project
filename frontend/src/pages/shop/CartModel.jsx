@@ -1,87 +1,95 @@
-import React from 'react'
-import OrderSummary from './OrderSummary'
-import { useDispatch } from 'react-redux'
-import { removeFromCart, updateQuantity } from '../../redux/features/cart/cartSlice';
-import { formatINR } from '../../utils/formatCurrency';
-import { useDrawer } from '../../hooks/useDrawer';
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { removeFromCart, updateQuantity } from '../../redux/features/cart/cartSlice'
+import { formatINR } from '../../utils/formatCurrency'
+import Drawer from '../../components/Drawer'
+
+export const FREE_DELIVERY = 999;
+
+// Subtotal / tax / delivery / total, shared by the bag and checkout.
+export const Totals = () => {
+    const { tax, taxRate, totalPrice, grandTotal } = useSelector((s) => s.cart);
+    const free = totalPrice >= FREE_DELIVERY;
+    return (
+        <dl className='wf-sum'>
+            <dt>Subtotal</dt><dd>{formatINR(totalPrice)}</dd>
+            <dt>Tax ({Math.round(taxRate * 100)}%)</dt><dd>{formatINR(tax)}</dd>
+            <dt>Delivery</dt><dd className={free ? 'free' : ''}>{free ? 'Free' : 'Paid on delivery'}</dd>
+            <dt className='total'>Total</dt><dd className='total'>{formatINR(grandTotal)}</dd>
+        </dl>
+    );
+};
 
 const CartModel = ({ products, isOpen, onClose }) => {
     const dispatch = useDispatch();
-    useDrawer(isOpen, onClose);
-    const handleQuantity = (type, id) => dispatch(updateQuantity({ type, _id: id }));
-    const handleRemove = (e, id) => { e.preventDefault(); dispatch(removeFromCart({ _id: id })); };
+    const navigate = useNavigate();
+    const { user } = useSelector((s) => s.auth);
+    const { totalPrice } = useSelector((s) => s.cart);
+    const [leaving, setLeaving] = useState(null);
+    const count = products.reduce((n, p) => n + p.quantity, 0);
+    const keyOf = (item) => item.key || item._id;
+
+    // the line slides out, then leaves the bag
+    const remove = (item) => {
+        setLeaving(keyOf(item));
+        setTimeout(() => { dispatch(removeFromCart({ key: keyOf(item) })); setLeaving(null); }, 320);
+    };
+    const checkout = () => { onClose(); navigate(user ? '/checkout' : '/login'); };
 
     return (
-        <>
-            {/* Dim overlay — sits BELOW the navbar (z-1001) so the nav stays crisp */}
-            <div
-                onClick={onClose}
-                className={`fixed z-[1000] inset-0 bg-black/50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-            />
-            {/* Drawer — above the navbar */}
-            <div
-                style={{ height: '100vh' }}
-                role='dialog' aria-modal='true' aria-label='Shopping cart'
-                className={`fixed z-[1002] right-0 top-0 md:w-[420px] w-full bg-white flex flex-col shadow-2xl transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
-            >
-                {/* Header */}
-                <div className='flex justify-between items-center px-5 py-4 border-b shrink-0'>
-                    <h4 className='text-lg font-semibold' style={{ fontFamily: 'var(--header-font)' }}>
-                        Your Cart <span className='text-text-light font-normal text-sm'>({products.length})</span>
-                    </h4>
-                    <button onClick={onClose} className='w-9 h-9 grid place-content-center rounded-full hover:bg-gray-100 text-xl'>
-                        <i className='ri-close-line'></i>
-                    </button>
+        <Drawer isOpen={isOpen} onClose={onClose} label='Bag' title='Your bag' count={count}>
+            {products.length === 0 ? (
+                <div className='wf-drawer__empty'>
+                    <i className='ri-shopping-bag-line'></i>
+                    <b>Your bag is empty</b>
+                    <p>Add something you love and it will show up here.</p>
+                    <Link to='/' className='wf-btn' onClick={onClose}>Start shopping</Link>
                 </div>
-
-                {products.length === 0 ? (
-                    /* Empty state */
-                    <div className='flex-1 flex flex-col items-center justify-center text-center px-6 text-text-light'>
-                        <i className='ri-shopping-bag-line text-5xl mb-3'></i>
-                        <p className='font-medium text-text-dark'>Your cart is empty</p>
-                        <p className='text-sm mb-4'>Add something you love to get started.</p>
-                        <button onClick={onClose} className='btn !rounded-lg'>Continue Shopping</button>
+            ) : (
+                <>
+                    <div className='wf-ship'>
+                        <p>{totalPrice >= FREE_DELIVERY
+                            ? <>You have unlocked <b>free delivery</b></>
+                            : <>Add <b>{formatINR(FREE_DELIVERY - totalPrice)}</b> more for free delivery</>}</p>
+                        <div className='wf-meter'><i style={{ width: `${Math.min(100, (totalPrice / FREE_DELIVERY) * 100)}%` }}></i></div>
                     </div>
-                ) : (
-                    <>
-                        {/* Items (scrollable) */}
-                        <div className='flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-4'>
-                            {products.map((item) => (
-                                <div key={item._id} className='flex gap-3'>
-                                    <img src={item.image} alt={item.name} className='w-20 h-24 object-cover rounded-lg bg-gray-50 shrink-0' />
-                                    <div className='flex-1 min-w-0'>
-                                        <div className='flex justify-between gap-2'>
-                                            <h5 className='text-sm font-medium text-text-dark line-clamp-2'>{item.name}</h5>
-                                            <button onClick={(e) => handleRemove(e, item._id)} className='text-text-light hover:text-primary shrink-0'>
-                                                <i className='ri-delete-bin-6-line'></i>
-                                            </button>
-                                        </div>
-                                        {(item.size || item.color) && (
-                                            <p className='text-xs text-text-light mt-0.5 capitalize'>
-                                                {[item.color, item.size].filter(Boolean).join(' · ')}
-                                            </p>
-                                        )}
-                                        <div className='flex items-center justify-between mt-2'>
-                                            <div className='flex items-center border rounded-lg'>
-                                                <button onClick={() => handleQuantity('decrement', item._id)} className='w-8 h-8 grid place-content-center hover:bg-gray-50'>−</button>
-                                                <span className='w-8 text-center text-sm'>{item.quantity}</span>
-                                                <button onClick={() => handleQuantity('increment', item._id)} className='w-8 h-8 grid place-content-center hover:bg-gray-50'>+</button>
+                    <ul className='wf-lines'>
+                        {products.map((item, i) => {
+                            const to = `/shop/${item.slug || item._id}`;
+                            return (
+                                <li key={keyOf(item)} className={`wf-line ${leaving === keyOf(item) ? 'out' : ''}`} style={{ '--i': i }}>
+                                    <Link to={to} onClick={onClose}><img src={item.image} alt='' /></Link>
+                                    <div>
+                                        <div className='wf-line__top'>
+                                            <div>
+                                                {item.brand && <small>{item.brand}</small>}
+                                                <h3><Link to={to} onClick={onClose}>{item.name}</Link></h3>
+                                                {(item.color || item.size) && <div className='wf-line__opts'>{[item.color, item.size].filter(Boolean).join(' · ')}</div>}
                                             </div>
-                                            <span className='font-semibold text-text-dark'>{formatINR(item.price * item.quantity)}</span>
+                                            <button type='button' className='wf-rm' onClick={() => remove(item)} aria-label={`Remove ${item.name}`}><i className='ri-delete-bin-6-line'></i></button>
+                                        </div>
+                                        <div className='wf-line__bottom'>
+                                            <div className='wf-qty'>
+                                                <button type='button' onClick={() => dispatch(updateQuantity({ type: 'decrement', key: keyOf(item) }))} aria-label={`One less ${item.name}`}>−</button>
+                                                <output>{item.quantity}</output>
+                                                <button type='button' onClick={() => dispatch(updateQuantity({ type: 'increment', key: keyOf(item) }))} aria-label={`One more ${item.name}`}>+</button>
+                                            </div>
+                                            <span className='wf-line__price'>{formatINR(item.price * item.quantity)}</span>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Summary (pinned bottom) */}
-                        <div className='shrink-0'>
-                            <OrderSummary onClose={onClose} />
-                        </div>
-                    </>
-                )}
-            </div>
-        </>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                    <div className='wf-drawer__foot'>
+                        <Totals />
+                        <button type='button' className='wf-btn wf-btn--block' onClick={checkout}>Checkout <i className='ri-arrow-right-line'></i></button>
+                        <button type='button' className='wf-linkbtn wf-u' onClick={onClose}>Continue shopping</button>
+                    </div>
+                </>
+            )}
+        </Drawer>
     );
 };
 

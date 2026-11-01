@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { Totals } from '../shop/CartModel'
 import { clearCart } from '../../redux/features/cart/cartSlice'
 import { useCreateOrderMutation } from '../../redux/features/orders/ordersApi'
 import { useCreatePaymentOrderMutation, useVerifyPaymentMutation } from '../../redux/features/payments/paymentsApi'
@@ -12,7 +13,7 @@ const emptyAddress = { fullName: '', phone: '', line1: '', line2: '', city: '', 
 const Checkout = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { products, totalPrice, tax, grandTotal } = useSelector((s) => s.cart);
+    const { products, grandTotal } = useSelector((s) => s.cart);
     const { user } = useSelector((s) => s.auth);
 
     const [address, setAddress] = useState({ ...emptyAddress, fullName: user?.username || '' });
@@ -37,9 +38,13 @@ const Checkout = () => {
         navigate('/dashboard/orders');
     };
 
+    const [bad, setBad] = useState([]);
     const handlePlaceOrder = async (e) => {
         e.preventDefault();
         setError('');
+        const invalid = [...e.currentTarget.querySelectorAll('input[name]')].filter((i) => !i.checkValidity()).map((i) => i.name);
+        setBad(invalid);
+        if (invalid.length) { e.currentTarget.querySelector(`[name="${invalid[0]}"]`).focus(); return; }
         if (products.length === 0) return setError('Your cart is empty.');
         try {
             const res = await createOrder({ items: orderItems, shippingAddress: address, paymentMethod }).unwrap();
@@ -64,7 +69,7 @@ const Checkout = () => {
                 description: `Order ${order._id}`,
                 order_id: razorpayOrderId,
                 prefill: { name: address.fullName, contact: address.phone, email: user?.email },
-                theme: { color: '#d3213c' },
+                theme: { color: '#c8102e' },
                 handler: async (response) => {
                     try {
                         await verifyPayment({
@@ -85,97 +90,85 @@ const Checkout = () => {
         }
     };
 
-    const inputCls = 'border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition';
-    const freeShip = totalPrice >= 999;
+    const FIELDS = [
+        ['fullName', 'Full name', { autoComplete: 'name' }, 'Enter your full name'],
+        ['phone', 'Mobile number', { inputMode: 'numeric', pattern: '[6-9][0-9]{9}', autoComplete: 'tel-national' }, 'Enter a 10-digit mobile number'],
+        ['line1', 'House no., building, street', { autoComplete: 'address-line1', wide: true }, 'Enter your address'],
+        ['line2', 'Area, landmark (optional)', { autoComplete: 'address-line2', wide: true, optional: true }],
+        ['postalCode', 'PIN code', { inputMode: 'numeric', pattern: '[1-9][0-9]{5}', autoComplete: 'postal-code' }, 'Enter a 6-digit PIN code'],
+        ['city', 'City', { autoComplete: 'address-level2' }, 'Enter your city'],
+        ['state', 'State', { autoComplete: 'address-level1', wide: true }, 'Enter your state'],
+    ];
+    const count = products.reduce((n, p) => n + p.quantity, 0);
 
     return (
-        <>
-            <section className='page-hero'>
-                <h1>Checkout</h1>
-                <p>You're just a step away — enter your details to complete the order.</p>
-            </section>
-            <section className='section__container !pt-12'>
-                {products.length === 0 ? (
-                    <div className='text-center py-16 text-text-light'>
-                        <i className='ri-shopping-bag-line text-4xl mb-3 block'></i>
-                        Your cart is empty. <a href='/shop' className='text-primary font-medium'>Continue shopping</a>.
-                    </div>
-                ) : (
-                    <div className='grid lg:grid-cols-[1fr_380px] gap-8 items-start'>
-                        <form onSubmit={handlePlaceOrder} className='space-y-6'>
-                            <div className='bg-white border border-gray-100 rounded-2xl p-6 shadow-sm'>
-                                <h3 className='text-lg font-semibold mb-4 flex items-center gap-2' style={{ fontFamily: 'var(--header-font)' }}>
-                                    <i className='ri-map-pin-line text-primary'></i> Shipping Address
-                                </h3>
-                                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                                    <input required placeholder='Full name' value={address.fullName} onChange={(e) => setField('fullName', e.target.value)} className={inputCls} />
-                                    <input required placeholder='Phone' value={address.phone} onChange={(e) => setField('phone', e.target.value)} className={inputCls} />
-                                    <input required placeholder='Address line 1' value={address.line1} onChange={(e) => setField('line1', e.target.value)} className={`${inputCls} sm:col-span-2`} />
-                                    <input placeholder='Address line 2 (optional)' value={address.line2} onChange={(e) => setField('line2', e.target.value)} className={`${inputCls} sm:col-span-2`} />
-                                    <input required placeholder='City' value={address.city} onChange={(e) => setField('city', e.target.value)} className={inputCls} />
-                                    <input required placeholder='State' value={address.state} onChange={(e) => setField('state', e.target.value)} className={inputCls} />
-                                    <input required placeholder='Postal code' value={address.postalCode} onChange={(e) => setField('postalCode', e.target.value)} className={inputCls} />
-                                </div>
-                            </div>
-
-                            <div className='bg-white border border-gray-100 rounded-2xl p-6 shadow-sm'>
-                                <h3 className='text-lg font-semibold mb-4 flex items-center gap-2' style={{ fontFamily: 'var(--header-font)' }}>
-                                    <i className='ri-bank-card-line text-primary'></i> Payment Method
-                                </h3>
-                                <div className='space-y-3'>
-                                    {[
-                                        { v: 'COD', icon: 'ri-hand-coin-line', label: 'Cash on Delivery', desc: 'Pay when your order arrives' },
-                                        { v: 'RAZORPAY', icon: 'ri-secure-payment-line', label: 'Pay Online', desc: 'UPI, cards & netbanking via Razorpay' },
-                                    ].map((m) => (
-                                        <label key={m.v} className={`flex items-center gap-3 border rounded-xl px-4 py-3 cursor-pointer transition ${paymentMethod === m.v ? 'border-primary bg-primary-light/50' : 'border-gray-200 hover:border-gray-300'}`}>
-                                            <input type='radio' name='pay' checked={paymentMethod === m.v} onChange={() => setPaymentMethod(m.v)} className='accent-primary' />
-                                            <i className={`${m.icon} text-xl text-text-dark`}></i>
-                                            <div>
-                                                <div className='text-sm font-medium'>{m.label}</div>
-                                                <div className='text-xs text-text-light'>{m.desc}</div>
-                                            </div>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {error && <p className='text-primary text-sm'>{error}</p>}
-                            <button type='submit' disabled={creating} className='btn w-full !rounded-lg flex items-center justify-center gap-2 disabled:opacity-60'>
-                                {creating ? 'Placing order…' : 'Place Order'} <i className='ri-arrow-right-line'></i>
-                            </button>
-                        </form>
-
-                        <div className='bg-white border border-gray-100 rounded-2xl p-6 shadow-sm lg:sticky lg:top-24'>
-                            <h3 className='text-lg font-semibold mb-4' style={{ fontFamily: 'var(--header-font)' }}>Your Order</h3>
-                            <div className='space-y-3 max-h-64 overflow-y-auto mb-4'>
-                                {products.map((p) => (
-                                    <div key={p._id} className='flex gap-3'>
-                                        <div className='relative shrink-0'>
-                                            <img src={p.image} alt={p.name} className='w-14 h-16 object-cover rounded-lg bg-gray-50' />
-                                            <span className='absolute -top-2 -right-2 bg-text-dark text-white text-[11px] w-5 h-5 grid place-content-center rounded-full'>{p.quantity}</span>
-                                        </div>
-                                        <div className='flex-1 min-w-0 flex flex-col justify-center'>
-                                            <p className='text-sm font-medium line-clamp-1'>{p.name}</p>
-                                            <p className='text-xs text-text-light'>{formatINR(p.price)}</p>
-                                        </div>
-                                        <span className='text-sm font-medium self-center'>{formatINR(p.price * p.quantity)}</span>
+        <main className='wf-page'>
+            <div className='wf-wrap wf-page-top'>
+                <nav className='wf-crumbs' aria-label='Breadcrumb'><Link to='/' className='wf-u'>Home</Link><span>/</span><span>Checkout</span></nav>
+                <h1 style={{ fontSize: 'clamp(34px, 4vw, 56px)', lineHeight: 1, marginTop: 14 }}>Checkout</h1>
+                <ol className='wf-steps'><li className='done'>Bag</li><li className='on'>Delivery and payment</li><li>Confirmation</li></ol>
+            </div>
+            {products.length === 0 ? (
+                <div className='wf-wrap'><p className='wf-empty'><b>Your bag is empty</b><Link to='/' className='wf-u'>Continue shopping</Link></p></div>
+            ) : (
+                <div className='wf-wrap wf-co'>
+                    <form onSubmit={handlePlaceOrder} noValidate>
+                        <section className='wf-co__box'>
+                            <h2><span>1</span>Delivery address</h2>
+                            <div className='wf-fields'>
+                                {FIELDS.map(([k, label, { wide, optional, ...attrs }, err]) => (
+                                    <div key={k} className={`wf-field ${wide ? 'wide' : ''} ${bad.includes(k) ? 'bad' : ''}`}>
+                                        <input
+                                            id={`co-${k}`} name={k} placeholder=' ' required={!optional} {...attrs}
+                                            value={address[k]}
+                                            onChange={(e) => { setField(k, e.target.value); setBad((b) => b.filter((x) => x !== k)); }}
+                                        />
+                                        <label htmlFor={`co-${k}`}>{label}</label>
+                                        {err && <span className='wf-err'>{err}</span>}
                                     </div>
                                 ))}
                             </div>
-                            <div className='border-t pt-4 space-y-2 text-sm'>
-                                <div className='flex justify-between text-text-light'><span>Subtotal</span><span className='text-text-dark'>{formatINR(totalPrice)}</span></div>
-                                <div className='flex justify-between text-text-light'><span>Tax</span><span className='text-text-dark'>{formatINR(tax)}</span></div>
-                                <div className='flex justify-between text-text-light'><span>Shipping</span><span className={freeShip ? 'text-green-600 font-medium' : 'text-text-dark'}>{freeShip ? 'FREE' : 'At delivery'}</span></div>
-                                <div className='flex justify-between font-bold text-base pt-2 border-t'><span>Total</span><span>{formatINR(grandTotal)}</span></div>
+                        </section>
+                        <section className='wf-co__box'>
+                            <h2><span>2</span>Payment</h2>
+                            <div className='wf-pay'>
+                                {[
+                                    { v: 'COD', icon: 'ri-hand-coin-line', label: 'Cash on delivery', desc: 'Pay in cash or UPI when your order arrives' },
+                                    { v: 'RAZORPAY', icon: 'ri-secure-payment-line', label: 'Pay online', desc: 'Secure payment via Razorpay', methods: ['UPI', 'VISA', 'MASTERCARD', 'RUPAY', 'NET BANKING'] },
+                                ].map((m) => (
+                                    <label key={m.v}>
+                                        <input type='radio' name='pay' checked={paymentMethod === m.v} onChange={() => setPaymentMethod(m.v)} />
+                                        <span className='wf-pay__card'>
+                                            <i className={m.icon}></i><b>{m.label}</b><small>{m.desc}</small><span className='wf-tick'></span>
+                                            {m.methods && <span className='wf-methods'>{m.methods.map((x) => <span key={x}>{x}</span>)}</span>}
+                                        </span>
+                                    </label>
+                                ))}
                             </div>
-                            <div className='flex items-center gap-2 text-xs text-text-light mt-4'>
-                                <i className='ri-lock-line'></i> Secure, encrypted checkout
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </section>
-        </>
+                        </section>
+                        {error && <p className='wf-alert' role='alert'>{error}</p>}
+                        <button type='submit' className={`wf-btn wf-btn--block wf-place ${creating ? 'busy' : ''}`}>
+                            {creating ? 'Placing order' : `Place order · ${formatINR(grandTotal)}`}
+                        </button>
+                        <p className='wf-secure'><i className='ri-lock-line'></i> Your details are encrypted and never stored with your card</p>
+                    </form>
+
+                    <aside className='wf-co__sum' aria-label='Order summary'>
+                        <h2>Your order <span>({count} item{count === 1 ? '' : 's'})</span></h2>
+                        <ul className='wf-mini'>
+                            {products.map((p) => (
+                                <li key={p.key || p._id}>
+                                    <span className='wf-mini__ph'><img src={p.image} alt='' /><span>{p.quantity}</span></span>
+                                    <div>{p.name}{(p.color || p.size) && <small>{[p.color, p.size].filter(Boolean).join(' · ')}</small>}</div>
+                                    <b>{formatINR(p.price * p.quantity)}</b>
+                                </li>
+                            ))}
+                        </ul>
+                        <Totals />
+                    </aside>
+                </div>
+            )}
+        </main>
     );
 };
 

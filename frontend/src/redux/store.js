@@ -27,7 +27,14 @@ const apis = [
     wishlistApi,
 ];
 
+// The bag survives a refresh: it's saved to this browser and restored on load.
+const CART_KEY = 'wearly_cart';
+const savedCart = (() => {
+    try { return JSON.parse(localStorage.getItem(CART_KEY)) || undefined; } catch { return undefined; }
+})();
+
 export const store = configureStore({
+    preloadedState: savedCart ? { cart: savedCart } : undefined,
     reducer: {
         cart: cartReducer,
         auth: authReducer,
@@ -35,4 +42,12 @@ export const store = configureStore({
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(apis.map((api) => api.middleware)),
+});
+
+let lastCart;
+store.subscribe(() => {
+    const { cart } = store.getState();
+    if (cart === lastCart) return;
+    lastCart = cart;
+    try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch { /* storage full or blocked: bag just won't persist */ }
 });

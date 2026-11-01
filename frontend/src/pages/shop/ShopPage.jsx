@@ -1,157 +1,194 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom';
-import ProductCard from './ProductCard';
-import ShopFiltering from './ShopFiltering';
-import { useGetProductsQuery, useGetProductFiltersQuery } from '../../redux/features/products/productsApi';
-import { useGetCategoriesQuery } from '../../redux/features/categories/categoriesApi';
-import { useActiveAudiences } from '../../hooks/useActiveAudiences';
+import { useEffect, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+import ProductCard from './ProductCard'
+import { useGetProductsQuery, useGetProductFiltersQuery } from '../../redux/features/products/productsApi'
+import { useGetCategoriesQuery } from '../../redux/features/categories/categoriesApi'
+import { useActiveAudiences } from '../../hooks/useActiveAudiences'
+import { AUDIENCES, LIFESTYLE, PRICE_BANDS, STORE_HOME, listingLink } from '../../data/catalog'
 
-const PAGE_SIZE = 12;
+const PAGE = 12;
+const SORTS = [['newest', 'Newest'], ['price_asc', 'Price: low to high'], ['price_desc', 'Price: high to low'], ['rating', 'Top rated']];
+const LABEL = { men: 'Men', women: 'Women', kids: 'Kids', unisex: 'Lifestyle' };
+const STORE_IMG = Object.fromEntries(AUDIENCES.map((a) => [a.key, a.image]));
+const LIFESTYLE_IMG = Object.fromEntries(LIFESTYLE.map((l) => [l.slug, l.image]));
+const tick = <svg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='#fff' strokeWidth='3.5' aria-hidden='true'><path d='m4 12 5 5L20 6' /></svg>;
 
-// Builds a windowed page list with gaps, e.g. [1, '…', 4, 5, 6, '…', 12].
-const pageList = (current, totalPages) => {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    const pages = new Set([1, totalPages, current, current - 1, current + 1]);
-    const sorted = [...pages].filter((p) => p >= 1 && p <= totalPages).sort((a, b) => a - b);
-    const out = [];
-    sorted.forEach((p, i) => {
-        if (i && p - sorted[i - 1] > 1) out.push('gap');
-        out.push(p);
-    });
-    return out;
-};
-
+// The product listing. Every filter lives in the URL (?store=men&audience=men&category=shirts-men
+// &priceRange=0-1000&color=black,navy&sort=price_asc), so links, refresh and Back all keep it.
 const ShopPage = () => {
-    const { copy } = useActiveAudiences();
-    const [filtersState, setFiltersState] = useState({ audience: '', category: '', color: '', priceRange: '' });
-    const [sort, setSort] = useState('newest');
-    const [page, setPage] = useState(1);
-    const [showFilters, setShowFilters] = useState(false);
+    const [sp, setSp] = useSearchParams();
+    const { keys, settings } = useActiveAudiences();
+    const audience = sp.get('audience') || '';
+    const category = sp.get('category') || '';
+    const priceRange = sp.get('priceRange') || '';
+    const colors = (sp.get('color') || '').split(',').filter(Boolean);
+    const sort = SORTS.some(([v]) => v === sp.get('sort')) ? sp.get('sort') : 'newest';
+    // the store you came from (Men / Women / Kids) frames the page
+    const store = [sp.get('store'), audience].find((s) => keys.includes(s)) || '';
 
-    // Translate UI filter state into API query params.
-    const queryParams = useMemo(() => {
-        const params = { page, limit: PAGE_SIZE, sort };
-        if (filtersState.audience) params.audience = filtersState.audience;
-        if (filtersState.category) params.category = filtersState.category;
-        if (filtersState.color) params.color = filtersState.color;
-        if (filtersState.priceRange) {
-            const [min, max] = filtersState.priceRange.split('-');
-            if (min) params.minPrice = min;
-            if (max) params.maxPrice = max;
-        }
-        return params;
-    }, [filtersState, sort, page]);
+    const [limit, setLimit] = useState(PAGE);
+    const [panel, setPanel] = useState(false);
+    useEffect(() => { setLimit(PAGE); }, [sp]);
+    useEffect(() => { window.scrollTo(0, 0); }, [store, category]);
 
-    const { data, isLoading, isFetching } = useGetProductsQuery(queryParams);
-    const { data: catData } = useGetCategoriesQuery(filtersState.audience ? { audience: filtersState.audience } : undefined);
-    const { data: facetData } = useGetProductFiltersQuery(filtersState.audience ? { audience: filtersState.audience } : undefined);
-
-    const products = data?.data?.products || [];
-    const totalPages = data?.data?.totalPages || 1;
-    const total = data?.data?.total || 0;
-    const categories = catData?.data?.categories || [];
-    const facets = facetData?.data || {};
-
-    const clearFilters = () => {
-        setFiltersState({ audience: '', category: '', color: '', priceRange: '' });
-        setPage(1);
+    const set = (patch) => {
+        const next = new URLSearchParams(sp);
+        Object.entries(patch).forEach(([k, v]) => (v ? next.set(k, v) : next.delete(k)));
+        setSp(next, { replace: true });
     };
-    const onFilterChange = (next) => { setFiltersState(next); setPage(1); };
 
-    // Jump back to the grid when paging, so the user isn't left mid-scroll.
-    useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [page]);
+    const [min, max] = priceRange.split('-');
+    const { data, isLoading, isFetching } = useGetProductsQuery({
+        limit, sort,
+        ...(audience && { audience }), ...(category && { category }),
+        ...(min && { minPrice: min }), ...(max && { maxPrice: max }),
+        ...(colors.length && { color: colors.join(',') }),
+    });
+    const products = data?.data?.products || [];
+    const total = data?.data?.total ?? 0;
+
+    const { data: catData } = useGetCategoriesQuery();
+    // a store's own categories first, the shared lifestyle ones after
+    const cats = [...(catData?.data?.categories || [])].sort((a, b) => (a.audience === 'unisex') - (b.audience === 'unisex') || a.sortOrder - b.sortOrder);
+    const current = cats.find((c) => c.slug === category);
+    const { data: facetData } = useGetProductFiltersQuery(audience ? { audience } : undefined);
+    const facetColors = facetData?.data?.colors || [];
+
+    // categories that make sense for the chosen audience (its own + the shared lifestyle ones)
+    const catOptions = cats.filter((c) => !audience || c.audience === audience || (c.audience === 'unisex' && audience !== 'kids'));
+    const strip = store ? [
+        ...cats.filter((c) => c.audience === store),
+        ...(STORE_HOME[store]?.lifestyle ? cats.filter((c) => c.audience === 'unisex') : []),
+    ] : [];
+
+    const pickAudience = (a) => set({
+        audience: a, store: keys.includes(a) ? a : '',
+        // a store-specific category doesn't survive switching to another store
+        category: current && current.audience !== 'unisex' && current.audience !== a ? '' : category,
+    });
+    const toggleColor = (c) => set({ color: (colors.includes(c) ? colors.filter((x) => x !== c) : [...colors, c]).join(',') });
+    const band = PRICE_BANDS.find((b) => b.value === priceRange);
+    const chips = [
+        audience && { label: LABEL[audience], clear: () => pickAudience('') },
+        current && { label: current.name, clear: () => set({ category: '' }) },
+        band && { label: band.label, clear: () => set({ priceRange: '' }) },
+        ...colors.map((c) => ({ label: c, clear: () => toggleColor(c) })),
+    ].filter(Boolean);
+    const title = [store && LABEL[store], current?.name].filter(Boolean).join(' ') || 'All products';
 
     return (
-        <>
-            <section className='page-head'>
-                <div className='page-head__inner'>
-                    <nav className='page-head__crumbs'>
-                        <Link to='/'>Home</Link>
-                        <span>/</span>
-                        <span>Shop All</span>
-                    </nav>
-                    <h1 className='page-head__title'>Shop All</h1>
-                    <p className='text-text-light text-sm mt-2 max-w-xl'>
-                        The full collection for {copy} — clothing, footwear, watches &amp; accessories.
-                    </p>
-                </div>
-            </section>
-
-            {/* Sticky control surface — matches the department pages */}
-            <div className='filter-bar'>
-                <div className='filter-bar__inner'>
-                    <button type='button' className='filters__toggle' onClick={() => setShowFilters((v) => !v)}>
-                        <i className='ri-equalizer-line'></i> {showFilters ? 'Hide filters' : 'Filters'}
-                    </button>
-                    <span className='filter-bar__meta'>
-                        {total} product{total === 1 ? '' : 's'}{isFetching ? ' …' : ''}
-                    </span>
-                    <div className='flex items-center gap-2'>
-                        <span className='filter-bar__label'>Sort</span>
-                        <select value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); }} aria-label='Sort products'>
-                            <option value='newest'>Newest</option>
-                            <option value='price_asc'>Price: Low to High</option>
-                            <option value='price_desc'>Price: High to Low</option>
-                            <option value='rating'>Top Rated</option>
-                        </select>
+        <main className='wf-page'>
+            <div className='wf-wrap wf-page-top'>
+                <nav className='wf-crumbs' aria-label='Breadcrumb'>
+                    <Link to='/' className='wf-u'>Home</Link><span>/</span>
+                    {store && <><Link to={`/categories/${store}`} className='wf-u'>{LABEL[store]}</Link><span>/</span></>}
+                    <span>{current?.name || (store ? 'All' : 'All products')}</span>
+                </nav>
+                <h1 className='wf-sr'>{title}</h1>
+                {strip.length > 0 && (
+                    <div className='wf-cat-strip' aria-label={`${LABEL[store]} categories`}>
+                        <Link to={listingLink(store)} className='wf-cs' aria-current={!category}>
+                            <span className='wf-cs__ph'><img src={settings?.audienceHeroImages?.[store] || STORE_IMG[store]} alt='' /></span>All
+                        </Link>
+                        {strip.map((c) => (
+                            <Link key={c._id} to={listingLink(store, c)} className='wf-cs' aria-current={c.slug === category}>
+                                <span className='wf-cs__ph'><img src={c.image || LIFESTYLE_IMG[c.slug]} alt='' loading='lazy' /></span>{c.name}
+                            </Link>
+                        ))}
                     </div>
+                )}
+            </div>
+
+            <div className='wf-toolbar'>
+                <div className='wf-wrap'>
+                    <button type='button' className='wf-tool-btn' onClick={() => setPanel(true)}><i className='ri-equalizer-line'></i> Filters</button>
+                    <span className='wf-count-t' aria-live='polite'>{total} product{total === 1 ? '' : 's'}{isFetching ? ' …' : ''}</span>
+                    <div className='wf-chips'>
+                        {chips.map((c) => (
+                            <button key={c.label} type='button' className='wf-chip' onClick={c.clear} aria-label={`Remove filter ${c.label}`} style={{ textTransform: 'capitalize' }}>
+                                {c.label}<i className='ri-close-line'></i>
+                            </button>
+                        ))}
+                    </div>
+                    <label className='wf-sort'><span>Sort by</span>
+                        <select value={sort} onChange={(e) => set({ sort: e.target.value })}>
+                            {SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                        </select>
+                    </label>
                 </div>
             </div>
 
-            <section className='section__container'>
-                <div className='shop-layout'>
-                    <ShopFiltering
-                        categories={categories}
-                        facets={facets}
-                        filtersState={filtersState}
-                        setFiltersState={onFilterChange}
-                        clearFilters={clearFilters}
-                        open={showFilters}
-                    />
-
-                    <div className='flex-1 min-w-0'>
-                        {isLoading ? (
-                            <p className='text-text-light'>Loading products…</p>
-                        ) : products.length === 0 ? (
-                            <div className='shop-empty'>
-                                <i className='ri-search-line'></i>
-                                <p className='font-medium text-text-dark'>No products match your filters</p>
-                                <p className='text-sm mt-1 mb-5'>Try removing a filter to see more.</p>
-                                <button onClick={clearFilters} className='btn !rounded-lg'>Clear all filters</button>
-                            </div>
-                        ) : (
-                            <>
-                                <ProductCard products={products} />
-
-                                {totalPages > 1 && (
-                                    <nav className='pager' aria-label='Pagination'>
-                                        <button onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                            disabled={page === 1} aria-label='Previous page'>
-                                            <i className='ri-arrow-left-s-line'></i>
-                                        </button>
-                                        {pageList(page, totalPages).map((p, i) => (
-                                            p === 'gap'
-                                                ? <span key={`gap-${i}`} className='pager__gap'>…</span>
-                                                : (
-                                                    <button key={p} onClick={() => setPage(p)}
-                                                        aria-current={p === page ? 'page' : undefined}
-                                                        className={p === page ? 'pager__page--on' : ''}>
-                                                        {p}
-                                                    </button>
-                                                )
-                                        ))}
-                                        <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                                            disabled={page === totalPages} aria-label='Next page'>
-                                            <i className='ri-arrow-right-s-line'></i>
-                                        </button>
-                                    </nav>
-                                )}
-                            </>
-                        )}
+            <div className='wf-wrap wf-shop'>
+                <div className={`wf-scrim ${panel ? 'is-open' : ''}`} onClick={() => setPanel(false)} />
+                <aside className={`wf-filters ${panel ? 'is-open' : ''}`} aria-label='Filters'>
+                    <div className='wf-filters__head'>
+                        <b>Filters</b>
+                        {chips.length > 0 && <button type='button' className='wf-linkbtn wf-u' onClick={() => setSp({}, { replace: true })}>Clear all</button>}
+                        <button type='button' className='wf-x' onClick={() => setPanel(false)} aria-label='Close filters'><i className='ri-close-line'></i></button>
                     </div>
-                </div>
-            </section>
-        </>
+                    <div className='wf-fgroup'>
+                        <h3>Shop for</h3>
+                        <div className='wf-pills'>
+                            {['', ...keys, 'unisex'].map((a) => (
+                                <button key={a || 'all'} type='button' aria-pressed={audience === a} onClick={() => pickAudience(a)}>{a ? LABEL[a] : 'All'}</button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className='wf-fgroup'>
+                        <h3>Category</h3>
+                        <div className='wf-checks'>
+                            {catOptions.map((c) => (
+                                <label key={c._id} className='wf-check'>
+                                    <input type='checkbox' checked={c.slug === category} onChange={() => set({ category: c.slug === category ? '' : c.slug })} />
+                                    <span className='wf-box'>{tick}</span>{c.name}
+                                    {!audience && <small>{LABEL[c.audience]}</small>}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                    <div className='wf-fgroup'>
+                        <h3>Price</h3>
+                        <div className='wf-checks'>
+                            {PRICE_BANDS.map((b) => (
+                                <label key={b.value} className='wf-check'>
+                                    <input type='checkbox' checked={b.value === priceRange} onChange={() => set({ priceRange: b.value === priceRange ? '' : b.value })} />
+                                    <span className='wf-box'>{tick}</span>{b.label}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                    {facetColors.length > 0 && (
+                        <div className='wf-fgroup'>
+                            <h3>Colour</h3>
+                            <div className='wf-swatches'>
+                                {facetColors.map((c) => (
+                                    <button key={c} type='button' className='wf-sw' style={{ '--c': c }} title={c} aria-label={c} aria-pressed={colors.includes(c)} onClick={() => toggleColor(c)} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </aside>
+
+                <section aria-label='Products'>
+                    {isLoading ? <p className='wf-muted'>Loading…</p> : products.length === 0 ? (
+                        <p className='wf-empty'><b>Nothing matches those filters</b>Try removing one, or <button type='button' className='wf-linkbtn wf-u' onClick={() => setSp({}, { replace: true })}>clear them all</button>.</p>
+                    ) : (
+                        <>
+                            <ProductCard products={products} className='wf-grid--3' />
+                            <div className='wf-loadmore'>
+                                <p>Showing {products.length} of {total}</p>
+                                <div className='wf-meter'><i style={{ width: `${(products.length / (total || 1)) * 100}%` }}></i></div>
+                                {products.length < total && (
+                                    <button type='button' className='wf-btn wf-btn--line' onClick={() => setLimit((l) => l + PAGE)} disabled={isFetching}>
+                                        {isFetching ? 'Loading…' : 'Load more'}
+                                    </button>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </section>
+            </div>
+        </main>
     );
 };
 

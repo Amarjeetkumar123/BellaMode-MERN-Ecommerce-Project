@@ -45,6 +45,7 @@ async function buildProductFilter(query, { activeOnly } = {}) {
     }
     if (query.trending === 'true') filter.isTrending = true;
     if (query.featured === 'true') filter.isFeatured = true;
+    if (query.sale === 'true') filter.onSale = true;
     if (query.search) filter.searchObj = { search_text: query.search };
     if (activeOnly) filter.isActive = true;
     return filter;

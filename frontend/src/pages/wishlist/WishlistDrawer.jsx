@@ -1,105 +1,94 @@
-import React from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { addToCart } from '../../redux/features/cart/cartSlice'
 import { toCartProduct } from '../shop/ProductCard'
 import { formatINR } from '../../utils/formatCurrency'
 import { useWishlist } from '../../hooks/useWishlist'
-import { useDrawer } from '../../hooks/useDrawer'
+import Drawer from '../../components/Drawer'
 
-// Slide-in wishlist, mirroring CartModel: a sibling overlay + drawer so the
-// dim never gets trapped inside the navbar's stacking context.
-const WishlistDrawer = ({ isOpen, onClose }) => {
+// One saved item: pick a size right on the card, then it moves to the bag.
+const SavedItem = ({ item, index, leaving, onClose, onGone }) => {
     const dispatch = useDispatch();
-    const { items, toggle, isLoggedIn } = useWishlist();
-    useDrawer(isOpen, onClose);
+    const [picking, setPicking] = useState(false);
+    const [moved, setMoved] = useState(false);
+    const to = `/shop/${item.slug || item._id}`;
+    const image = (item.images && item.images[0]) || item.image;
+    const off = item.oldPrice > item.price ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
+    const sizes = item.sizes?.length > 1 ? item.sizes : null;
 
-    const handleAddToCart = (product) => dispatch(addToCart(toCartProduct(product)));
-    const handleRemove = (id) => toggle(id);
+    const move = (size) => {
+        dispatch(addToCart({ ...toCartProduct(item), ...(size && { size }), ...(item.colors?.[0] && { color: item.colors[0] }) }));
+        setMoved(true);
+        setTimeout(() => onGone(item._id), 500); // show "Moved", then the card slides away
+    };
 
     return (
-        <>
-            {/* Dim overlay — sits BELOW the navbar (z-1001) so the nav stays crisp */}
-            <div
-                onClick={onClose}
-                className={`fixed z-[1000] inset-0 bg-black/50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-            />
-            {/* Drawer — above the navbar */}
-            <div
-                style={{ height: '100vh' }}
-                role='dialog' aria-modal='true' aria-label='Wishlist'
-                className={`fixed z-[1002] right-0 top-0 md:w-[420px] w-full bg-white flex flex-col shadow-2xl transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
-            >
-                {/* Header */}
-                <div className='flex justify-between items-center px-5 py-4 border-b shrink-0'>
-                    <h4 className='text-lg font-semibold' style={{ fontFamily: 'var(--header-font)' }}>
-                        Wishlist <span className='text-text-light font-normal text-sm'>({items.length})</span>
-                    </h4>
-                    <button onClick={onClose} className='w-9 h-9 grid place-content-center rounded-full hover:bg-gray-100 text-xl'>
-                        <i className='ri-close-line'></i>
-                    </button>
+        <article className={`wf-wl ${leaving ? 'out' : ''}`} style={{ '--i': index }}>
+            <Link to={to} onClick={onClose} className='wf-wl__ph'>
+                <img src={image} alt='' loading='lazy' />
+                {off > 0 && <span className='wf-wl__off'>{off}% off</span>}
+            </Link>
+            <button type='button' className='wf-wl__x' onClick={() => onGone(item._id)} aria-label={`Remove ${item.name} from wishlist`}><i className='ri-close-line'></i></button>
+            {item.brand && <small>{item.brand}</small>}
+            <h3><Link to={to} onClick={onClose}>{item.name}</Link></h3>
+            <div className='wf-wl__price'>{formatINR(item.price)}{off > 0 && <s>{formatINR(item.oldPrice)}</s>}</div>
+            {picking && sizes && !moved && (
+                <div className='wf-wl__sizes' role='group' aria-label={`Choose a size for ${item.name}`}>
+                    {sizes.map((s) => <button key={s} type='button' onClick={() => move(s)}>{s}</button>)}
                 </div>
+            )}
+            <button
+                type='button'
+                className={`wf-wl__move ${moved ? 'is-ok' : ''}`}
+                onClick={() => (sizes ? setPicking((v) => !v) : move(item.sizes?.[0]))}
+                aria-expanded={sizes ? picking : undefined}
+                disabled={moved}
+            >
+                {moved ? 'Moved to bag ✓' : picking ? 'Choose a size' : 'Move to bag'}
+            </button>
+        </article>
+    );
+};
 
-                {!isLoggedIn ? (
-                    /* Signed-out state — the wishlist lives on the account */
-                    <div className='flex-1 flex flex-col items-center justify-center text-center px-6 text-text-light'>
-                        <i className='ri-heart-line text-5xl mb-3'></i>
-                        <p className='font-medium text-text-dark'>Sign in to view your wishlist</p>
-                        <p className='text-sm mb-4'>Your saved items follow you across devices.</p>
-                        <Link to='/login' onClick={onClose} className='btn !rounded-lg'>Sign In</Link>
+const WishlistDrawer = ({ isOpen, onClose }) => {
+    const { items, toggle, isLoggedIn } = useWishlist();
+    const [leaving, setLeaving] = useState([]);
+    const gone = (id) => {
+        setLeaving((l) => [...l, id]);
+        setTimeout(() => { toggle(id); setLeaving((l) => l.filter((x) => x !== id)); }, 320);
+    };
+
+    return (
+        <Drawer isOpen={isOpen} onClose={onClose} label='Wishlist' title='Wishlist' count={items.length}>
+            {!isLoggedIn ? (
+                <div className='wf-drawer__empty'>
+                    <i className='ri-heart-line'></i>
+                    <b>Sign in to see your wishlist</b>
+                    <p>Saved items stay on your account, on every device.</p>
+                    <Link to='/login' onClick={onClose} className='wf-btn'>Sign in</Link>
+                </div>
+            ) : items.length === 0 ? (
+                <div className='wf-drawer__empty'>
+                    <i className='ri-heart-line'></i>
+                    <b>Nothing saved yet</b>
+                    <p>Tap the heart on any product to keep it here for later.</p>
+                    <Link to='/' onClick={onClose} className='wf-btn'>Start shopping</Link>
+                </div>
+            ) : (
+                <>
+                    <div className='wf-wl-grid'>
+                        {items.map((item, i) => (
+                            <SavedItem key={item._id} item={item} index={i} leaving={leaving.includes(item._id)} onClose={onClose} onGone={gone} />
+                        ))}
                     </div>
-                ) : items.length === 0 ? (
-                    /* Empty state */
-                    <div className='flex-1 flex flex-col items-center justify-center text-center px-6 text-text-light'>
-                        <i className='ri-heart-line text-5xl mb-3'></i>
-                        <p className='font-medium text-text-dark'>Your wishlist is empty</p>
-                        <p className='text-sm mb-4'>Tap the heart on any product to save it here.</p>
-                        <button onClick={onClose} className='btn !rounded-lg'>Continue Shopping</button>
+                    <div className='wf-drawer__foot'>
+                        <p className='wf-muted' style={{ fontSize: 13, textAlign: 'center' }}>Saved to your account. Prices update automatically.</p>
+                        <button type='button' className='wf-linkbtn wf-u' onClick={onClose}>Continue shopping</button>
                     </div>
-                ) : (
-                    /* Saved items (scrollable) */
-                    <div className='flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-4'>
-                        {items.map((item) => {
-                            const image = (item.images && item.images[0]) || item.image;
-                            const onSale = item.oldPrice && item.oldPrice > item.price;
-                            return (
-                                <div key={item._id} className='flex gap-3'>
-                                    <Link to={`/shop/${item.slug || item._id}`} onClick={onClose} className='shrink-0'>
-                                        <img src={image} alt={item.name} className='w-20 h-24 object-cover rounded-lg bg-gray-50' />
-                                    </Link>
-                                    <div className='flex-1 min-w-0'>
-                                        <div className='flex justify-between gap-2'>
-                                            <Link to={`/shop/${item.slug || item._id}`} onClick={onClose}
-                                                className='text-sm font-medium text-text-dark line-clamp-2 hover:text-primary'>
-                                                {item.name}
-                                            </Link>
-                                            <button onClick={() => handleRemove(item._id)}
-                                                aria-label='Remove from wishlist'
-                                                className='text-text-light hover:text-primary shrink-0'>
-                                                <i className='ri-delete-bin-6-line'></i>
-                                            </button>
-                                        </div>
-                                        {item.brand && (
-                                            <p className='text-[11px] uppercase tracking-wide text-text-light mt-0.5'>{item.brand}</p>
-                                        )}
-                                        <div className='flex items-baseline gap-2 mt-1'>
-                                            <span className='font-semibold text-text-dark'>{formatINR(item.price)}</span>
-                                            {onSale && <s className='text-xs text-text-light'>{formatINR(item.oldPrice)}</s>}
-                                        </div>
-                                        <button
-                                            onClick={() => handleAddToCart(item)}
-                                            className='mt-2 text-xs font-medium uppercase tracking-wide border border-text-dark text-text-dark px-3 py-1.5 rounded hover:bg-text-dark hover:text-white transition'
-                                        >
-                                            Add to Cart
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
-        </>
+                </>
+            )}
+        </Drawer>
     );
 };
 
