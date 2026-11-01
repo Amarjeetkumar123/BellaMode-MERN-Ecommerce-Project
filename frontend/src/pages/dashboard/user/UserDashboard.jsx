@@ -1,4 +1,3 @@
-import React from 'react'
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { useGetMyOrdersQuery } from '../../../redux/features/orders/ordersApi'
@@ -19,7 +18,7 @@ const UserDashboard = () => {
     return (
         <div>
             <h2 className='text-2xl font-bold mb-1' style={{ fontFamily: 'var(--header-font)' }}>Welcome back, {user?.username} 👋</h2>
-            <p className='text-text-light mb-6'>Here's what's happening with your account.</p>
+            <p className='text-text-light mb-6'>Here&apos;s what&apos;s happening with your account.</p>
 
             <div className='grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8'>
                 <div className='bg-white border border-gray-100 rounded-2xl p-5 shadow-sm'>

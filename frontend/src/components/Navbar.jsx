@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import CartModel from '../pages/shop/CartModel';
 import WishlistDrawer from '../pages/wishlist/WishlistDrawer';
-import avatarImg from "../assets/avatar.png"
 import { useLogoutUserMutation } from '../redux/features/auth/authApi';
 import { logout } from '../redux/features/auth/authSlice';
 import { useGetCategoriesQuery } from '../redux/features/categories/categoriesApi';
@@ -91,6 +90,15 @@ const Navbar = () => {
         return () => window.removeEventListener('scroll', onScroll);
     }, []);
     useEffect(() => { setIsDropdownOpen(false); }, [pathname]);
+    // account menu closes on outside click or Escape
+    useEffect(() => {
+        if (!isDropdownOpen) return;
+        const away = (e) => { if (!e.target.closest('.wf-acct')) setIsDropdownOpen(false); };
+        const esc = (e) => { if (e.key === 'Escape') setIsDropdownOpen(false); };
+        document.addEventListener('pointerdown', away);
+        document.addEventListener('keydown', esc);
+        return () => { document.removeEventListener('pointerdown', away); document.removeEventListener('keydown', esc); };
+    }, [isDropdownOpen]);
     // "Add to bag" anywhere opens the bag: window.dispatchEvent(new Event('wf:open-bag'))
     useEffect(() => {
         const open = () => { setIsCartOpen(true); setIsWishlistOpen(false); };
@@ -109,18 +117,18 @@ const Navbar = () => {
     const isAdmin = user && ADMIN_ROLES.includes(user.role);
     const isSuperadmin = user && user.role === 'SUPERADMIN';
     const adminMenus = [
-        { label: "Dashboard", path: "/dashboard/admin" },
-        { label: "Manage Products", path: "/dashboard/manage-products" },
-        { label: "Manage Categories", path: "/dashboard/manage-categories" },
-        { label: "All Orders", path: "/dashboard/manage-orders" },
-        { label: "Add New Post", path: "/dashboard/add-new-post" },
-        { label: "Settings", path: "/dashboard/settings" },
+        { label: "Dashboard", path: "/dashboard/admin" , icon: "ri-dashboard-line" },
+        { label: "Manage Products", path: "/dashboard/manage-products" , icon: "ri-t-shirt-line" },
+        { label: "Manage Categories", path: "/dashboard/manage-categories" , icon: "ri-folder-2-line" },
+        { label: "All Orders", path: "/dashboard/manage-orders" , icon: "ri-file-list-3-line" },
+        { label: "Add New Post", path: "/dashboard/add-new-post" , icon: "ri-quill-pen-line" },
+        { label: "Settings", path: "/dashboard/settings" , icon: "ri-settings-3-line" },
     ];
-    if (isSuperadmin) adminMenus.push({ label: "Manage Users", path: "/dashboard/manage-users" });
+    if (isSuperadmin) adminMenus.push({ label: "Manage Users", path: "/dashboard/manage-users" , icon: "ri-team-line" });
     const userMenus = [
-        { label: "Dashboard", path: "/dashboard" },
-        { label: "Profile", path: "/dashboard/profile" },
-        { label: "Orders", path: "/dashboard/orders" },
+        { label: "Dashboard", path: "/dashboard" , icon: "ri-dashboard-line" },
+        { label: "Profile", path: "/dashboard/profile" , icon: "ri-user-settings-line" },
+        { label: "Orders", path: "/dashboard/orders" , icon: "ri-shopping-bag-3-line" },
     ];
     const dropdownMenus = isAdmin ? adminMenus : userMenus;
 
@@ -220,17 +228,26 @@ const Navbar = () => {
                 <div className='wf-icons'>
                     <Link to='/search' className='wf-icon wf-icon--find' aria-label='Search'><i className='ri-search-line'></i></Link>
                     {user ? (
-                        <>
+                        <div className='wf-acct'>
                             <button type='button' className='wf-icon wf-icon--acct' aria-label='Account menu' aria-expanded={isDropdownOpen} onClick={() => setIsDropdownOpen((v) => !v)}>
-                                <img src={user?.profileImage || avatarImg} alt='' />
+                                {user.profileImage
+                                    ? <img src={user.profileImage} alt='' />
+                                    : <span className='wf-mono' aria-hidden='true'>{(user.username || user.name || user.email || '?').trim()[0].toUpperCase()}</span>}
                             </button>
                             {isDropdownOpen && (
-                                <ul className='wf-menu'>
-                                    {dropdownMenus.map((m) => <li key={m.path}><Link to={m.path}>{m.label}</Link></li>)}
-                                    <li><button type='button' onClick={handleLogout}>Logout</button></li>
-                                </ul>
+                                <div className='wf-menu'>
+                                    <div className='wf-menu__who'>
+                                        <b>{user.username || user.name || 'Your account'}</b>
+                                        {user.email && <small>{user.email}</small>}
+                                        {isAdmin && <span className='wf-menu__role'>{user.role.toLowerCase()}</span>}
+                                    </div>
+                                    <ul>
+                                        {dropdownMenus.map((m) => <li key={m.path}><Link to={m.path}><i className={m.icon} aria-hidden='true'></i>{m.label}</Link></li>)}
+                                    </ul>
+                                    <button type='button' className='wf-menu__out' onClick={handleLogout}><i className='ri-logout-box-r-line' aria-hidden='true'></i>Sign out</button>
+                                </div>
                             )}
-                        </>
+                        </div>
                     ) : (
                         <Link to='/login' className='wf-icon wf-icon--acct' aria-label='Sign in'><i className='ri-user-line'></i></Link>
                     )}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useUploadFileMutation, useUploadByUrlMutation } from '../redux/features/upload/uploadApi'
 
 // Reusable image field: upload a file OR paste a URL. Calls onChange(url) when resolved.

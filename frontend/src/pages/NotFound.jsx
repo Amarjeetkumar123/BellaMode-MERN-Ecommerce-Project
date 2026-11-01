@@ -1,4 +1,3 @@
-import React from 'react'
 import { Link, useRouteError, isRouteErrorResponse } from 'react-router-dom'
 
 // Serves both the catch-all route and the router's errorElement, so a bad URL

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../../redux/features/cart/cartSlice';
@@ -68,7 +68,7 @@ export const ProductCardItem = ({ product, index = 0 }) => {
                 <button
                     type='button'
                     className='wf-card__wish'
-                    onClick={() => toggle(product._id)}
+                    onClick={() => toggle(product)}
                     aria-label={wished ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
                     aria-pressed={wished}
                 >

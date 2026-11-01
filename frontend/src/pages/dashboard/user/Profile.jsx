@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useEditProfileMutation } from '../../../redux/features/auth/authApi'
 import { setUser } from '../../../redux/features/auth/authSlice'

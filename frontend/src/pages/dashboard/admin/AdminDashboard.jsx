@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useGetProductsQuery } from '../../../redux/features/products/productsApi'
 import { useGetAllOrdersQuery, useGetOrderStatsQuery } from '../../../redux/features/orders/ordersApi'
@@ -51,7 +51,7 @@ const AdminDashboard = () => {
 
     const stats = statsRes?.data;
     const orderList = useMemo(() => orders?.data?.orders || [], [orders]);
-    const productList = prod?.data?.products || [];
+    const productList = useMemo(() => prod?.data?.products || [], [prod]);
 
     const analytics = useMemo(() => {
         // Zero-fill every day in the window so quiet days stay visible.

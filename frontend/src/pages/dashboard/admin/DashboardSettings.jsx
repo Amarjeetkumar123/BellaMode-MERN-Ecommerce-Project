@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useGetSettingsQuery, useUpdateSettingsMutation } from '../../../redux/features/settings/settingsApi'
 import {
     useGetBannersQuery,
@@ -130,7 +130,7 @@ const DashboardSettings = () => {
                     </div>
 
                     <h3 className='font-semibold pt-4' style={titleFont}>Homepage Category Tile Images</h3>
-                    <p className='text-sm text-text-light'>Override the "Shop by Category" tile images (Women is the large featured tile).</p>
+                    <p className='text-sm text-text-light'>Override the &ldquo;Shop by Category&rdquo; tile images (Women is the large featured tile).</p>
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                         {AUDIENCE_OPTS.map((aud) => (
                             <ImageInput key={aud} label={aud.charAt(0).toUpperCase() + aud.slice(1)}

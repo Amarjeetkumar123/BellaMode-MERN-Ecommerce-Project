@@ -1,4 +1,3 @@
-import React from 'react'
 
 // Shared pager for the admin lists, so long tables page instead of silently
 // truncating at the query limit.

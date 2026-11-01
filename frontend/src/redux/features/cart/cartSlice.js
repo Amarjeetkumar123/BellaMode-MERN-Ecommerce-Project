@@ -29,7 +29,7 @@ const cartslice = createSlice({
             state.grandTotal = setGrandTotal(state);
         },
         updateQuantity: (state, action) => {
-            const products = state.products.map((product) => {
+            state.products.forEach((product) => {
                 if (sameLine(product, action.payload.key || action.payload._id)) {
                     if (action.payload.type === 'increment') {
                         product.quantity += 1;
@@ -39,8 +39,7 @@ const cartslice = createSlice({
                         }
                     }
                 }
-                return product;
-            })
+            });
             state.selectedItems = setSelectedItems(state);
             state.totalPrice = setTotalPrice(state);
             state.tax = setTax(state);

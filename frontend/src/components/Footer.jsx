@@ -1,4 +1,3 @@
-import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { AUDIENCES } from '../data/catalog'
 import { useActiveAudiences } from '../hooks/useActiveAudiences'

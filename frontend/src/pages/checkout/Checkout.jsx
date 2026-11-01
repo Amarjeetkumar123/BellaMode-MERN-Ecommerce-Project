@@ -79,7 +79,7 @@ const Checkout = () => {
                             razorpay_signature: response.razorpay_signature,
                         }).unwrap();
                         finishSuccess();
-                    } catch (err) {
+                    } catch {
                         setError('Payment verification failed.');
                     }
                 },

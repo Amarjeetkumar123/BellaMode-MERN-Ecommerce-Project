@@ -166,7 +166,7 @@ const ProductView = ({ product }) => {
                         <button type='button' ref={addRef} className={`wf-btn ${added ? 'is-ok' : ''}`} onClick={addToBag} disabled={stock < 1}>
                             {stock < 1 ? 'Out of stock' : added ? 'Added to bag ✓' : 'Add to bag'}
                         </button>
-                        <button type='button' className='wf-sq' aria-label={isWished(product._id) ? 'Remove from wishlist' : 'Save to wishlist'} aria-pressed={isWished(product._id)} onClick={() => toggle(product._id)}>
+                        <button type='button' className='wf-sq' aria-label={isWished(product._id) ? 'Remove from wishlist' : 'Save to wishlist'} aria-pressed={isWished(product._id)} onClick={() => toggle(product)}>
                             <i className={isWished(product._id) ? 'ri-heart-fill' : 'ri-heart-line'}></i>
                         </button>
                     </div>

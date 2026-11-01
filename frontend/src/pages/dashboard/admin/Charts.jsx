@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 
 // Hand-built SVG charts — no charting dependency.
 // Colours follow the data-viz rules: a single hue for magnitude, an ordinal

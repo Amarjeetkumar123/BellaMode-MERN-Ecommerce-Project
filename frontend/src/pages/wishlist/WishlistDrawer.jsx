@@ -20,7 +20,7 @@ const SavedItem = ({ item, index, leaving, onClose, onGone }) => {
     const move = (size) => {
         dispatch(addToCart({ ...toCartProduct(item), ...(size && { size }), ...(item.colors?.[0] && { color: item.colors[0] }) }));
         setMoved(true);
-        setTimeout(() => onGone(item._id), 500); // show "Moved", then the card slides away
+        setTimeout(() => onGone(item), 500); // show "Moved", then the card slides away
     };
 
     return (
@@ -29,7 +29,7 @@ const SavedItem = ({ item, index, leaving, onClose, onGone }) => {
                 <img src={image} alt='' loading='lazy' />
                 {off > 0 && <span className='wf-wl__off'>{off}% off</span>}
             </Link>
-            <button type='button' className='wf-wl__x' onClick={() => onGone(item._id)} aria-label={`Remove ${item.name} from wishlist`}><i className='ri-close-line'></i></button>
+            <button type='button' className='wf-wl__x' onClick={() => onGone(item)} aria-label={`Remove ${item.name} from wishlist`}><i className='ri-close-line'></i></button>
             {item.brand && <small>{item.brand}</small>}
             <h3><Link to={to} onClick={onClose}>{item.name}</Link></h3>
             <div className='wf-wl__price'>{formatINR(item.price)}{off > 0 && <s>{formatINR(item.oldPrice)}</s>}</div>
@@ -54,21 +54,14 @@ const SavedItem = ({ item, index, leaving, onClose, onGone }) => {
 const WishlistDrawer = ({ isOpen, onClose }) => {
     const { items, toggle, isLoggedIn } = useWishlist();
     const [leaving, setLeaving] = useState([]);
-    const gone = (id) => {
-        setLeaving((l) => [...l, id]);
-        setTimeout(() => { toggle(id); setLeaving((l) => l.filter((x) => x !== id)); }, 320);
+    const gone = (item) => {
+        setLeaving((l) => [...l, item._id]);
+        setTimeout(() => { toggle(item); setLeaving((l) => l.filter((x) => x !== item._id)); }, 320);
     };
 
     return (
         <Drawer isOpen={isOpen} onClose={onClose} label='Wishlist' title='Wishlist' count={items.length}>
-            {!isLoggedIn ? (
-                <div className='wf-drawer__empty'>
-                    <i className='ri-heart-line'></i>
-                    <b>Sign in to see your wishlist</b>
-                    <p>Saved items stay on your account, on every device.</p>
-                    <Link to='/login' onClick={onClose} className='wf-btn'>Sign in</Link>
-                </div>
-            ) : items.length === 0 ? (
+            {items.length === 0 ? (
                 <div className='wf-drawer__empty'>
                     <i className='ri-heart-line'></i>
                     <b>Nothing saved yet</b>
@@ -83,7 +76,11 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
                         ))}
                     </div>
                     <div className='wf-drawer__foot'>
-                        <p className='wf-muted' style={{ fontSize: 13, textAlign: 'center' }}>Saved to your account. Prices update automatically.</p>
+                        {isLoggedIn ? (
+                            <p className='wf-muted' style={{ fontSize: 13, textAlign: 'center' }}>Saved to your account. Prices update automatically.</p>
+                        ) : (
+                            <p className='wf-muted' style={{ fontSize: 13, textAlign: 'center' }}>Saved on this device. <Link to='/login' onClick={onClose} className='wf-u' style={{ color: 'var(--wf-ink)', fontWeight: 700 }}>Sign in</Link> to keep them on every device.</p>
+                        )}
                         <button type='button' className='wf-linkbtn wf-u' onClick={onClose}>Continue shopping</button>
                     </div>
                 </>

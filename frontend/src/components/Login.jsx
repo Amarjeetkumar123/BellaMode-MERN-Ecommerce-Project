@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import { useLoginUserMutation } from '../redux/features/auth/authApi';
 import { setUser } from '../redux/features/auth/authSlice';
@@ -59,7 +59,7 @@ const Login = () => {
                             {loginLoading ? 'Signing in…' : 'Sign In'}
                         </button>
                     </form>
-                    <p className='auth__switch'>Don't have an account? <Link to='/register'>Create one</Link></p>
+                    <p className='auth__switch'>Don&apos;t have an account? <Link to='/register'>Create one</Link></p>
                 </div>
             </div>
         </section>

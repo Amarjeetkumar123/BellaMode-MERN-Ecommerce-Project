@@ -1,4 +1,3 @@
-import React from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import avatarImg from '../../assets/avatar.png'
@@ -34,7 +33,7 @@ const DashboardLayout = () => {
     const links = isAdmin ? adminLinks : userLinks;
 
     const handleLogout = async () => {
-        try { await logoutUser().unwrap(); } catch (e) { /* client-side anyway */ }
+        try { await logoutUser().unwrap(); } catch { /* client-side anyway */ }
         dispatch(logout());
         navigate('/');
     };

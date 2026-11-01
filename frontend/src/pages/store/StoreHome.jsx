@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ProductCardItem } from '../shop/ProductCard'
 import { useGetProductsQuery } from '../../redux/features/products/productsApi'
