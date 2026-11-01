@@ -6,13 +6,13 @@ import {
     useDeleteProductMutation,
 } from '../../../redux/features/products/productsApi'
 import { useGetCategoriesQuery } from '../../../redux/features/categories/categoriesApi'
-import ImageInput from '../../../components/ImageInput'
+import ProductImages from '../../../components/ProductImages'
 import AdminPager from './AdminPager'
 import { formatINR } from '../../../utils/formatCurrency'
 import { card, input, primaryBtn, ghostBtn, titleFont } from './adminUI'
 
 const AUDIENCES = ['men', 'women', 'kids', 'unisex'];
-const blank = { name: '', description: '', price: '', oldPrice: '', audience: 'men', category: '', brand: '', colors: '', sizes: '', stock: '', image: '', isTrending: false, isFeatured: false };
+const blank = { name: '', description: '', price: '', oldPrice: '', audience: 'men', category: '', brand: '', colors: '', sizes: '', stock: '', images: [], isTrending: false, isFeatured: false };
 
 const ManageProducts = () => {
     const [page, setPage] = useState(1);
@@ -59,7 +59,7 @@ const ManageProducts = () => {
             name: p.name, description: p.description || '', price: p.price, oldPrice: p.oldPrice || '',
             audience: p.audience, category: p.category?._id || p.category, brand: p.brand || '',
             colors: (p.colors || []).join(', '), sizes: (p.sizes || []).join(', '), stock: p.stock ?? '',
-            image: (p.images && p.images[0]) || '', isTrending: p.isTrending, isFeatured: p.isFeatured,
+            images: p.images || [], isTrending: p.isTrending, isFeatured: p.isFeatured,
         });
         window.scrollTo(0, 0);
     };
@@ -79,7 +79,7 @@ const ManageProducts = () => {
             colors: form.colors ? form.colors.split(',').map((s) => s.trim()).filter(Boolean) : [],
             sizes: form.sizes ? form.sizes.split(',').map((s) => s.trim()).filter(Boolean) : [],
             stock: Number(form.stock) || 0,
-            images: form.image ? [form.image] : [],
+            images: form.images,
             isTrending: form.isTrending,
             isFeatured: form.isFeatured,
         };
@@ -127,7 +127,7 @@ const ManageProducts = () => {
                     <input placeholder='Sizes (comma separated)' value={form.sizes} onChange={(e) => setField('sizes', e.target.value)} className={input} />
                 </div>
                 <textarea placeholder='Description' value={form.description} onChange={(e) => setField('description', e.target.value)} className={input} rows={2} />
-                <ImageInput value={form.image} onChange={(url) => setField('image', url)} />
+                <ProductImages value={form.images} onChange={(urls) => setField('images', urls)} />
                 <div className='flex gap-5'>
                     <label className='flex items-center gap-1.5 text-sm'><input type='checkbox' checked={form.isTrending} onChange={(e) => setField('isTrending', e.target.checked)} className='accent-primary' /> Trending</label>
                     <label className='flex items-center gap-1.5 text-sm'><input type='checkbox' checked={form.isFeatured} onChange={(e) => setField('isFeatured', e.target.checked)} className='accent-primary' /> Featured</label>
