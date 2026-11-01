@@ -13,6 +13,7 @@ import settingsApi from "./features/settings/settingsApi";
 import paymentsApi from "./features/payments/paymentsApi";
 import uploadApi from "./features/upload/uploadApi";
 import wishlistApi from "./features/wishlist/wishlistApi";
+import newsletterApi from "./features/newsletter/newsletterApi";
 
 const apis = [
     authApi,
@@ -26,6 +27,7 @@ const apis = [
     paymentsApi,
     uploadApi,
     wishlistApi,
+    newsletterApi,
 ];
 
 // The bag and signed-out hearts survive a refresh: saved to this browser, restored on load.

@@ -1,6 +1,25 @@
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useSubscribeMutation } from '../redux/features/newsletter/newsletterApi'
 import { AUDIENCES } from '../data/catalog'
 import { useActiveAudiences } from '../hooks/useActiveAudiences'
+
+// Newsletter sign-up: saved on the server; the form becomes a thank-you line.
+const Newsletter = () => {
+    const [email, setEmail] = useState('');
+    const [subscribe, { isLoading, isSuccess, isError }] = useSubscribeMutation();
+    if (isSuccess) return <p className='wf-news-ok' role='status'>You’re on the list. New arrivals and offers will come to {email}.</p>;
+    return (
+        <>
+            <form className='wf-news' onSubmit={(e) => { e.preventDefault(); subscribe(email.trim()); }}>
+                <label className='wf-sr' htmlFor='wf-em'>Email address</label>
+                <input id='wf-em' type='email' value={email} onChange={(e) => setEmail(e.target.value)} placeholder='Email for new arrivals and offers' required autoComplete='email' />
+                <button type='submit' disabled={isLoading}>{isLoading ? 'Subscribing…' : 'Subscribe'}</button>
+            </form>
+            {isError && <p className='wf-news-err' role='alert'>That didn’t work. Check the email and try again.</p>}
+        </>
+    );
+};
 
 const Footer = () => {
     const { isActive, settings, copy } = useActiveAudiences();
@@ -20,13 +39,7 @@ const Footer = () => {
                             <span>{brandFirst}</span>{brandRest.length ? ` ${brandRest.join(' ')}` : ''}
                         </Link>
                         <p>Curated fashion for {copy}: clothing, footwear, watches, perfumes and accessories, all in one place.</p>
-                        {!isDashboard && (
-                            <form className='wf-news' onSubmit={(e) => e.preventDefault()}>
-                                <label className='wf-sr' htmlFor='wf-em'>Email address</label>
-                                <input id='wf-em' type='email' placeholder='Email for new arrivals and offers' required autoComplete='email' />
-                                <button type='submit'>Subscribe</button>
-                            </form>
-                        )}
+                        {!isDashboard && <Newsletter />}
                     </div>
                     <div>
                         <h4>Shop</h4>
@@ -39,8 +52,8 @@ const Footer = () => {
                         <h4>Help</h4>
                         <ul>
                             <li><Link to='/dashboard/orders'>Track your order</Link></li>
-                            <li><Link to='/shop'>Shipping and returns</Link></li>
-                            <li><Link to='/shop'>Size guide</Link></li>
+                            <li><Link to='/help/shipping'>Shipping and returns</Link></li>
+                            <li><Link to='/size-guide'>Size guide</Link></li>
                             <li><a href='mailto:support@wearly.com'>Contact us</a></li>
                         </ul>
                     </div>

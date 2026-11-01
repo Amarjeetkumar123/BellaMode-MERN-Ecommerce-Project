@@ -75,7 +75,7 @@ export const ProductCardItem = ({ product, index = 0 }) => {
                     <i className={wished ? 'ri-heart-fill' : 'ri-heart-line'}></i>
                 </button>
                 <div className='wf-card__quick'>
-                    <small><span>Quick add</span>{sizes && <Link to={to} className='wf-u'>Size guide</Link>}</small>
+                    <small><span>Quick add</span>{sizes && <Link to={`/size-guide?for=${product.audience === 'unisex' ? 'men' : product.audience || 'men'}`} className='wf-u'>Size guide</Link>}</small>
                     {added ? (
                         <span className='wf-card__done' role='status'>{added}</span>
                     ) : (

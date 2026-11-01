@@ -9,6 +9,7 @@ import { useGetCategoriesQuery } from '../redux/features/categories/categoriesAp
 import { AUDIENCES, LIFESTYLE, STORE_HOME, PRICE_BANDS, listingLink } from '../data/catalog';
 import { useActiveAudiences } from '../hooks/useActiveAudiences';
 import { useWishlist } from '../hooks/useWishlist';
+import { initialOf } from '../utils/user';
 import { slideTo } from '../utils/slideTo';
 
 const ADMIN_ROLES = ['ADMIN', 'SUPERADMIN'];
@@ -99,11 +100,13 @@ const Navbar = () => {
         document.addEventListener('keydown', esc);
         return () => { document.removeEventListener('pointerdown', away); document.removeEventListener('keydown', esc); };
     }, [isDropdownOpen]);
-    // "Add to bag" anywhere opens the bag: window.dispatchEvent(new Event('wf:open-bag'))
+    // Anywhere can open a drawer: window.dispatchEvent(new Event('wf:open-bag')) or 'wf:open-wishlist'
     useEffect(() => {
         const open = () => { setIsCartOpen(true); setIsWishlistOpen(false); };
+        const wish = () => { setIsWishlistOpen(true); setIsCartOpen(false); };
         window.addEventListener('wf:open-bag', open);
-        return () => window.removeEventListener('wf:open-bag', open);
+        window.addEventListener('wf:open-wishlist', wish);
+        return () => { window.removeEventListener('wf:open-bag', open); window.removeEventListener('wf:open-wishlist', wish); };
     }, []);
 
     // Bag count pops when something is added.
@@ -117,18 +120,18 @@ const Navbar = () => {
     const isAdmin = user && ADMIN_ROLES.includes(user.role);
     const isSuperadmin = user && user.role === 'SUPERADMIN';
     const adminMenus = [
-        { label: "Dashboard", path: "/dashboard/admin" , icon: "ri-dashboard-line" },
-        { label: "Manage Products", path: "/dashboard/manage-products" , icon: "ri-t-shirt-line" },
-        { label: "Manage Categories", path: "/dashboard/manage-categories" , icon: "ri-folder-2-line" },
-        { label: "All Orders", path: "/dashboard/manage-orders" , icon: "ri-file-list-3-line" },
-        { label: "Add New Post", path: "/dashboard/add-new-post" , icon: "ri-quill-pen-line" },
-        { label: "Settings", path: "/dashboard/settings" , icon: "ri-settings-3-line" },
+        { label: "Dashboard", path: "/dashboard/admin", icon: "ri-dashboard-line" },
+        { label: "Manage Products", path: "/dashboard/manage-products", icon: "ri-t-shirt-line" },
+        { label: "Manage Categories", path: "/dashboard/manage-categories", icon: "ri-folder-2-line" },
+        { label: "All Orders", path: "/dashboard/manage-orders", icon: "ri-file-list-3-line" },
+        { label: "Add New Post", path: "/dashboard/add-new-post", icon: "ri-quill-pen-line" },
+        { label: "Settings", path: "/dashboard/settings", icon: "ri-settings-3-line" },
     ];
-    if (isSuperadmin) adminMenus.push({ label: "Manage Users", path: "/dashboard/manage-users" , icon: "ri-team-line" });
+    if (isSuperadmin) adminMenus.push({ label: "Manage Users", path: "/dashboard/manage-users", icon: "ri-team-line" });
     const userMenus = [
-        { label: "Dashboard", path: "/dashboard" , icon: "ri-dashboard-line" },
-        { label: "Profile", path: "/dashboard/profile" , icon: "ri-user-settings-line" },
-        { label: "Orders", path: "/dashboard/orders" , icon: "ri-shopping-bag-3-line" },
+        { label: "My account", path: "/dashboard", icon: "ri-dashboard-line" },
+        { label: "Orders", path: "/dashboard/orders", icon: "ri-box-3-line" },
+        { label: "Profile and addresses", path: "/dashboard/profile", icon: "ri-user-line" },
     ];
     const dropdownMenus = isAdmin ? adminMenus : userMenus;
 
@@ -232,7 +235,7 @@ const Navbar = () => {
                             <button type='button' className='wf-icon wf-icon--acct' aria-label='Account menu' aria-expanded={isDropdownOpen} onClick={() => setIsDropdownOpen((v) => !v)}>
                                 {user.profileImage
                                     ? <img src={user.profileImage} alt='' />
-                                    : <span className='wf-mono' aria-hidden='true'>{(user.username || user.name || user.email || '?').trim()[0].toUpperCase()}</span>}
+                                    : <span className='wf-mono' aria-hidden='true'>{initialOf(user)}</span>}
                             </button>
                             {isDropdownOpen && (
                                 <div className='wf-menu'>

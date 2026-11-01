@@ -21,6 +21,9 @@ const authApi = createApi({
         editProfile: builder.mutation({
             query: (profileData) => ({ url: "/edit-profile", method: "PATCH", body: profileData }),
         }),
+        changePassword: builder.mutation({
+            query: (body) => ({ url: "/password", method: "PATCH", body }),
+        }),
         getUsers: builder.query({
             query: (params) => ({ url: "/users", method: "GET", params }),
             providesTags: ["Users"],
@@ -42,6 +45,7 @@ export const {
     useLogoutUserMutation,
     useGetMeQuery,
     useEditProfileMutation,
+    useChangePasswordMutation,
     useGetUsersQuery,
     useUpdateUserRoleMutation,
     useDeleteUserMutation,

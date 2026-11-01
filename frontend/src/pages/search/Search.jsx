@@ -1,53 +1,79 @@
-import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom';
-import ProductCard from '../shop/ProductCard';
-import { useGetProductsQuery } from '../../redux/features/products/productsApi';
+import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import ProductCard from '../shop/ProductCard'
+import Seg from '../../components/Seg'
+import { useGetProductsQuery } from '../../redux/features/products/productsApi'
 
+const STORES = [['men', 'Men'], ['women', 'Women'], ['kids', 'Kids'], ['unisex', 'Lifestyle']];
+const POPULAR = ['shirt', 'sneakers', 'dress', 'watch', 'jeans', 'saree'];
+
+// Results update as you type; the query lives in ?q= so links and Back work.
 const Search = () => {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const initial = searchParams.get('q') || '';
-    const [searchQuery, setSearchQuery] = useState(initial);
-    const [submitted, setSubmitted] = useState(initial);
+    const [sp, setSp] = useSearchParams();
+    const q = (sp.get('q') || '').trim();
+    const [text, setText] = useState(q);
+    const [store, setStore] = useState('all');
+    const input = useRef(null);
 
-    // Keep local state in sync when the ?q= param changes (e.g. navbar search).
+    // the navbar search (or Back) changes ?q= → follow it
+    useEffect(() => { setText((t) => (t.trim() === q ? t : q)); setStore('all'); }, [q]);
+    // typing updates ?q= after a short pause
     useEffect(() => {
-        const q = searchParams.get('q') || '';
-        setSearchQuery(q);
-        setSubmitted(q);
-    }, [searchParams]);
+        const t = setTimeout(() => { if (text.trim() !== q) setSp(text.trim() ? { q: text.trim() } : {}, { replace: true }); }, 300);
+        return () => clearTimeout(t);
+    }, [text, q, setSp]);
 
-    const { data, isFetching } = useGetProductsQuery({ search: submitted, limit: 50 });
-    const products = data?.data?.products || [];
+    const { data, isFetching } = useGetProductsQuery({ search: q, limit: 60 }, { skip: !q });
+    const found = q ? data?.data?.products || [] : [];
+    const { data: popData } = useGetProductsQuery({ sort: 'rating', limit: 4 });
+    const popular = popData?.data?.products || [];
 
-    const handleSearch = (e) => {
-        e?.preventDefault();
-        const q = searchQuery.trim();
-        setSubmitted(q);
-        setSearchParams(q ? { q } : {});
-    };
+    const counts = Object.fromEntries(STORES.map(([k]) => [k, found.filter((p) => p.audience === k).length]));
+    const tabs = [['all', 'All', found.length], ...STORES.filter(([k]) => counts[k]).map(([k, l]) => [k, l, counts[k]])];
+    const shown = store === 'all' ? found : found.filter((p) => p.audience === store);
+    const settled = q && !isFetching;
 
     return (
-        <>
-            <section className='page-hero'>
-                <h1>Search Products</h1>
-                <p>Find exactly what you are looking for across our collection.</p>
-            </section>
-            <section className='section__container'>
-                <form onSubmit={handleSearch} className='w-full mb-12 flex flex-col md:flex-row items-center justify-center gap-4'>
-                    <input type='text' value={searchQuery} placeholder='Search for products...'
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className='search-bar w-full max-w-4xl p-2 border rounded' />
-                    <button type='submit' className='search-button w-full md:w-auto py-2 px-8 bg-primary text-white rounded'>Search</button>
-                </form>
-                {isFetching ? (
-                    <p>Searching…</p>
-                ) : products.length === 0 ? (
-                    <p className='text-gray-500 text-center'>No products found{submitted ? ` for “${submitted}”` : ''}.</p>
-                ) : (
-                    <ProductCard products={products} />
-                )}
-            </section>
-        </>
+        <main className='wf-wrap wf-page wf-pagehead' style={{ paddingBottom: 88 }}>
+            <form className='wf-sbar' role='search' onSubmit={(e) => { e.preventDefault(); setSp(text.trim() ? { q: text.trim() } : {}, { replace: true }); }}>
+                <i className='ri-search-line' aria-hidden='true'></i>
+                <label className='wf-sr' htmlFor='wf-sq'>Search</label>
+                <input id='wf-sq' ref={input} type='search' value={text} onChange={(e) => setText(e.target.value)} placeholder='What are you looking for?' autoComplete='off' autoFocus />
+                {text && <button type='button' className='wf-clear' aria-label='Clear search' onClick={() => { setText(''); input.current.focus(); }}><i className='ri-close-line'></i></button>}
+            </form>
+
+            {q && found.length > 0 && (
+                <>
+                    <div className='wf-sline'>
+                        <p aria-live='polite'>{found.length} result{found.length > 1 ? 's' : ''} for “{q}”{isFetching ? ' …' : ''}</p>
+                        {tabs.length > 2 && <Seg label='Store' options={tabs} value={store} onChange={setStore} />}
+                    </div>
+                    <ProductCard products={shown} />
+                </>
+            )}
+
+            {(!q || (settled && found.length === 0)) && (
+                <div style={{ marginTop: 40 }}>
+                    <div className='wf-nores'>
+                        <div>
+                            <h2 aria-live='polite'>{q ? `Nothing for “${q}”` : 'Search the whole store'}</h2>
+                            <ul>
+                                {q && <li>Check the spelling</li>}
+                                <li>Try a broader word, like “shirt” or “dress”</li>
+                                <li>Search by brand or colour</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p className='wf-sub'>Popular searches</p>
+                            <div className='wf-tags'>
+                                {POPULAR.map((t) => <button key={t} type='button' className='wf-tag' onClick={() => setSp({ q: t })}>{t}<i className='ri-arrow-right-line'></i></button>)}
+                            </div>
+                        </div>
+                    </div>
+                    {popular.length > 0 && <><p className='wf-sub'>Popular right now</p><ProductCard products={popular} /></>}
+                </div>
+            )}
+        </main>
     );
 };
 

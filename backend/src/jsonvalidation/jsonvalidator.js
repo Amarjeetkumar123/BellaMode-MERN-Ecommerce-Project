@@ -69,6 +69,8 @@ module.exports = {
     validateLoginSchema: makeValidator(userschema.loginSchema),
     validateEditProfileSchema: makeValidator(userschema.editProfileSchema),
     validateUpdateUserRoleSchema: makeValidator(userschema.updateUserRoleSchema),
+    validateChangePasswordSchema: makeValidator(userschema.changePasswordSchema),
+    validateNewsletterSchema: makeValidator(userschema.newsletterSchema),
     // ---- category ----
     validateCreateCategorySchema: makeValidator(categoryschema.createCategorySchema),
     validateUpdateCategorySchema: makeValidator(categoryschema.updateCategorySchema),

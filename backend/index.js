@@ -42,6 +42,7 @@ app.use('/api/settings', require('./src/routes/setting.route'));
 app.use('/api/banners', require('./src/routes/banner.route'));
 app.use('/api/blogs', require('./src/routes/blog.route'));
 app.use('/api/upload', require('./src/routes/upload.route'));
+app.use('/api/newsletter', require('./src/routes/newsletter.route'));
 
 app.get('/', (req, res) => res.send('Wearly API is running.'));
 

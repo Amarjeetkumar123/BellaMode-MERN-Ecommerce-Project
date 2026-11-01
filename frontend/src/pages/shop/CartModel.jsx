@@ -1,21 +1,20 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { removeFromCart, updateQuantity } from '../../redux/features/cart/cartSlice'
+import { removeFromCart, updateQuantity, FREE_DELIVERY, deliveryFor } from '../../redux/features/cart/cartSlice'
 import { formatINR } from '../../utils/formatCurrency'
 import Drawer from '../../components/Drawer'
 
-export const FREE_DELIVERY = 999;
 
 // Subtotal / tax / delivery / total, shared by the bag and checkout.
 export const Totals = () => {
     const { tax, taxRate, totalPrice, grandTotal } = useSelector((s) => s.cart);
-    const free = totalPrice >= FREE_DELIVERY;
+    const fee = deliveryFor(totalPrice);
     return (
         <dl className='wf-sum'>
             <dt>Subtotal</dt><dd>{formatINR(totalPrice)}</dd>
             <dt>Tax ({Math.round(taxRate * 100)}%)</dt><dd>{formatINR(tax)}</dd>
-            <dt>Delivery</dt><dd className={free ? 'free' : ''}>{free ? 'Free' : 'Paid on delivery'}</dd>
+            <dt>Delivery</dt><dd className={fee ? '' : 'free'}>{fee ? formatINR(fee) : 'Free'}</dd>
             <dt className='total'>Total</dt><dd className='total'>{formatINR(grandTotal)}</dd>
         </dl>
     );
@@ -35,7 +34,7 @@ const CartModel = ({ products, isOpen, onClose }) => {
         setLeaving(keyOf(item));
         setTimeout(() => { dispatch(removeFromCart({ key: keyOf(item) })); setLeaving(null); }, 320);
     };
-    const checkout = () => { onClose(); navigate(user ? '/checkout' : '/login'); };
+    const checkout = () => { onClose(); navigate(user ? '/checkout' : '/login', { state: { from: '/checkout' } }); };
 
     return (
         <Drawer isOpen={isOpen} onClose={onClose} label='Bag' title='Your bag' count={count}>

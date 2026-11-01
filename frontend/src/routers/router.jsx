@@ -9,6 +9,10 @@ import SingleProduct from "../pages/shop/productDetails/SingleProduct";
 import Checkout from "../pages/checkout/Checkout";
 import Login from "../components/Login";
 import Register from "../components/Register";
+import OrderPlaced from "../pages/order/OrderPlaced";
+import Shipping from "../pages/help/Shipping";
+import SizeGuide from "../pages/help/SizeGuide";
+import JournalPost from "../pages/journal/JournalPost";
 
 import PrivateRoute from "./PrivateRoute";
 import DashboardLayout from "../pages/dashboard/DashboardLayout";
@@ -38,6 +42,10 @@ const router = createBrowserRouter([
             { path: "/sale", element: <SalePage /> },
             { path: "/shop/:id", element: <SingleProduct /> },
             { path: "/checkout", element: <PrivateRoute><Checkout /></PrivateRoute> },
+            { path: "/order/:id", element: <PrivateRoute><OrderPlaced /></PrivateRoute> },
+            { path: "/help/shipping", element: <Shipping /> },
+            { path: "/size-guide", element: <SizeGuide /> },
+            { path: "/journal/:slug", element: <JournalPost /> },
             {
                 path: "/dashboard",
                 element: <PrivateRoute><DashboardLayout /></PrivateRoute>,

@@ -10,6 +10,7 @@ const {
     validateLoginSchema,
     validateEditProfileSchema,
     validateUpdateUserRoleSchema,
+    validateChangePasswordSchema,
 } = require('../jsonvalidation/jsonvalidator');
 const { ROLES } = require('../constants/constants');
 
@@ -21,6 +22,7 @@ router.post('/logout', userService.logout);
 // ---- authenticated ----
 router.get('/me', andMiddleware([checkAuth]), userService.getMe);
 router.patch('/edit-profile', andMiddleware([checkAuth, validateEditProfileSchema]), userService.editProfile);
+router.patch('/password', andMiddleware([checkAuth, validateChangePasswordSchema]), userService.changePassword);
 
 // ---- superadmin only (user/admin management) ----
 router.get('/users', andMiddleware([checkAuth, checkRole(ROLES.SUPERADMIN)]), userService.listUsers);

@@ -246,10 +246,12 @@ const StoreHome = ({ store }) => {
                     <div className='wf-journal'>
                         {blogs.map((b) => (
                             <article key={b._id} className='wf-post'>
-                                <div className='wf-post__ph'><img src={b.image} alt='' loading='lazy' /></div>
-                                {b.subtitle && <small>{b.subtitle}</small>}
-                                <h3><span>{b.title}</span></h3>
-                                <p>{b.content}</p>
+                                <Link to={`/journal/${b.slug}`}>
+                                    <div className='wf-post__ph'><img src={b.image} alt='' loading='lazy' /></div>
+                                    {b.subtitle && <small>{b.subtitle}</small>}
+                                    <h3><span>{b.title}</span></h3>
+                                    <p>{b.content}</p>
+                                </Link>
                             </article>
                         ))}
                     </div>

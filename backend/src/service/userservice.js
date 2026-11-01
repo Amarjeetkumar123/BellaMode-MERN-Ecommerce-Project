@@ -26,6 +26,7 @@ function toPublicUser(user) {
         bio: user.bio,
         profession: user.profession,
         phone: user.phone,
+        addresses: user.addresses || [],
     };
 }
 
@@ -68,6 +69,16 @@ exports.editProfile = asyncHandler(async (req, res) => {
     const user = await userDao.updateUserById(req.userId, req.body);
     if (!user) return sendError(res, 404, MESSAGES.USER_NOT_FOUND);
     return sendSuccess(res, 200, 'Profile updated successfully.', { user: toPublicUser(user) });
+});
+
+// PATCH /api/auth/password — needs the current password; the model hook re-hashes the new one.
+exports.changePassword = asyncHandler(async (req, res) => {
+    const user = await userDao.getUserById(req.userId);
+    if (!user) return sendError(res, 404, MESSAGES.USER_NOT_FOUND);
+    if (!(await user.comparePassword(req.body.currentPassword))) return sendError(res, 400, 'Your current password is not right.');
+    user.password = req.body.newPassword;
+    await user.save();
+    return sendSuccess(res, 200, 'Password changed.');
 });
 
 exports.listUsers = asyncHandler(async (req, res) => {

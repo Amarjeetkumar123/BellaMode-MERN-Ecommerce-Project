@@ -1,16 +1,20 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import avatarImg from '../../assets/avatar.png'
 import { useLogoutUserMutation } from '../../redux/features/auth/authApi'
 import { logout } from '../../redux/features/auth/authSlice'
+import AccountLayout from '../account/AccountLayout'
 
 const ADMIN_ROLES = ['ADMIN', 'SUPERADMIN'];
+// the customer's own pages use the storefront account layout, for every role
+const ACCOUNT_PAGES = ['/dashboard', '/dashboard/orders', '/dashboard/profile'];
 
 const DashboardLayout = () => {
     const { user } = useSelector((s) => s.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [logoutUser] = useLogoutUserMutation();
+    const { pathname } = useLocation();
 
     const isAdmin = user && ADMIN_ROLES.includes(user.role);
     const isSuperadmin = user && user.role === 'SUPERADMIN';
@@ -31,6 +35,7 @@ const DashboardLayout = () => {
     if (isSuperadmin) adminLinks.push({ to: '/dashboard/manage-users', label: 'Users', icon: 'ri-group-line' });
 
     const links = isAdmin ? adminLinks : userLinks;
+    if (ACCOUNT_PAGES.includes(pathname.replace(/\/$/, ''))) return <AccountLayout />;
 
     const handleLogout = async () => {
         try { await logoutUser().unwrap(); } catch { /* client-side anyway */ }

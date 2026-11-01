@@ -69,8 +69,13 @@ export const setTotalPrice = (state) => state.products.reduce((total, product) =
     return Number(total + product.quantity * product.price);
 }, 0)
 export const setTax = (state) => setTotalPrice(state) * state.taxRate;
+// Same rule as the server (backend constants): ₹49 delivery below ₹999.
+export const FREE_DELIVERY = 999;
+export const DELIVERY_FEE = 49;
+export const deliveryFor = (subtotal) => (subtotal >= FREE_DELIVERY || subtotal === 0 ? 0 : DELIVERY_FEE);
 export const setGrandTotal = (state) => {
-    return setTotalPrice(state) + setTotalPrice(state) * state.taxRate
+    const subtotal = setTotalPrice(state);
+    return subtotal + subtotal * state.taxRate + deliveryFor(subtotal);
 }
 
 export const { addToCart, updateQuantity, removeFromCart, clearCart } = cartslice.actions

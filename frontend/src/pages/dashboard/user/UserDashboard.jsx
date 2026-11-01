@@ -1,52 +1,47 @@
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { useGetMyOrdersQuery } from '../../../redux/features/orders/ordersApi'
+import { useWishlist } from '../../../hooks/useWishlist'
 import { formatINR } from '../../../utils/formatCurrency'
+import { isOpenOrder } from '../../../data/orders'
+import OrderCard from '../../account/OrderCard'
+
+const openWishlist = () => window.dispatchEvent(new Event('wf:open-wishlist'));
 
 const UserDashboard = () => {
     const { user } = useSelector((s) => s.auth);
-    const { data } = useGetMyOrdersQuery();
+    const { data, isLoading } = useGetMyOrdersQuery();
     const orders = data?.data?.orders || [];
-    const spent = orders.reduce((s, o) => s + (o.totalPrice || 0), 0);
-
-    const cards = [
-        { to: '/dashboard/orders', icon: 'ri-shopping-bag-line', title: 'My Orders', desc: 'View your order history & status.' },
-        { to: '/dashboard/profile', icon: 'ri-user-settings-line', title: 'Profile', desc: 'Update your personal details.' },
-        { to: '/shop', icon: 'ri-store-2-line', title: 'Continue Shopping', desc: 'Discover the latest arrivals.' },
-    ];
+    const { items: saved } = useWishlist();
+    const first = (user?.username || '').split(' ')[0];
 
     return (
-        <div>
-            <h2 className='text-2xl font-bold mb-1' style={{ fontFamily: 'var(--header-font)' }}>Welcome back, {user?.username} 👋</h2>
-            <p className='text-text-light mb-6'>Here&apos;s what&apos;s happening with your account.</p>
-
-            <div className='grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8'>
-                <div className='bg-white border border-gray-100 rounded-2xl p-5 shadow-sm'>
-                    <p className='text-sm text-text-light'>Total Orders</p>
-                    <p className='text-2xl font-bold'>{orders.length}</p>
-                </div>
-                <div className='bg-white border border-gray-100 rounded-2xl p-5 shadow-sm'>
-                    <p className='text-sm text-text-light'>Total Spent</p>
-                    <p className='text-2xl font-bold'>{formatINR(spent)}</p>
-                </div>
-                <div className='bg-white border border-gray-100 rounded-2xl p-5 shadow-sm'>
-                    <p className='text-sm text-text-light'>Member</p>
-                    <p className='text-2xl font-bold capitalize'>{(user?.role || 'user').toLowerCase()}</p>
-                </div>
+        <>
+            <p className='wf-kick'>My account</p>
+            <h1>Hi{first ? `, ${first}` : ''}</h1>
+            <div className='wf-stats'>
+                <Link to='/dashboard/orders' className='wf-stat'><b>{orders.length}</b><span>Orders<i className='ri-arrow-right-line'></i></span></Link>
+                <Link to='/dashboard/orders?show=way' className='wf-stat'><b>{orders.filter(isOpenOrder).length}</b><span>On the way<i className='ri-arrow-right-line'></i></span></Link>
+                <button type='button' className='wf-stat' onClick={openWishlist}><b>{saved.length}</b><span>Saved<i className='ri-arrow-right-line'></i></span></button>
             </div>
 
-            <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
-                {cards.map((c) => (
-                    <Link key={c.to} to={c.to} className='group bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition'>
-                        <span className='w-11 h-11 grid place-content-center rounded-xl bg-primary-light text-primary text-xl mb-3'>
-                            <i className={c.icon}></i>
-                        </span>
-                        <h3 className='font-semibold group-hover:text-primary transition'>{c.title}</h3>
-                        <p className='text-sm text-text-light'>{c.desc}</p>
-                    </Link>
-                ))}
-            </div>
-        </div>
+            <div className='wf-rowhead'><p className='wf-sub'>Latest order</p>{orders.length > 1 && <Link to='/dashboard/orders' className='wf-u'>All orders</Link>}</div>
+            {isLoading ? <p className='wf-muted'>Loading…</p> : orders[0] ? <OrderCard order={orders[0]} compact /> : (
+                <div className='wf-blank'><b>No orders yet</b>When you place one, you can follow it here.<br /><Link to='/' className='wf-btn wf-btn--sm'>Start shopping</Link></div>
+            )}
+
+            <div className='wf-rowhead' style={{ marginTop: 40 }}><p className='wf-sub'>Saved for later</p>{saved.length > 0 && <button type='button' className='wf-linkbtn wf-u' onClick={openWishlist}>Open wishlist</button>}</div>
+            {saved.length ? (
+                <div className='wf-saved'>
+                    {saved.slice(0, 4).map((p) => (
+                        <Link key={p._id} to={`/shop/${p.slug || p._id}`}>
+                            <div className='ph'><img src={(p.images && p.images[0]) || p.image} alt='' loading='lazy' /></div>
+                            <b>{p.name}</b><span>{formatINR(p.price)}</span>
+                        </Link>
+                    ))}
+                </div>
+            ) : <div className='wf-blank'><b>Nothing saved</b>Tap the heart on any product to keep it for later.</div>}
+        </>
     );
 };
 

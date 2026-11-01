@@ -16,7 +16,11 @@ const Checkout = () => {
     const { products, grandTotal } = useSelector((s) => s.cart);
     const { user } = useSelector((s) => s.auth);
 
-    const [address, setAddress] = useState({ ...emptyAddress, fullName: user?.username || '' });
+    // the default saved address (Profile) fills the form; otherwise just the name
+    const saved = user?.addresses?.[0];
+    const [address, setAddress] = useState(saved
+        ? Object.fromEntries(Object.keys(emptyAddress).map((k) => [k, saved[k] || '']))
+        : { ...emptyAddress, fullName: user?.username || '', phone: user?.phone || '' });
     const [paymentMethod, setPaymentMethod] = useState('COD');
     const [error, setError] = useState('');
 
@@ -33,9 +37,9 @@ const Checkout = () => {
         ...(p.color ? { color: p.color } : {}),
     }));
 
-    const finishSuccess = () => {
+    const finishSuccess = (order) => {
         dispatch(clearCart());
-        navigate('/dashboard/orders');
+        navigate(`/order/${order._id}`, { replace: true });
     };
 
     const [bad, setBad] = useState([]);
@@ -51,7 +55,7 @@ const Checkout = () => {
             const order = res.data.order;
 
             if (paymentMethod === 'COD') {
-                finishSuccess();
+                finishSuccess(order);
                 return;
             }
 
@@ -78,7 +82,7 @@ const Checkout = () => {
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature,
                         }).unwrap();
-                        finishSuccess();
+                        finishSuccess(order);
                     } catch {
                         setError('Payment verification failed.');
                     }
