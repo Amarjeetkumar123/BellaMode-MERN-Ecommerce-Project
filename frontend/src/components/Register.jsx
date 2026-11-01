@@ -57,7 +57,7 @@ const Register = () => {
                     bad={bad.includes('password')} value={form.password} onChange={set('password')}>
                     <PasswordMeter value={form.password} />
                 </Field>
-                <ul className='wf-perks'>
+                <ul className='wf-benefits'>
                     <li><i className='ri-check-line'></i>Track every order from your account</li>
                     <li><i className='ri-check-line'></i>Wishlist saved on every device</li>
                     <li><i className='ri-check-line'></i>Faster checkout with saved addresses</li>

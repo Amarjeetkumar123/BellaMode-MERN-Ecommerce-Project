@@ -47,9 +47,9 @@
 .wf-auth__form .wf-btn { margin-top: 24px; }
 .wf-auth__switch { margin-top: 22px; text-align: center; font-size: 15px; color: var(--wf-muted); }
 .wf-auth__switch a { color: var(--wf-ink); font-weight: 700; }
-.wf-perks { list-style: none; display: grid; gap: 8px; margin-top: 22px; font-size: 14px; font-weight: 600; }
-.wf-perks li { display: flex; gap: 10px; align-items: center; }
-.wf-perks i { color: var(--wf-accent); font-size: 18px; }
+.wf-benefits { list-style: none; display: grid; gap: 8px; margin-top: 22px; font-size: 14px; font-weight: 600; }
+.wf-benefits li { display: flex; gap: 10px; align-items: center; }
+.wf-benefits i { color: var(--wf-accent); font-size: 18px; }
 .wf-fine { margin-top: 14px; font-size: 13px; color: var(--wf-muted); text-align: center; }
 
 /* ---------- search ---------- */
