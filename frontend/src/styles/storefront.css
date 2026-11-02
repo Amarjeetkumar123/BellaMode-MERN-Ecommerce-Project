@@ -183,17 +183,18 @@
 .wf-cats { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(150px, calc((100% - 7 * 14px) / 8)); gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-block: 10px 30px; margin-block: -10px -30px; }
 .wf-cats::-webkit-scrollbar { display: none; }
 .wf-cat { display: block; scroll-snap-align: start; color: var(--wf-ink); }
-.wf-cat__ph { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--wf-stone); transition: transform .5s var(--wf-ease), box-shadow .5s var(--wf-ease); }
-.wf-cat__ph img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.85); transition: transform 1.1s var(--wf-ease), filter .5s; }
-/* hover: a white mount closes in around the photo like a framed print */
-.wf-cat__ph::after { content: ""; position: absolute; inset: 0; z-index: 2; box-shadow: inset 0 0 0 0 rgba(255, 255, 255, .92); transition: box-shadow .5s var(--wf-ease); }
-.wf-cat:hover .wf-cat__ph, .wf-cat:focus-visible .wf-cat__ph { transform: translateY(-6px); box-shadow: var(--wf-sh-3); }
-.wf-cat:hover img, .wf-cat:focus-visible img { transform: scale(1.07); filter: none; }
-.wf-cat:hover .wf-cat__ph::after, .wf-cat:focus-visible .wf-cat__ph::after { box-shadow: inset 0 0 0 10px rgba(255, 255, 255, .92); }
-.wf-cat__name { display: flex; align-items: center; gap: 6px; margin-top: 12px; font-family: var(--wf-display); font-weight: 500; font-size: 17px; letter-spacing: -.02em; transition: color .25s; }
-.wf-cat__name i { color: var(--wf-accent); opacity: 0; transform: translateX(-6px); transition: opacity .3s, transform .4s var(--wf-ease); }
+.wf-cat__ph { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--wf-stone); }
+.wf-cat__ph img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.1s var(--wf-ease); }
+/* hover: the photo eases closer, a brand-red shade rises from the bottom and "Shop now" slides up on it */
+.wf-cat__ph::after { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(200, 16, 46, .9), rgba(200, 16, 46, .35) 30%, rgba(200, 16, 46, 0) 58%); opacity: 0; transition: opacity .45s; }
+.wf-cat__tag { position: absolute; left: 14px; right: 14px; bottom: 14px; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--wf-paper); font-weight: 700; font-size: 14px; opacity: 0; transform: translateY(14px); transition: opacity .35s, transform .5s var(--wf-ease); }
+.wf-cat__tag i { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: var(--wf-paper); color: var(--wf-accent); font-size: 17px; transition: transform .35s var(--wf-ease); }
+.wf-cat:hover .wf-cat__ph img, .wf-cat:focus-visible .wf-cat__ph img { transform: scale(1.06); }
+.wf-cat:hover .wf-cat__ph::after, .wf-cat:focus-visible .wf-cat__ph::after { opacity: 1; }
+.wf-cat:hover .wf-cat__tag, .wf-cat:focus-visible .wf-cat__tag { opacity: 1; transform: none; transition-delay: .08s; }
+.wf-cat:hover .wf-cat__tag i { transform: translateX(3px); }
+.wf-cat__name { margin-top: 12px; font-family: var(--wf-display); font-weight: 500; font-size: 17px; letter-spacing: -.02em; transition: color .25s; }
 .wf-cat:hover .wf-cat__name, .wf-cat:focus-visible .wf-cat__name { color: var(--wf-accent); }
-.wf-cat:hover .wf-cat__name i, .wf-cat:focus-visible .wf-cat__name i { opacity: 1; transform: none; }
 .wf-cat small { color: var(--wf-muted); font-size: 13px; }
 
 /* product browser: the tabs are the label */
