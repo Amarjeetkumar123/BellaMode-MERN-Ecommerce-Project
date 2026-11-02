@@ -8,6 +8,7 @@ import {
 import ImageInput from '../../../components/ImageInput'
 import { card, input, primaryBtn, ghostBtn, titleFont, linkBtn } from './adminUI'
 import { AdminHead, L } from './AdminParts'
+import HeroSlidesEditor from './HeroSlidesEditor'
 
 const bannerBlank = { title: '', subtitle: '', image: '', link: '/shop', ctaText: 'Shop Now', position: 'hero' };
 
@@ -31,7 +32,6 @@ const DashboardSettings = () => {
 
     const [brand, setBrand] = useState({ brandName: '', heroTagline: '', logoUrl: '', contactEmail: '', contactPhone: '' });
     const [audienceImages, setAudienceImages] = useState({ men: '', women: '', kids: '', footwear: '' });
-    const [audienceHeroImages, setAudienceHeroImages] = useState({ men: '', women: '', kids: '' });
     const [activeAudiences, setActiveAudiences] = useState([...AUDIENCE_OPTS]);
     const [announcement, setAnnouncement] = useState({ enabled: false, messages: [''], link: '', bgColor: '#0f172a', textColor: '#ffffff' });
     const [banner, setBanner] = useState(bannerBlank);
@@ -42,7 +42,6 @@ const DashboardSettings = () => {
         if (s) {
             setBrand({ brandName: s.brandName || '', heroTagline: s.heroTagline || '', logoUrl: s.logoUrl || '', contactEmail: s.contactEmail || '', contactPhone: s.contactPhone || '' });
             setAudienceImages({ men: '', women: '', kids: '', footwear: '', ...(s.audienceImages || {}) });
-            setAudienceHeroImages({ men: '', women: '', kids: '', ...(s.audienceHeroImages || {}) });
             if (Array.isArray(s.activeAudiences) && s.activeAudiences.length) setActiveAudiences(s.activeAudiences);
             const a = s.announcement || {};
             setAnnouncement({
@@ -71,7 +70,7 @@ const DashboardSettings = () => {
             messages: announcement.messages.map((m) => m.trim()).filter(Boolean),
         };
         try {
-            await updateSettings({ ...brand, audienceImages, audienceHeroImages, activeAudiences: active, announcement: cleanAnnouncement }).unwrap();
+            await updateSettings({ ...brand, audienceImages, activeAudiences: active, announcement: cleanAnnouncement }).unwrap();
             setMsg('Brand settings saved.');
         }
         catch (err) { setMsg(err?.data?.message || 'Failed.'); }
@@ -86,7 +85,7 @@ const DashboardSettings = () => {
     return (
         <div className='space-y-6'>
             <div>
-                <AdminHead title='Settings' sub='Brand, stores, home page images, the announcement bar and banners.' />
+                <AdminHead title='Settings' sub='Brand, stores, the store hero slides, home page images, the announcement bar and banners.' />
                 <form onSubmit={saveBrand} className={`${card} max-w-3xl space-y-4`}>
                     <h3 style={titleFont}>Brand</h3>
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
@@ -122,17 +121,6 @@ const DashboardSettings = () => {
                         ))}
                     </div>
                     {activeAudiences.length === 0 && <p className='wf-danger text-xs font-bold'>Select at least one audience (empty = all audiences).</p>}
-
-                    {/* Per-audience hero images */}
-                    <h3 className='pt-6 mt-2 border-t border-gray-200' style={titleFont}>Hero image for each store</h3>
-                    <p className='text-sm wf-muted'>The big photo at the top of each store’s home page. Any photo works: you crop it to fit when you upload. Leave empty to use the default.</p>
-                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                        {AUDIENCE_OPTS.filter((a) => activeAudiences.includes(a)).map((aud) => (
-                            <ImageInput key={aud} aspect={[4, 5]} note='It will fill the home page hero exactly.' label={`${aud.charAt(0).toUpperCase() + aud.slice(1)} hero`}
-                                value={audienceHeroImages[aud]}
-                                onChange={(url) => setAudienceHeroImages((a) => ({ ...a, [aud]: url }))} />
-                        ))}
-                    </div>
 
                     <h3 className='pt-6 mt-2 border-t border-gray-200' style={titleFont}>Home page store tiles</h3>
                     <p className='text-sm wf-muted'>Override the &ldquo;Shop by Category&rdquo; tile images (Women is the large featured tile).</p>
@@ -216,6 +204,8 @@ const DashboardSettings = () => {
                     <button className={primaryBtn}>Save settings</button>
                 </form>
             </div>
+
+            <HeroSlidesEditor />
 
             <div>
                 <form onSubmit={addBanner} className={`${card} space-y-4 max-w-3xl mb-6`}>

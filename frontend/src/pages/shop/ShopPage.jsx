@@ -88,7 +88,7 @@ const ShopPage = () => {
                 {strip.length > 0 && (
                     <div className='wf-cat-strip' aria-label={`${LABEL[store]} categories`}>
                         <Link to={listingLink(store)} className='wf-cs' aria-current={!category}>
-                            <span className='wf-cs__ph'><img src={settings?.audienceHeroImages?.[store] || STORE_IMG[store]} alt='' /></span>All
+                            <span className='wf-cs__ph'><img src={settings?.heroSlides?.[store]?.[0]?.image || settings?.audienceHeroImages?.[store] || STORE_IMG[store]} alt='' /></span>All
                         </Link>
                         {strip.map((c) => (
                             <Link key={c._id} to={listingLink(store, c)} className='wf-cs' aria-current={c.slug === category}>

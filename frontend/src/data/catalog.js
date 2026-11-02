@@ -2,7 +2,7 @@
 // "Shop by Category" tiles and the "Shop by Department" lifestyle strip.
 // Category slugs mirror the backend seed (slugify(`${name}-${audience}`)).
 import {
-    womenFashion, menFashion, saleFlatlay, boyFashion, girlFashion,
+    womenFashion, menFashion, saleFlatlay, boyFashion, girlFashion, heroCouple,
 } from '../assets/images';
 
 // Three shopper audiences — boys & girls both live under Kids.
@@ -73,47 +73,41 @@ export const DEFAULT_THEME = {
 };
 
 // Store home pages (Men / Women / Kids). Men includes boys and Women includes girls,
-// said in copy only; little kids have their own store. `depts` drive the hero list:
-// each lists the category slugs it covers ("from ₹" is computed from live products)
-// and takes its photo from the first category unless `image` is given.
+// said in copy only; little kids have their own store.
 // `lifestyle` pulls the shared unisex categories (footwear, watches…) into the store.
 export const STORE_HOME = {
-    men: {
-        kicker: 'For men and boys',
-        title: 'Menswear, refined for every day',
-        lead: 'Oxford shirts, slim denim, jackets and the trainers to match. New styles every week, with free delivery above ₹999.',
-        lifestyle: true,
-        depts: [
-            { name: 'Clothing', desc: 'Shirts, tees, denim and jackets', image: menFashion, cats: ['t-shirts-men', 'shirts-men', 'jeans-men', 'trousers-men', 'jackets-men', 'hoodies-men'] },
-            { name: 'Footwear', desc: 'Trainers, derbies and everyday sneakers', cats: ['footwear-unisex'] },
-            { name: 'Accessories', desc: 'Watches, sunglasses, caps and more', cats: ['watches-unisex', 'accessories-unisex', 'sunglasses-unisex', 'caps-hats-unisex'] },
-            { name: 'Bags and fragrance', desc: 'Backpacks, totes and eau de parfum', cats: ['bags-unisex', 'perfumes-unisex'] },
-        ],
-    },
-    women: {
-        kicker: 'For women and girls',
-        title: 'Effortless pieces for every occasion',
-        lead: 'Kurta sets, Banarasi silk, summer dresses and everyday denim. New styles every week, with free delivery above ₹999.',
-        lifestyle: true,
-        depts: [
-            { name: 'Clothing', desc: 'Dresses, tops, denim and skirts', image: womenFashion, cats: ['dresses-women', 'tops-women', 'jeans-women', 'skirts-women'] },
-            { name: 'Ethnic wear', desc: 'Kurta sets and Banarasi silk sarees', cats: ['kurtas-suits-women', 'sarees-women'] },
-            { name: 'Footwear', desc: 'Heels, sandals and slip-on sneakers', cats: ['footwear-unisex'] },
-            { name: 'Bags and accessories', desc: 'Handbags, totes, watches and fragrance', cats: ['handbags-women', 'bags-unisex', 'watches-unisex', 'perfumes-unisex'] },
-        ],
-    },
-    kids: {
-        kicker: 'For little boys and girls, ages 0 to 12',
-        title: 'Easy, comfy clothes for growing kids',
-        lead: 'Play-proof tees, party frocks, denim and soft rompers in breathable cotton. Free delivery above ₹999.',
-        lifestyle: false,
-        depts: [
-            { name: 'Everyday wear', desc: 'Tees, shirts, jeans and shorts', image: boyFashion, cats: ['t-shirts-kids', 'shirts-kids', 'jeans-kids', 'shorts-kids', 'kidswear-kids'] },
-            { name: 'Dresses and frocks', desc: 'Party frocks, dresses and tops', image: girlFashion, cats: ['frocks-kids', 'dresses-kids', 'tops-kids', 'leggings-kids'] },
-            { name: 'Nightwear', desc: 'Soft nightsuits for bedtime', cats: ['nightwear-kids'] },
-            { name: 'Baby', desc: 'Cotton rompers for the littlest ones', cats: ['rompers-kids'] },
-        ],
-    },
+    men: { title: 'Menswear, refined for every day', lifestyle: true },
+    women: { title: 'Effortless pieces for every occasion', lifestyle: true },
+    kids: { title: 'Easy, comfy clothes for growing kids', lifestyle: false },
+};
+
+// Built-in hero slides, shown until an admin adds a store's own in Settings.
+// layout: right = upright photo on the right, wide = full photo with text on the left,
+// wide-right = full photo with text on the right. `pos` only matters for these built-ins.
+const SALE_SLIDE = { image: saleFlatlay, layout: 'wide', pos: '78% 50%', cta: 'Shop the sale' };
+const STREET_SLIDE = { image: heroCouple, layout: 'wide-right', pos: '18% 40%' };
+export const HERO_SLIDES = {
+    men: [
+        { image: menFashion, layout: 'right', pos: '50% 14%', kicker: 'New collection', title: 'Dressed for the', script: 'weekend',
+            text: 'Overshirts, cargo trousers and clean white trainers. Easy pieces that all work together.', cta: 'Shop new in', note: 'Less fuss, more style' },
+        { ...STREET_SLIDE, kicker: 'The street edit', title: 'Built for the', script: 'city',
+            text: 'Hoodies, utility jackets and relaxed denim in shades of concrete and coal.', cta: 'Shop streetwear' },
+        { ...SALE_SLIDE, kicker: 'Sale', title: 'Up to 40% off', script: 'everything', text: 'Tees, trainers, caps and denim, while sizes last.', link: '/sale?store=men' },
+    ],
+    women: [
+        { image: womenFashion, layout: 'right', pos: '50% 12%', kicker: 'New collection', title: 'Made to move', script: 'with you',
+            text: 'Wide-leg trousers, one-shoulder tops and easy heels for long days and late plans.', cta: 'Shop new in', note: 'Wear what feels good' },
+        { ...STREET_SLIDE, kicker: 'Matching sets', title: 'Two of a', script: 'kind',
+            text: 'Co-ord hoodies, joggers and cargo pants to share or to steal.', cta: 'Shop co-ords' },
+        { ...SALE_SLIDE, kicker: 'End of season', title: 'Up to 40% off', script: 'favourites', text: 'Dresses, denim, bags and trainers, while sizes last.', link: '/sale?store=women' },
+    ],
+    kids: [
+        { image: boyFashion, layout: 'right', pos: '50% 10%', kicker: 'Back to school', title: 'Built for', script: 'play',
+            text: 'Soft sweatshirts, tough cargo joggers and trainers that keep up at break time.', cta: 'Shop now', note: 'Made for muddy knees' },
+        { image: girlFashion, layout: 'right', pos: '62% 10%', kicker: 'New in', title: 'Little looks,', script: 'big smiles',
+            text: 'Slogan sweatshirts, stripes and leggings for every twirl and jump.', cta: 'Shop now' },
+        { ...SALE_SLIDE, kicker: 'Sale', title: 'Up to 40% off', script: 'kidswear', text: 'School shoes, bags and everyday basics, in every size.', link: '/sale?store=kids' },
+    ],
 };
 
 // Price bands shared by the store home tiles, the mega-menu and the shop filters.

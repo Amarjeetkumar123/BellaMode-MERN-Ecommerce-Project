@@ -1,17 +1,17 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ProductCardItem } from '../shop/ProductCard'
 import { useGetProductsQuery } from '../../redux/features/products/productsApi'
 import { useGetCategoriesQuery } from '../../redux/features/categories/categoriesApi'
 import { useGetBlogsQuery } from '../../redux/features/blogs/blogsApi'
 import { useActiveAudiences } from '../../hooks/useActiveAudiences'
-import { STORE_HOME, PRICE_BANDS, PERKS, LIFESTYLE, inBand, listingLink } from '../../data/catalog'
+import StoreHero from './StoreHero'
+import { STORE_HOME, HERO_SLIDES, PRICE_BANDS, PERKS, LIFESTYLE, inBand, listingLink } from '../../data/catalog'
 import { formatINR } from '../../utils/formatCurrency'
 import { slideTo } from '../../utils/slideTo'
 
 const ALL_LABEL = { men: 'menswear', women: 'womenswear', kids: 'kidswear' };
 const LIFESTYLE_IMG = Object.fromEntries(LIFESTYLE.map((l) => [l.slug, l.image]));
-const canHover = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 
 // "a, b and c"
 const listOf = (arr) => (arr.length < 2 ? arr.join('') : `${arr.slice(0, -1).join(', ')} and ${arr[arr.length - 1]}`);
@@ -26,7 +26,6 @@ const trackPointer = (e, el = e.currentTarget, x = '--mx', y = '--my') => {
 // tiles and tabs label themselves; screen readers still get an h2 per section.
 const StoreHome = ({ store }) => {
     const cfg = STORE_HOME[store];
-    const navigate = useNavigate();
     const { settings } = useActiveAudiences();
 
     const { data: ownData, isLoading } = useGetProductsQuery({ audience: store, limit: 50 });
@@ -37,7 +36,6 @@ const StoreHome = ({ store }) => {
     const own = useMemo(() => ownData?.data?.products || [], [ownData]);
     const products = useMemo(() => [...own, ...(sharedData?.data?.products || [])], [own, sharedData]);
     const allCats = catData?.data?.categories || [];
-    const catBySlug = Object.fromEntries(allCats.map((c) => [c.slug, c]));
     const cats = allCats
         .filter((c) => c.audience === store || (cfg.lifestyle && c.audience === 'unisex'))
         .sort((a, b) => (a.audience === 'unisex') - (b.audience === 'unisex') || a.sortOrder - b.sortOrder);
@@ -48,24 +46,10 @@ const StoreHome = ({ store }) => {
         const s = p.category?.slug;
         if (s && !(fromBySlug[s] <= p.price)) fromBySlug[s] = p.price;
     });
-    const fromOf = (slugs) => Math.min(...slugs.map((s) => fromBySlug[s] ?? Infinity));
 
-    // ---- hero: hovering a department wipes its photo in ----
-    const depts = cfg.depts.map((d, i) => ({
-        ...d,
-        image: (i === 0 && settings?.audienceHeroImages?.[store]) || d.image || catBySlug[d.cats[0]]?.image || LIFESTYLE_IMG[d.cats[0]],
-        from: fromOf(d.cats),
-        // a department of this store's own categories lists the whole store; otherwise open its first category
-        to: d.cats.length > 1 && d.cats.every((s) => s.endsWith(`-${store}`))
-            ? listingLink(store)
-            : listingLink(store, catBySlug[d.cats[0]] || { slug: d.cats[0], audience: d.cats[0].endsWith('-unisex') ? 'unisex' : store }),
-    }));
-    const [cur, setCur] = useState(0);
-    const [prev, setPrev] = useState(-1);
-    const show = (i) => { if (i !== cur) { setPrev(cur); setCur(i); } };
-    useEffect(() => { setCur(0); setPrev(-1); }, [store]);
-    const dept = depts[cur] || depts[0];
-    const bubbleRef = useRef(null);
+    // ---- hero: the store's own slides from Settings, else the built-in ones ----
+    const ownSlides = settings?.heroSlides?.[store];
+    const slides = useMemo(() => (ownSlides?.length ? ownSlides : HERO_SLIDES[store]), [ownSlides, store]);
 
     // ---- product tabs: Trending / New in, then "more" after the price tiles ----
     const lists = useMemo(() => {
@@ -99,53 +83,11 @@ const StoreHome = ({ store }) => {
     const blogs = (blogData?.data?.blogs || []).slice(0, 3);
     const allTo = listingLink(store);
 
-    // magnetic CTA: pulled up to 30% toward the pointer
-    const magnet = (e) => {
-        const r = e.currentTarget.getBoundingClientRect();
-        e.currentTarget.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * .3}px, ${(e.clientY - r.top - r.height / 2) * .3}px)`;
-    };
-
     return (
         <main className='wf-home'>
-            <section className='wf-hero' aria-label='Shop this store'>
-                <div
-                    className='wf-stage'
-                    onPointerMove={(e) => trackPointer(e, bubbleRef.current, '--cx', '--cy')}
-                    onClick={() => navigate(dept.to)}
-                >
-                    {depts.map((d, i) => (
-                        <img key={d.name} src={d.image} alt={`${d.name}: ${d.desc}`} className={i === cur ? 'on' : i === prev ? 'was' : ''} />
-                    ))}
-                    <div className='wf-caption' key={cur} aria-live='polite'><b>{dept.name}</b><span>{dept.desc}</span></div>
-                    <span className='wf-bubble' ref={bubbleRef} aria-hidden='true'>Shop now</span>
-                </div>
-                <div className='wf-panel'>
-                    <div>
-                        <p className='wf-kicker'>{cfg.kicker}</p>
-                        <h1>{cfg.title}</h1>
-                        <p className='wf-lead'>{cfg.lead}</p>
-                    </div>
-                    <ul className='wf-dlist'>
-                        {depts.map((d, i) => (
-                            <li key={d.name}>
-                                <Link to={d.to} className={`wf-drow ${i === cur ? 'on' : ''}`} onPointerEnter={() => show(i)} onFocus={() => show(i)}>
-                                    <b>{d.name}</b>
-                                    <span>{Number.isFinite(d.from) ? `from ${formatINR(d.from)}` : 'Shop now'}<i className='ri-arrow-right-line'></i></span>
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                    <Link
-                        to={dept.to}
-                        className='wf-btn'
-                        {...(canHover && { onPointerMove: magnet, onPointerLeave: (e) => { e.currentTarget.style.transform = ''; } })}
-                    >
-                        Shop {dept.name.toLowerCase()} <i className='ri-arrow-right-line'></i>
-                    </Link>
-                </div>
-            </section>
-
+            <h1 className='wf-sr'>{cfg.title}</h1>
             <div className='wf-wrap'>
+                <StoreHero store={store} slides={slides} label={`${ALL_LABEL[store]} highlights`} />
                 <div className='wf-perks'>
                     {PERKS.map((p) => <span key={p.text}><i className={p.icon}></i>{p.text}</span>)}
                 </div>
