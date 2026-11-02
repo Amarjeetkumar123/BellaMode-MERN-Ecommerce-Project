@@ -1,4 +1,5 @@
 const Order = require('../models/order.model');
+const { ORDER_STATUS } = require('../constants/constants');
 const {
     createMongoAndFilterForColumns,
     modifyMongoQuery,
@@ -86,7 +87,22 @@ async function getOrderStats(sinceMs) {
         { $limit: 5 },
     ]);
 
+    // Within the window: how people paid, and which store the money came from.
+    const byPayment = await Order.aggregate([
+        { $match: windowMatch },
+        { $group: { _id: '$paymentMethod', count: { $sum: 1 } } },
+    ]);
+    const byStore = await Order.aggregate([
+        { $match: { ...windowMatch, status: { $ne: ORDER_STATUS.CANCELLED } } },
+        { $unwind: '$items' },
+        { $lookup: { from: 'products', localField: 'items.product', foreignField: '_id', as: 'p' } },
+        { $group: { _id: { $ifNull: [{ $first: '$p.audience' }, 'other'] }, revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } } } },
+        { $sort: { revenue: -1 } },
+    ]);
+
     return {
+        byPayment: byPayment.map((p) => ({ method: p._id, count: p.count })),
+        byStore: byStore.map((s) => ({ store: s._id, revenue: s.revenue })),
         revenueAll: totals?.revenue || 0,
         ordersAll: totals?.count || 0,
         revenueWindow: windowTotals?.revenue || 0,

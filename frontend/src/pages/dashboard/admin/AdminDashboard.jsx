@@ -4,7 +4,7 @@ import { useGetProductsQuery } from '../../../redux/features/products/productsAp
 import { useGetAllOrdersQuery, useGetOrderStatsQuery } from '../../../redux/features/orders/ordersApi'
 import { useGetCategoriesQuery } from '../../../redux/features/categories/categoriesApi'
 import { formatINR } from '../../../utils/formatCurrency'
-import { TrendChart, BarList, SERIES } from './Charts'
+import { TrendChart, BarList, ColumnChart, Donut, SERIES } from './Charts'
 import { card, titleFont, statusPill, linkBtn } from './adminUI'
 import { AdminHead } from './AdminParts'
 import Seg from '../../../components/Seg'
@@ -57,16 +57,18 @@ const AdminDashboard = () => {
             byDay.set(new Date(now - i * 86400000).toISOString().slice(0, 10), 0);
         }
         (stats?.daily || []).forEach((d) => {
-            if (byDay.has(d.date)) byDay.set(d.date, d.revenue);
+            if (byDay.has(d.date)) byDay.set(d.date, d);
         });
-        const trend = [...byDay.entries()].map(([iso, value]) => {
+        const trend = [...byDay.entries()].map(([iso, d0]) => {
             const d = new Date(iso);
             return {
                 label: d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
                 full: d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
-                value,
+                value: d0?.revenue || 0,
+                count: d0?.count || 0,
             };
         });
+        const perDay = trend.map((p) => ({ ...p, value: p.count }));
 
         const statusCount = Object.fromEntries((stats?.byStatus || []).map((s) => [(s.status || '').toUpperCase(), s.count]));
         const statusRows = STATUS_ORDER
@@ -76,6 +78,16 @@ const AdminDashboard = () => {
                 value: statusCount[s],
                 color: STATUS_COLOR[s],
             }));
+
+        const payRows = (stats?.byPayment || []).map((p) => ({
+            label: p.method === 'COD' ? 'Cash on delivery' : 'Paid online',
+            value: p.count,
+            color: p.method === 'COD' ? '#9a9a9a' : SERIES,
+        }));
+        const storeRows = (stats?.byStore || []).map((s) => ({
+            label: s.store === 'unisex' ? 'All stores' : s.store.charAt(0).toUpperCase() + s.store.slice(1),
+            value: Math.round(s.revenue),
+        }));
 
         const topProducts = (stats?.topProducts || []).map((t) => ({
             label: t.name,
@@ -96,7 +108,7 @@ const AdminDashboard = () => {
         const lowStock = productList.filter((p) => (p.stock ?? 0) <= 5).length;
 
         return {
-            trend, statusRows, topProducts, mix,
+            trend, perDay, statusRows, payRows, storeRows, topProducts, mix,
             revenueWindow, revenueAll: stats?.revenueAll || 0,
             ordersWindow, ordersAll: stats?.ordersAll || 0,
             aov, lowStock,
@@ -143,11 +155,32 @@ const AdminDashboard = () => {
                 )}
             </div>
 
-            {/* Breakdowns */}
+            {/* Orders per day + where they are now */}
             <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6'>
+                <div className={`${card} lg:col-span-2`}>
+                    <div className='flex items-baseline justify-between mb-4'>
+                        <h3 style={titleFont}>Orders per day</h3>
+                        <span className='text-sm wf-muted'>{analytics.ordersWindow} in {rangeLabel}</span>
+                    </div>
+                    {analytics.ordersWindow === 0
+                        ? <p className='text-sm wf-muted py-8 text-center'>No orders in this period yet.</p>
+                        : <ColumnChart points={analytics.perDay} />}
+                </div>
                 <div className={card}>
-                    <h3 className='mb-4' style={titleFont}>Order pipeline</h3>
-                    <BarList rows={analytics.statusRows} emptyText='No orders yet.' />
+                    <h3 className='mb-4' style={titleFont}>Order status</h3>
+                    <Donut rows={analytics.statusRows} emptyText='No orders yet.' />
+                </div>
+            </div>
+
+            {/* Breakdowns */}
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6'>
+                <div className={card}>
+                    <h3 className='mb-4' style={titleFont}>Sales by store · {rangeLabel}</h3>
+                    <BarList rows={analytics.storeRows} valuePrefix='₹' emptyText='No sales in this period yet.' />
+                </div>
+                <div className={card}>
+                    <h3 className='mb-4' style={titleFont}>How customers pay · {rangeLabel}</h3>
+                    <Donut rows={analytics.payRows} emptyText='No orders in this period yet.' />
                 </div>
                 <div className={card}>
                     <h3 className='mb-4' style={titleFont}>Best sellers</h3>

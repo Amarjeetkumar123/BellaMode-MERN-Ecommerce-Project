@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "seed": "node seed/seed.js"
+    "seed": "node seed/seed.js",
+    "seed:orders": "node seed/seedOrders.js"
   },
   "author": "wearly",
   "license": "ISC",

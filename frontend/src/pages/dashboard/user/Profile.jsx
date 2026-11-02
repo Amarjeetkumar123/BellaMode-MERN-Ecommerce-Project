@@ -7,13 +7,13 @@ import { invalidFields } from '../../../utils/forms'
 import { initialOf } from '../../../utils/user'
 
 const ADDRESS_FIELDS = [
-    ['fullName', 'Full name', { autoComplete: 'name' }, 'Enter a name'],
-    ['phone', 'Mobile number', { inputMode: 'numeric', pattern: '[6-9][0-9]{9}', autoComplete: 'tel-national' }, 'Enter a 10-digit mobile number'],
-    ['line1', 'House no., building, street', { autoComplete: 'address-line1', wide: true }, 'Enter the address'],
-    ['line2', 'Area, landmark (optional)', { autoComplete: 'address-line2', wide: true, optional: true }],
-    ['postalCode', 'PIN code', { inputMode: 'numeric', pattern: '[1-9][0-9]{5}', autoComplete: 'postal-code' }, 'Enter a 6-digit PIN code'],
-    ['city', 'City', { autoComplete: 'address-level2' }, 'Enter the city'],
-    ['state', 'State', { autoComplete: 'address-level1' }, 'Enter the state'],
+    ['fullName', 'Full name', { placeholder: 'e.g. Priya Sharma',autoComplete: 'name' }, 'Enter a name'],
+    ['phone', 'Mobile number', { placeholder: '10 digits, e.g. 9876543210',inputMode: 'numeric', pattern: '[6-9][0-9]{9}', autoComplete: 'tel-national' }, 'Enter a 10-digit mobile number'],
+    ['line1', 'House no., building, street', { placeholder: 'e.g. Flat 12B, Sunrise Apartments, MG Road',autoComplete: 'address-line1', wide: true }, 'Enter the address'],
+    ['line2', 'Area, landmark (optional)', { placeholder: 'e.g. Near City Mall',autoComplete: 'address-line2', wide: true, optional: true }],
+    ['postalCode', 'PIN code', { placeholder: 'e.g. 560001',inputMode: 'numeric', pattern: '[1-9][0-9]{5}', autoComplete: 'postal-code' }, 'Enter a 6-digit PIN code'],
+    ['city', 'City', { placeholder: 'e.g. Bengaluru',autoComplete: 'address-level2' }, 'Enter the city'],
+    ['state', 'State', { placeholder: 'e.g. Karnataka',autoComplete: 'address-level1' }, 'Enter the state'],
     ['label', 'Label, e.g. Home or Work (optional)', { optional: true, maxLength: 30 }],
 ];
 const blankAddress = Object.fromEntries(ADDRESS_FIELDS.map(([k]) => [k, '']));
@@ -108,9 +108,9 @@ const Profile = () => {
                 <div className='wf-photo' aria-hidden='true'>{user?.profileImage ? <img src={user.profileImage} alt='' /> : initialOf(user)}</div>
                 <div>
                     <div className='wf-fields'>
-                        <Field id='p-username' label='Name' required minLength={2} maxLength={40} autoComplete='name' error='Use at least 2 characters'
+                        <Field id='p-username' label='Name' placeholder='e.g. Priya Sharma' required minLength={2} maxLength={40} autoComplete='name' error='Use at least 2 characters'
                             bad={bad.includes('p-username')} value={me.username} onChange={(e) => { setMe({ ...me, username: e.target.value }); ok('p-username'); }} />
-                        <Field id='p-phone' label='Mobile number' inputMode='numeric' pattern='[6-9][0-9]{9}' autoComplete='tel-national' error='Enter a 10-digit mobile number'
+                        <Field id='p-phone' label='Mobile number' placeholder='10 digits, e.g. 9876543210' inputMode='numeric' pattern='[6-9][0-9]{9}' autoComplete='tel-national' error='Enter a 10-digit mobile number'
                             bad={bad.includes('p-phone')} value={me.phone} onChange={(e) => { setMe({ ...me, phone: e.target.value }); ok('p-phone'); }} />
                         <Field id='p-email' label='Email' wide value={user?.email || ''} disabled readOnly />
                     </div>
@@ -152,9 +152,9 @@ const Profile = () => {
             <form className='wf-blk' noValidate onSubmit={savePw} aria-labelledby='pw-h'>
                 <h2 id='pw-h'>Change password</h2>
                 <div className='wf-fields'>
-                    <Field id='pw-current' label='Current password' password required autoComplete='current-password' error='Enter your current password'
+                    <Field id='pw-current' label='Current password' placeholder='The one you use now' password required autoComplete='current-password' error='Enter your current password'
                         bad={pwBad.includes('pw-current')} value={pw.currentPassword} onChange={(e) => { setPw({ ...pw, currentPassword: e.target.value }); pwOk('pw-current'); }} />
-                    <Field id='pw-new' label='New password' password required minLength={8} autoComplete='new-password' error='Use at least 8 characters'
+                    <Field id='pw-new' label='New password' placeholder='At least 8 characters' password required minLength={8} autoComplete='new-password' error='Use at least 8 characters'
                         bad={pwBad.includes('pw-new')} value={pw.newPassword} onChange={(e) => { setPw({ ...pw, newPassword: e.target.value }); pwOk('pw-new'); }}>
                         <PasswordMeter value={pw.newPassword} />
                     </Field>

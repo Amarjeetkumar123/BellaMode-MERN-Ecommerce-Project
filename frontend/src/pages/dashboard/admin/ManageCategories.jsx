@@ -46,13 +46,13 @@ const ManageCategories = () => {
             <form onSubmit={handleSubmit} className={`${card} space-y-4 mb-8`}>
                 <h3 style={titleFont}>{editingId ? 'Edit category' : 'New category'}</h3>
                 <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
-                    <L t='Name'><input required value={form.name} onChange={(e) => setField('name', e.target.value)} className={input} /></L>
+                    <L t='Name'><input placeholder='e.g. Shirts' required value={form.name} onChange={(e) => setField('name', e.target.value)} className={input} /></L>
                     <L t='Store'><select value={form.audience} onChange={(e) => setField('audience', e.target.value)} className={`${input} capitalize`}>
                         {AUDIENCES.map((a) => <option key={a} value={a}>{a}</option>)}
                     </select></L>
-                    <L t='Sort order (lower shows first)'><input type='number' value={form.sortOrder} onChange={(e) => setField('sortOrder', e.target.value)} className={input} /></L>
+                    <L t='Sort order (lower shows first)'><input placeholder='e.g. 1' type='number' value={form.sortOrder} onChange={(e) => setField('sortOrder', e.target.value)} className={input} /></L>
                 </div>
-                <ImageInput label='Image' value={form.image} onChange={(url) => setField('image', url)} />
+                <ImageInput label='Image' aspect={[4, 5]} note='It will fill the category tile exactly.' value={form.image} onChange={(url) => setField('image', url)} />
                 {msg && <p className='wf-alert' role='status'>{msg}</p>}
                 <div className='flex gap-2'>
                     <button className={primaryBtn}>{editingId ? 'Save category' : 'Add category'}</button>

@@ -40,9 +40,9 @@ const Login = () => {
                 <p className='wf-kick'>Welcome back</p>
                 <h1>Sign in</h1>
                 <p className='wf-intro'>Your bag, wishlist and orders, on every device.</p>
-                <Field id='email' label='Email' type='email' required autoComplete='email' error='Enter the email you signed up with'
+                <Field id='email' label='Email' placeholder='you@example.com' type='email' required autoComplete='email' error='Enter the email you signed up with'
                     bad={bad.includes('email')} value={form.email} onChange={set('email')} />
-                <Field id='password' label='Password' password required autoComplete='current-password' error='Enter your password'
+                <Field id='password' label='Password' placeholder='Your password' password required autoComplete='current-password' error='Enter your password'
                     bad={bad.includes('password')} value={form.password} onChange={set('password')} />
                 {message && <p className='wf-alert' role='alert'>{message}</p>}
                 <button type='submit' disabled={isLoading} className='wf-btn wf-btn--block'>

@@ -1,16 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 
-// Product photos are cut to the card's 3:4 shape so every photo fills its card,
-// whatever size or shape was uploaded. Output is always OUT_W × OUT_H.
-const FRAME_W = 300, FRAME_H = 400;   // on-screen frame (3:4)
-const OUT_W = 1200, OUT_H = 1600;     // saved image (3:4)
+// Photos are cut to the shape they are shown at (3:4 for product cards by default),
+// so any upload, huge or small, fills its spot. The longest side is saved at OUT_LONG px.
+const BOX_W = 300, BOX_H = 400;       // the on-screen frame fits inside this
+const OUT_LONG = 1600;
 const SMALL = 600;                    // below this many source pixels across, warn it may look soft
 const MAX_ZOOM = 4;
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
 // Crops one file. onDone(blob) with the cropped JPEG, onSkip() to drop this photo.
-const ImageCropper = ({ file, step, total, onDone, onSkip }) => {
+const ImageCropper = ({ file, step, total, onDone, onSkip, aspect = [3, 4], note = 'It will fill the product card exactly.' }) => {
+    const r = aspect[0] / aspect[1];
+    const FRAME_W = r >= BOX_W / BOX_H ? BOX_W : Math.round(BOX_H * r);
+    const FRAME_H = Math.round(FRAME_W / r);
+    const OUT_W = Math.round(r >= 1 ? OUT_LONG : OUT_LONG * r), OUT_H = Math.round(OUT_W / r);
     const [img, setImg] = useState(null);       // loaded HTMLImageElement
     const [failed, setFailed] = useState(false);
     const [zoom, setZoom] = useState(1);         // 1 = photo just covers the frame
@@ -38,7 +42,7 @@ const ImageCropper = ({ file, step, total, onDone, onSkip }) => {
         el.onerror = () => setFailed(true);
         el.src = url;
         return () => URL.revokeObjectURL(url);
-    }, [file]);
+    }, [file, FRAME_W, FRAME_H]);
 
     // zoom around the frame's centre
     const zoomTo = (z) => {
@@ -86,7 +90,7 @@ const ImageCropper = ({ file, step, total, onDone, onSkip }) => {
                     <h3 id='crop-h' className='font-semibold text-lg'>Crop photo</h3>
                     {total > 1 && <span className='text-sm text-text-light'>{step} of {total}</span>}
                 </div>
-                <p className='text-sm text-text-light mb-4'>Drag to position, zoom to frame. It will fill the product card exactly.</p>
+                <p className='text-sm text-text-light mb-4'>Drag to position, zoom to frame. {note}</p>
 
                 {failed ? (
                     <p className='rounded-lg bg-red-50 text-primary text-sm p-4'>This file can’t be opened as an image. Try a JPG, PNG or WebP.</p>

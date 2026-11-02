@@ -95,13 +95,13 @@ const Checkout = () => {
     };
 
     const FIELDS = [
-        ['fullName', 'Full name', { autoComplete: 'name' }, 'Enter your full name'],
-        ['phone', 'Mobile number', { inputMode: 'numeric', pattern: '[6-9][0-9]{9}', autoComplete: 'tel-national' }, 'Enter a 10-digit mobile number'],
-        ['line1', 'House no., building, street', { autoComplete: 'address-line1', wide: true }, 'Enter your address'],
-        ['line2', 'Area, landmark (optional)', { autoComplete: 'address-line2', wide: true, optional: true }],
-        ['postalCode', 'PIN code', { inputMode: 'numeric', pattern: '[1-9][0-9]{5}', autoComplete: 'postal-code' }, 'Enter a 6-digit PIN code'],
-        ['city', 'City', { autoComplete: 'address-level2' }, 'Enter your city'],
-        ['state', 'State', { autoComplete: 'address-level1', wide: true }, 'Enter your state'],
+        ['fullName', 'Full name', { placeholder: 'e.g. Priya Sharma',autoComplete: 'name' }, 'Enter your full name'],
+        ['phone', 'Mobile number', { placeholder: '10 digits, e.g. 9876543210',inputMode: 'numeric', pattern: '[6-9][0-9]{9}', autoComplete: 'tel-national' }, 'Enter a 10-digit mobile number'],
+        ['line1', 'House no., building, street', { placeholder: 'e.g. Flat 12B, Sunrise Apartments, MG Road',autoComplete: 'address-line1', wide: true }, 'Enter your address'],
+        ['line2', 'Area, landmark (optional)', { placeholder: 'e.g. Near City Mall',autoComplete: 'address-line2', wide: true, optional: true }],
+        ['postalCode', 'PIN code', { placeholder: 'e.g. 560001',inputMode: 'numeric', pattern: '[1-9][0-9]{5}', autoComplete: 'postal-code' }, 'Enter a 6-digit PIN code'],
+        ['city', 'City', { placeholder: 'e.g. Bengaluru',autoComplete: 'address-level2' }, 'Enter your city'],
+        ['state', 'State', { placeholder: 'e.g. Karnataka',autoComplete: 'address-level1', wide: true }, 'Enter your state'],
     ];
     const count = products.reduce((n, p) => n + p.quantity, 0);
 

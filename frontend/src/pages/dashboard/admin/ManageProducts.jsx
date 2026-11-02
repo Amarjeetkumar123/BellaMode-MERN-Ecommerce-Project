@@ -107,10 +107,10 @@ const ManageProducts = () => {
             <form onSubmit={handleSubmit} className={`${card} space-y-4 mb-8`}>
                 <h3 style={titleFont}>{editingId ? `Edit: ${form.name || 'product'}` : 'New product'}</h3>
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                    <L t='Name'><input required value={form.name} onChange={(e) => setField('name', e.target.value)} className={input} /></L>
-                    <L t='Price (₹)'><input required type='number' value={form.price} onChange={(e) => setField('price', e.target.value)} className={input} /></L>
-                    <L t='Old price (₹), shows a sale badge'><input type='number' value={form.oldPrice} onChange={(e) => setField('oldPrice', e.target.value)} className={input} /></L>
-                    <L t='Stock'><input type='number' value={form.stock} onChange={(e) => setField('stock', e.target.value)} className={input} /></L>
+                    <L t='Name'><input placeholder='e.g. Slim Fit Oxford Shirt' required value={form.name} onChange={(e) => setField('name', e.target.value)} className={input} /></L>
+                    <L t='Price (₹)'><input placeholder='e.g. 1499' required type='number' value={form.price} onChange={(e) => setField('price', e.target.value)} className={input} /></L>
+                    <L t='Old price (₹), shows a sale badge'><input placeholder='e.g. 1999 (leave empty if not on sale)' type='number' value={form.oldPrice} onChange={(e) => setField('oldPrice', e.target.value)} className={input} /></L>
+                    <L t='Stock'><input placeholder='e.g. 25' type='number' value={form.stock} onChange={(e) => setField('stock', e.target.value)} className={input} /></L>
                     <L t='Store'><select value={form.audience} onChange={(e) => changeAudience(e.target.value)} className={`${input} capitalize`}>
                         {AUDIENCES.map((a) => <option key={a} value={a}>{a}</option>)}
                     </select></L>
@@ -123,11 +123,11 @@ const ManageProducts = () => {
                             </optgroup>
                         )}
                     </select></L>
-                    <L t='Brand'><input value={form.brand} onChange={(e) => setField('brand', e.target.value)} className={input} /></L>
-                    <L t='Colours, comma separated'><input value={form.colors} onChange={(e) => setField('colors', e.target.value)} className={input} /></L>
-                    <L t='Sizes, comma separated'><input value={form.sizes} onChange={(e) => setField('sizes', e.target.value)} className={input} /></L>
+                    <L t='Brand'><input placeholder='e.g. Wearly' value={form.brand} onChange={(e) => setField('brand', e.target.value)} className={input} /></L>
+                    <L t='Colours, comma separated'><input placeholder='e.g. Navy, White, Olive' value={form.colors} onChange={(e) => setField('colors', e.target.value)} className={input} /></L>
+                    <L t='Sizes, comma separated'><input placeholder='e.g. S, M, L, XL' value={form.sizes} onChange={(e) => setField('sizes', e.target.value)} className={input} /></L>
                 </div>
-                <L t='Description'><textarea value={form.description} onChange={(e) => setField('description', e.target.value)} className={input} rows={3} /></L>
+                <L t='Description'><textarea placeholder='Fabric, fit and care, e.g. 100% cotton, regular fit, machine wash cold.' value={form.description} onChange={(e) => setField('description', e.target.value)} className={input} rows={3} /></L>
                 <ProductImages value={form.images} onChange={(urls) => setField('images', urls)} />
                 <div className='flex gap-5'>
                     <label className='flex items-center gap-2 text-sm font-semibold cursor-pointer'><input type='checkbox' checked={form.isTrending} onChange={(e) => setField('isTrending', e.target.checked)} className='w-4 h-4' /> Trending</label>

@@ -90,10 +90,10 @@ const DashboardSettings = () => {
                 <form onSubmit={saveBrand} className={`${card} max-w-3xl space-y-4`}>
                     <h3 style={titleFont}>Brand</h3>
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                        <L t='Brand name (two words show in two colours)'><input value={brand.brandName} onChange={(e) => setBrand({ ...brand, brandName: e.target.value })} className={input} /></L>
-                        <L t='Hero tagline'><input value={brand.heroTagline} onChange={(e) => setBrand({ ...brand, heroTagline: e.target.value })} className={input} /></L>
-                        <L t='Contact email'><input type='email' value={brand.contactEmail} onChange={(e) => setBrand({ ...brand, contactEmail: e.target.value })} className={input} /></L>
-                        <L t='Contact phone'><input value={brand.contactPhone} onChange={(e) => setBrand({ ...brand, contactPhone: e.target.value })} className={input} /></L>
+                        <L t='Brand name (two words show in two colours)'><input placeholder='e.g. Wearly Fashion' value={brand.brandName} onChange={(e) => setBrand({ ...brand, brandName: e.target.value })} className={input} /></L>
+                        <L t='Hero tagline'><input placeholder='e.g. Everyday clothes, made to last' value={brand.heroTagline} onChange={(e) => setBrand({ ...brand, heroTagline: e.target.value })} className={input} /></L>
+                        <L t='Contact email'><input placeholder='e.g. hello@yourstore.com' type='email' value={brand.contactEmail} onChange={(e) => setBrand({ ...brand, contactEmail: e.target.value })} className={input} /></L>
+                        <L t='Contact phone'><input placeholder='e.g. +91 98765 43210' value={brand.contactPhone} onChange={(e) => setBrand({ ...brand, contactPhone: e.target.value })} className={input} /></L>
                     </div>
                     <ImageInput label='Logo (optional; replaces the wordmark)' value={brand.logoUrl} onChange={(url) => setBrand({ ...brand, logoUrl: url })} />
 
@@ -125,10 +125,10 @@ const DashboardSettings = () => {
 
                     {/* Per-audience hero images */}
                     <h3 className='pt-6 mt-2 border-t border-gray-200' style={titleFont}>Hero image for each store</h3>
-                    <p className='text-sm wf-muted'>Wide banner image shown on the homepage hero when the store is set to that audience (uploads to Cloudinary). Falls back to the default hero if empty.</p>
+                    <p className='text-sm wf-muted'>The big photo at the top of each store’s home page. Any photo works: you crop it to fit when you upload. Leave empty to use the default.</p>
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                         {AUDIENCE_OPTS.filter((a) => activeAudiences.includes(a)).map((aud) => (
-                            <ImageInput key={aud} label={`${aud.charAt(0).toUpperCase() + aud.slice(1)} hero`}
+                            <ImageInput key={aud} aspect={[4, 5]} note='It will fill the home page hero exactly.' label={`${aud.charAt(0).toUpperCase() + aud.slice(1)} hero`}
                                 value={audienceHeroImages[aud]}
                                 onChange={(url) => setAudienceHeroImages((a) => ({ ...a, [aud]: url }))} />
                         ))}
@@ -138,7 +138,7 @@ const DashboardSettings = () => {
                     <p className='text-sm wf-muted'>Override the &ldquo;Shop by Category&rdquo; tile images (Women is the large featured tile).</p>
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                         {AUDIENCE_OPTS.map((aud) => (
-                            <ImageInput key={aud} label={aud.charAt(0).toUpperCase() + aud.slice(1)}
+                            <ImageInput key={aud} aspect={[4, 5]} note='It will fill the store tile exactly.' label={aud.charAt(0).toUpperCase() + aud.slice(1)}
                                 value={audienceImages[aud]}
                                 onChange={(url) => setAudienceImages((a) => ({ ...a, [aud]: url }))} />
                         ))}
@@ -184,7 +184,7 @@ const DashboardSettings = () => {
                         )}
                     </div>
 
-                    <L t='Link (optional), e.g. /sale'><input value={announcement.link}
+                    <L t='Link (optional), e.g. /sale'><input placeholder='e.g. /sale' value={announcement.link}
                         onChange={(e) => setAnnouncement((a) => ({ ...a, link: e.target.value }))} className={input} /></L>
 
                     <div className='flex flex-wrap gap-6'>
@@ -221,15 +221,15 @@ const DashboardSettings = () => {
                 <form onSubmit={addBanner} className={`${card} space-y-4 max-w-3xl mb-6`}>
                     <h3 style={titleFont}>Banners</h3>
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                        <L t='Title'><input value={banner.title} onChange={(e) => setBanner({ ...banner, title: e.target.value })} className={input} /></L>
-                        <L t='Subtitle'><input value={banner.subtitle} onChange={(e) => setBanner({ ...banner, subtitle: e.target.value })} className={input} /></L>
-                        <L t='Link'><input value={banner.link} onChange={(e) => setBanner({ ...banner, link: e.target.value })} className={input} /></L>
-                        <L t='Button text'><input value={banner.ctaText} onChange={(e) => setBanner({ ...banner, ctaText: e.target.value })} className={input} /></L>
+                        <L t='Title'><input placeholder='e.g. The summer edit' value={banner.title} onChange={(e) => setBanner({ ...banner, title: e.target.value })} className={input} /></L>
+                        <L t='Subtitle'><input placeholder='e.g. Up to 40% off linen' value={banner.subtitle} onChange={(e) => setBanner({ ...banner, subtitle: e.target.value })} className={input} /></L>
+                        <L t='Link'><input placeholder='e.g. /categories/shirts' value={banner.link} onChange={(e) => setBanner({ ...banner, link: e.target.value })} className={input} /></L>
+                        <L t='Button text'><input placeholder='e.g. Shop now' value={banner.ctaText} onChange={(e) => setBanner({ ...banner, ctaText: e.target.value })} className={input} /></L>
                         <L t='Where it shows' className='sm:col-span-2'><select value={banner.position} onChange={(e) => setBanner({ ...banner, position: e.target.value })} className={input}>
                             <option value='hero'>Hero</option><option value='promo'>Promo</option><option value='deal'>Deal</option>
                         </select></L>
                     </div>
-                    <ImageInput label='Image' value={banner.image} onChange={(url) => setBanner({ ...banner, image: url })} />
+                    <ImageInput label='Image' aspect={[16, 9]} note='It will fill the banner exactly.' value={banner.image} onChange={(url) => setBanner({ ...banner, image: url })} />
                     <button className={primaryBtn}>Add banner</button>
                 </form>
                 <div className='wf-atiles max-w-3xl'>

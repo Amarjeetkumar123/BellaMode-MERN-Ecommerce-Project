@@ -297,6 +297,8 @@
 .wf-field label { position: absolute; left: 15px; top: 18px; font-size: 15px; color: var(--wf-muted); pointer-events: none; transform-origin: left top; transition: transform .25s var(--wf-ease), color .25s; }
 .wf-field input:focus { outline: none; border-color: var(--wf-ink); box-shadow: 0 0 0 4px rgba(200, 16, 46, .12); }
 .wf-field input:focus + label, .wf-field input:not(:placeholder-shown) + label { transform: translateY(-11px) scale(.76); color: var(--wf-ink); font-weight: 700; }
+.wf-field input::placeholder { color: transparent; transition: color .2s; }
+.wf-field input:focus::placeholder { color: #a3a3a0; }
 .wf-field.bad input { border-color: var(--wf-accent); }
 .wf-field.bad label { color: var(--wf-accent); }
 .wf-field .wf-err { display: none; margin-top: 6px; font-size: 12px; }

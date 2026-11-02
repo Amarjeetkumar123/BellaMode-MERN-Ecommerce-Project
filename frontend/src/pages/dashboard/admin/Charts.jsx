@@ -130,3 +130,86 @@ export const BarList = ({ rows = [], valuePrefix = '', emptyText = 'No data yet.
         </div>
     );
 };
+
+/**
+ * Column chart for a count per day. points: [{ label, value, full }]
+ */
+export const ColumnChart = ({ points = [], height = 170, unit = 'orders' }) => {
+    const [hover, setHover] = useState(null);
+    if (points.length === 0) return null;
+
+    const W = 640, H = height, PAD_L = 30, PAD_R = 8, PAD_T = 10, PAD_B = 24;
+    const innerW = W - PAD_L - PAD_R, innerH = H - PAD_T - PAD_B;
+    const top = Math.max(...points.map((p) => p.value), 1);
+    const slot = innerW / points.length;
+    const bw = Math.max(slot * 0.62, 1.5);
+    const y = (v) => PAD_T + innerH - (v / top) * innerH;
+    const everyNth = Math.ceil(points.length / 7);
+
+    return (
+        <div className='relative'>
+            <svg viewBox={`0 0 ${W} ${H}`} className='w-full' role='img' aria-label={`${unit} per day`}>
+                {[0, top].map((t) => (
+                    <g key={t}>
+                        <line x1={PAD_L} x2={W - PAD_R} y1={y(t)} y2={y(t)} stroke={GRID} strokeWidth='1' />
+                        <text x={PAD_L - 6} y={y(t) + 3.5} textAnchor='end' fontSize='10' fill={MUTED}>{t}</text>
+                    </g>
+                ))}
+                {points.map((p, i) => (
+                    <g key={p.label} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
+                        <rect x={PAD_L + i * slot} y={PAD_T} width={slot} height={innerH} fill='transparent' />
+                        <rect x={PAD_L + i * slot + (slot - bw) / 2} y={y(p.value)} width={bw} height={PAD_T + innerH - y(p.value)}
+                            fill={hover === i ? '#c8102e' : SERIES} />
+                        {(i % everyNth === 0 || i === points.length - 1) && (
+                            <text x={PAD_L + i * slot + slot / 2} y={H - 8} textAnchor='middle' fontSize='10' fill={MUTED}>{p.label}</text>
+                        )}
+                    </g>
+                ))}
+            </svg>
+            {hover !== null && (
+                <div className='pointer-events-none absolute -translate-x-1/2 -translate-y-full bg-black text-white text-xs px-2 py-1 whitespace-nowrap'
+                    style={{ left: `${((PAD_L + hover * slot + slot / 2) / W) * 100}%`, top: `${(y(points[hover].value) / H) * 100}%` }}>
+                    <strong>{points[hover].value} {unit}</strong><span className='opacity-70'> · {points[hover].full || points[hover].label}</span>
+                </div>
+            )}
+        </div>
+    );
+};
+
+/**
+ * Donut with a legend — share of a whole. rows: [{ label, value, color }]
+ */
+export const Donut = ({ rows = [], center, emptyText = 'No data yet.' }) => {
+    const total = rows.reduce((s, r) => s + r.value, 0);
+    if (!total) return <p className='text-sm wf-muted py-4'>{emptyText}</p>;
+    const R = 42, C = 2 * Math.PI * R;
+    let at = 0;
+
+    return (
+        <div className='flex items-center gap-5'>
+            <svg viewBox='0 0 100 100' className='w-32 h-32 shrink-0 -rotate-90' role='img'
+                aria-label={rows.map((r) => `${r.label} ${r.value}`).join(', ')}>
+                <circle cx='50' cy='50' r={R} fill='none' stroke={GRID} strokeWidth='12' />
+                {rows.map((r) => {
+                    const len = (r.value / total) * C;
+                    const seg = <circle key={r.label} cx='50' cy='50' r={R} fill='none' stroke={r.color} strokeWidth='12'
+                        strokeDasharray={`${len} ${C - len}`} strokeDashoffset={-at} />;
+                    at += len;
+                    return seg;
+                })}
+                <text x='50' y='50' transform='rotate(90 50 50)' textAnchor='middle' dominantBaseline='central' fontSize='15' fontWeight='600' fill={INK}>
+                    {center ?? total}
+                </text>
+            </svg>
+            <ul className='space-y-1.5 text-sm min-w-0 flex-1'>
+                {rows.map((r) => (
+                    <li key={r.label} className='flex items-center gap-2'>
+                        <span className='w-2.5 h-2.5 shrink-0' style={{ background: r.color }} />
+                        <span className='truncate'>{r.label}</span>
+                        <span className='ml-auto tabular-nums font-semibold'>{Math.round((r.value / total) * 100)}%</span>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+};

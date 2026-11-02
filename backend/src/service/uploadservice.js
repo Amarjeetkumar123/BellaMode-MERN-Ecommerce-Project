@@ -2,11 +2,13 @@ const { cloudinary, isCloudinaryConfigured } = require('../config/cloudinary');
 const { asyncHandler, sendSuccess, sendError } = require('../utils/commonUtils');
 
 const DEFAULT_FOLDER = 'wearly';
+// Huge originals are shrunk on the way in (never enlarged), so nobody has to resize photos by hand.
+const SHRINK = { transformation: [{ width: 2400, height: 2400, crop: 'limit', quality: 'auto' }] };
 
 // Streams an in-memory file buffer to Cloudinary.
 function uploadBufferToCloudinary(buffer, folder) {
     return new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream({ folder: folder || DEFAULT_FOLDER }, (error, result) => {
+        const stream = cloudinary.uploader.upload_stream({ folder: folder || DEFAULT_FOLDER, ...SHRINK }, (error, result) => {
             if (error) return reject(error);
             resolve(result);
         });
@@ -30,7 +32,7 @@ exports.uploadByUrl = asyncHandler(async (req, res) => {
     // With Cloudinary configured we ingest the remote URL (durable, transformable);
     // otherwise we simply echo the URL so admins can still paste a link.
     if (isCloudinaryConfigured()) {
-        const result = await cloudinary.uploader.upload(imageUrl, { folder: folder || DEFAULT_FOLDER });
+        const result = await cloudinary.uploader.upload(imageUrl, { folder: folder || DEFAULT_FOLDER, ...SHRINK });
         return sendSuccess(res, 201, 'Image saved successfully.', { url: result.secure_url, publicId: result.public_id });
     }
     return sendSuccess(res, 201, 'Image URL saved.', { url: imageUrl });

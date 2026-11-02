@@ -49,11 +49,11 @@ const Register = () => {
                 <p className='wf-kick'>Join Wearly Fashion</p>
                 <h1>Create account</h1>
                 <p className='wf-intro'>Takes a minute. Anything you saved as a guest comes with you.</p>
-                <Field id='username' label='Name' required minLength={2} maxLength={40} autoComplete='name' error='Use at least 2 characters'
+                <Field id='username' label='Name' placeholder='e.g. Priya Sharma' required minLength={2} maxLength={40} autoComplete='name' error='Use at least 2 characters'
                     bad={bad.includes('username')} value={form.username} onChange={set('username')} />
-                <Field id='email' label='Email' type='email' required autoComplete='email' error='Enter a valid email'
+                <Field id='email' label='Email' placeholder='you@example.com' type='email' required autoComplete='email' error='Enter a valid email'
                     bad={bad.includes('email')} value={form.email} onChange={set('email')} />
-                <Field id='password' label='Password' password required minLength={8} maxLength={128} autoComplete='new-password' error='Use at least 8 characters'
+                <Field id='password' label='Password' placeholder='At least 8 characters' password required minLength={8} maxLength={128} autoComplete='new-password' error='Use at least 8 characters'
                     bad={bad.includes('password')} value={form.password} onChange={set('password')}>
                     <PasswordMeter value={form.password} />
                 </Field>

@@ -98,7 +98,7 @@ const ProductImages = ({ value = [], onChange }) => {
                 )}
             </div>
             <div className='flex gap-2 min-w-0'>
-                <input placeholder='or paste an image URL (used as-is, the card still fills)' value={url} onChange={(e) => setUrl(e.target.value)}
+                <input placeholder='or paste a link, e.g. https://…/photo.jpg' value={url} onChange={(e) => setUrl(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addUrl(); } }}
                     className='border border-gray-200 rounded-lg px-3 py-2 text-sm flex-1 min-w-0 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15' />
                 <button type='button' onClick={addUrl} disabled={savingUrl} className='px-3 py-2 bg-text-dark text-white rounded-lg text-sm shrink-0 hover:opacity-90 disabled:opacity-50'>{savingUrl ? 'Adding…' : 'Add URL'}</button>
