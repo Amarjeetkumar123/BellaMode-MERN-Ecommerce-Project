@@ -1,6 +1,7 @@
 const orderDao = require('../dbhelper/orderdao');
 const productDao = require('../dbhelper/productdao');
 const Support = require('../models/support.model');
+const User = require('../models/user.model');
 const { getRazorpayInstance } = require('../config/razorpay');
 const { asyncHandler, sendSuccess, sendError, buildPagination } = require('../utils/commonUtils');
 const {
@@ -117,16 +118,36 @@ exports.getMyOrders = asyncHandler(async (req, res) => {
     return sendSuccess(res, 200, 'OK', { orders });
 });
 
-// GET /api/orders  (admin)
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// payment filter → method + status
+const PAYMENT_FILTER = {
+    cod: { paymentMethodArray: [PAYMENT_METHOD.COD] },
+    paid: { paymentMethodArray: [PAYMENT_METHOD.RAZORPAY], paymentStatusArray: [PAYMENT_STATUS.PAID] },
+    unpaid: { paymentMethodArray: [PAYMENT_METHOD.RAZORPAY], paymentStatusArray: [PAYMENT_STATUS.PENDING, PAYMENT_STATUS.FAILED] },
+    refunded: { paymentStatusArray: [PAYMENT_STATUS.REFUNDED] },
+};
+const ORDER_SORT = { oldest: { create_date: 1 }, total_desc: { totalPrice: -1 }, total_asc: { totalPrice: 1 } };
+
+// GET /api/orders  (admin) ?status=&payment=cod|paid|unpaid|refunded&days=&search=&sort=newest|oldest|total_desc|total_asc
 exports.getAllOrders = asyncHandler(async (req, res) => {
+    const { status, payment, days, search, sort } = req.query;
     const pagination = buildPagination(req.query);
-    const filter = {};
-    if (req.query.status) filter.statusArray = [req.query.status];
-    const [orders, total] = await Promise.all([
-        orderDao.getOrders(filter, undefined, { create_date: -1 }, pagination, { path: 'user', select: 'username email' }),
+    const filter = { ...PAYMENT_FILTER[payment] };
+    if (Object.values(ORDER_STATUS).includes(status)) filter.statusArray = [status];
+    const d = parseInt(days, 10);
+    if (d > 0) filter.sinceMs = Date.now() - d * 86400000;
+    const q = String(search || '').trim().replace(/^#/, '').slice(0, 60);
+    if (q) {
+        const rx = new RegExp(escapeRegex(q), 'i');
+        const users = await User.find({ $or: [{ username: rx }, { email: rx }] }, '_id').limit(200).lean();
+        filter.search = { userIds: users.map((u) => u._id), ...(/^[0-9a-f]+$/i.test(q) && { idPart: q.toLowerCase() }) };
+    }
+    const [orders, total, statusCounts] = await Promise.all([
+        orderDao.getOrders(filter, undefined, ORDER_SORT[sort] || { create_date: -1 }, pagination, { path: 'user', select: 'username email' }),
         orderDao.getOrdersCount(filter),
+        orderDao.countByStatus(filter),
     ]);
-    return sendSuccess(res, 200, 'OK', { orders, total, totalPages: Math.ceil(total / pagination.page_size) });
+    return sendSuccess(res, 200, 'OK', { orders, total, statusCounts, totalPages: Math.ceil(total / pagination.page_size) });
 });
 
 // GET /api/orders/:id  (owner or admin)

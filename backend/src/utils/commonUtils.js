@@ -46,6 +46,10 @@ function buildSort(query = {}) {
             return { create_date: 1 };
         case 'rating':
             return { rating: -1 };
+        case 'stock_asc':
+            return { stock: 1, create_date: -1 };
+        case 'name_asc':
+            return { name: 1 };
         case 'newest':
         default:
             return { create_date: -1 };

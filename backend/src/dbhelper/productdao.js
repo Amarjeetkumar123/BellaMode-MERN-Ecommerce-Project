@@ -8,7 +8,7 @@ const {
 
 // colors/sizes are arrays in the doc — $in matches array membership, so they filter correctly here.
 const FILTER_COLUMNS = ['_id', 'slug', 'audience', 'category', 'colors', 'sizes', 'brand', 'isTrending', 'isFeatured', 'isActive'];
-const RANGE_COLUMNS = ['price'];
+const RANGE_COLUMNS = ['price', 'stock'];
 const SEARCH_COLUMNS = ['name', 'description', 'brand'];
 
 function getRawJsonQuery(filter = {}) {
@@ -21,6 +21,7 @@ function getRawJsonQuery(filter = {}) {
     if (filter.sizeArray) filterJson.sizes = filter.sizeArray;
     if (filter.brandArray) filterJson.brand = filter.brandArray;
     if (filter.priceRange) filterJson.price = filter.priceRange;
+    if (filter.stockRange) filterJson.stock = filter.stockRange;
     if (filter.isTrending !== undefined) filterJson.isTrending = filter.isTrending;
     if (filter.isFeatured !== undefined) filterJson.isFeatured = filter.isFeatured;
     if (filter.isActive !== undefined) filterJson.isActive = filter.isActive;

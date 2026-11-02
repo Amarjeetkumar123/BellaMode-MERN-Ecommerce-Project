@@ -7,7 +7,9 @@ import {
 } from '../../../redux/features/categories/categoriesApi'
 import ImageInput from '../../../components/ImageInput'
 import { card, input, primaryBtn, ghostBtn, titleFont, linkBtn } from './adminUI'
-import { AdminHead, L } from './AdminParts'
+import { AdminHead, L, FilterBar, Pick } from './AdminParts'
+import { useUrlFilters } from './useUrlFilters'
+import Seg from '../../../components/Seg'
 
 const AUDIENCES = ['men', 'women', 'kids', 'unisex'];
 const blank = { name: '', audience: 'men', image: '', sortOrder: 0 };
@@ -18,6 +20,16 @@ const ManageCategories = () => {
     const [updateCategory] = useUpdateCategoryMutation();
     const [deleteCategory] = useDeleteCategoryMutation();
     const categories = data?.data?.categories || [];
+
+    // all categories load at once, so these filter in the browser
+    const [f, setF, filtering, clearF] = useUrlFilters({ q: '', store: 'all', sort: 'order' });
+    const count = (st) => categories.filter((c) => st === 'all' || c.audience === st).length;
+    const q = f.q.toLowerCase();
+    const shown = categories
+        .filter((c) => (f.store === 'all' || c.audience === f.store) && (!q || c.name.toLowerCase().includes(q) || c.slug.includes(q)))
+        .sort(f.sort === 'name' ? (a, b) => a.name.localeCompare(b.name)
+            : f.sort === 'newest' ? (a, b) => (b.create_date || 0) - (a.create_date || 0)
+            : (a, b) => a.audience.localeCompare(b.audience) || (a.sortOrder || 0) - (b.sortOrder || 0));
 
     const [form, setForm] = useState(blank);
     const [editingId, setEditingId] = useState(null);
@@ -60,9 +72,20 @@ const ManageCategories = () => {
                 </div>
             </form>
 
-            {isLoading ? <p className='wf-muted'>Loading…</p> : (
+            <div className='mb-3 max-w-full overflow-x-auto'>
+                <Seg label='Store' value={f.store} onChange={(store) => setF({ store })}
+                    options={[['all', 'All'], ['men', 'Men'], ['women', 'Women'], ['kids', 'Kids'], ['unisex', 'Unisex']].map(([k, t]) => [k, t, count(k)])} />
+            </div>
+            <FilterBar search={f.q} onSearch={(v) => setF({ q: v })} placeholder='Category name'
+                count={`${shown.length} of ${categories.length}`} active={filtering} onClear={clearF}>
+                <Pick label='Sort' value={f.sort} onChange={(sort) => setF({ sort })}
+                    options={[['order', 'Store, then display order'], ['name', 'Name A to Z'], ['newest', 'Newest first']]} />
+            </FilterBar>
+            {isLoading ? <p className='wf-muted'>Loading…</p> : shown.length === 0 ? (
+                <div className='wf-blank'><b>No categories match</b><button type='button' className='wf-linkbtn wf-u' onClick={clearF}>Clear filters</button></div>
+            ) : (
                 <div className='wf-atiles'>
-                    {categories.map((c) => (
+                    {shown.map((c) => (
                         <div key={c._id} className='wf-atile'>
                             {c.image ? <img src={c.image} alt='' loading='lazy' /> : <div className='aspect-[4/3] bg-gray-100' />}
                             <div>

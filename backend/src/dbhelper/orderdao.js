@@ -7,7 +7,7 @@ const {
     fetchDataCount,
 } = require('./mongohelpers');
 
-const FILTER_COLUMNS = ['_id', 'user', 'status', 'paymentStatus'];
+const FILTER_COLUMNS = ['_id', 'user', 'status', 'paymentMethod', 'paymentStatus'];
 
 function getRawJsonQuery(filter = {}) {
     const filterJson = {};
@@ -15,7 +15,25 @@ function getRawJsonQuery(filter = {}) {
     if (filter.userArray) filterJson.user = filter.userArray;
     if (filter.statusArray) filterJson.status = filter.statusArray;
     if (filter.paymentStatusArray) filterJson.paymentStatus = filter.paymentStatusArray;
-    return createMongoAndFilterForColumns(filterJson, FILTER_COLUMNS, [], [], []);
+    if (filter.paymentMethodArray) filterJson.paymentMethod = filter.paymentMethodArray;
+    const mongo = createMongoAndFilterForColumns(filterJson, FILTER_COLUMNS, [], [], []);
+    if (filter.sinceMs) mongo.create_date = { $gte: filter.sinceMs };
+    // search: customers whose name/email matched, or the order number (any part of the id)
+    if (filter.search) {
+        const or = [{ user: { $in: filter.search.userIds } }];
+        if (filter.search.idPart) or.push({ $expr: { $regexMatch: { input: { $toString: '$_id' }, regex: filter.search.idPart } } });
+        mongo.$or = or;
+    }
+    return mongo;
+}
+
+// Order count per status for the same filters, ignoring the status filter itself (for the tabs).
+async function countByStatus(filter) {
+    const rows = await Order.aggregate([
+        { $match: getRawJsonQuery({ ...filter, statusArray: undefined }) },
+        { $group: { _id: '$status', n: { $sum: 1 } } },
+    ]);
+    return Object.fromEntries(rows.map((r) => [r._id, r.n]));
 }
 
 async function getOrders(filter, columnsRequired, sortParams, paginationParams, populate) {
@@ -125,5 +143,6 @@ module.exports = {
     saveOrder,
     updateOrderById,
     updateOrderWhere,
+    countByStatus,
     getOrderStats,
 };

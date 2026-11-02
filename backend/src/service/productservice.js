@@ -43,6 +43,9 @@ async function buildProductFilter(query, { activeOnly } = {}) {
         if (query.minPrice != null && query.minPrice !== '') filter.priceRange.from = Number(query.minPrice);
         if (query.maxPrice != null && query.maxPrice !== '') filter.priceRange.to = Number(query.maxPrice);
     }
+    // admin stock filter: out = 0, low = 1 to 5, in = 1 or more
+    const STOCK = { out: { to: 0 }, low: { from: 1, to: 5 }, in: { from: 1 } };
+    if (STOCK[query.stock]) filter.stockRange = STOCK[query.stock];
     if (query.trending === 'true') filter.isTrending = true;
     if (query.featured === 'true') filter.isFeatured = true;
     if (query.sale === 'true') filter.onSale = true;

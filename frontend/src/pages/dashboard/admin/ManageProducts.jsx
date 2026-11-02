@@ -10,18 +10,25 @@ import ProductImages from '../../../components/ProductImages'
 import AdminPager from './AdminPager'
 import { formatINR } from '../../../utils/formatCurrency'
 import { card, input, primaryBtn, ghostBtn, titleFont, linkBtn } from './adminUI'
-import { AdminHead, L } from './AdminParts'
+import { AdminHead, L, FilterBar, Pick } from './AdminParts'
+import { useUrlFilters } from './useUrlFilters'
 
 const AUDIENCES = ['men', 'women', 'kids', 'unisex'];
 const blank = { name: '', description: '', price: '', oldPrice: '', audience: 'men', category: '', brand: '', colors: '', sizes: '', stock: '', images: [], isTrending: false, isFeatured: false };
 
 const ManageProducts = () => {
-    const [page, setPage] = useState(1);
-    const [search, setSearch] = useState('');
-    // Search runs server-side: filtering only the current page would hide matches
-    // that live on other pages.
-    const q = search.trim();
-    const { data, isLoading } = useGetProductsQuery({ limit: 20, page, ...(q ? { search: q } : {}) });
+    // Filters run server-side: filtering only the current page would hide matches on other pages.
+    const [f, setF, filtering, clearF] = useUrlFilters({ q: '', store: 'all', category: 'all', stock: 'all', tag: 'all', sort: 'newest', page: '1' });
+    const page = Number(f.page) || 1;
+    const setPage = (n) => setF({ page: String(n) });
+    const { data, isLoading, isFetching } = useGetProductsQuery({
+        limit: 20, page, sort: f.sort,
+        ...(f.q && { search: f.q }),
+        ...(f.store !== 'all' && { audience: f.store }),
+        ...(f.category !== 'all' && { category: f.category }),
+        ...(f.stock !== 'all' && { stock: f.stock }),
+        ...(f.tag !== 'all' && { [f.tag]: 'true' }),
+    });
     const { data: catData } = useGetCategoriesQuery();
     const [createProduct] = useCreateProductMutation();
     const [updateProduct] = useUpdateProductMutation();
@@ -53,6 +60,8 @@ const ManageProducts = () => {
     });
 
     const filtered = products;
+    // category choices follow the store filter (shared Unisex categories show in every store)
+    const filterCats = categories.filter((c) => f.store === 'all' || c.audience === f.store || (f.store !== 'unisex' && c.audience === 'unisex'));
 
     const startEdit = (p) => {
         setEditingId(p._id);
@@ -140,18 +149,22 @@ const ManageProducts = () => {
                 </div>
             </form>
 
-            {/* Search */}
-            <div className='flex items-center justify-between flex-wrap gap-3 mb-4'>
-                <div className='wf-asearch'>
-                    <i className='ri-search-line' aria-hidden='true'></i>
-                    <label className='sr-only' htmlFor='wf-psearch'>Search products</label>
-                    <input id='wf-psearch' type='search' value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder='Search by name, brand or category' className={input} />
-                </div>
-                <span className='text-sm wf-muted'>{total} product{total === 1 ? '' : 's'}</span>
-            </div>
+            <FilterBar search={f.q} onSearch={(q) => setF({ q })} placeholder='Name, brand or description'
+                count={`${total} product${total === 1 ? '' : 's'}`} active={filtering} onClear={clearF}>
+                <Pick label='Store' value={f.store} onChange={(store) => setF({ store, category: 'all' })}
+                    options={[['all', 'All stores'], ['men', 'Men'], ['women', 'Women'], ['kids', 'Kids'], ['unisex', 'Unisex']]} />
+                <Pick label='Category' value={f.category} onChange={(category) => setF({ category })}
+                    options={[['all', 'All categories'], ...filterCats.map((c) => [c._id, f.store === 'all' || c.audience !== f.store ? `${c.name} (${c.audience === 'unisex' ? 'unisex' : c.audience})` : c.name])]} />
+                <Pick label='Stock' value={f.stock} onChange={(stock) => setF({ stock })}
+                    options={[['all', 'Any stock'], ['in', 'In stock'], ['low', 'Low (5 or fewer)'], ['out', 'Out of stock']]} />
+                <Pick label='Shows as' value={f.tag} onChange={(tag) => setF({ tag })}
+                    options={[['all', 'Anything'], ['sale', 'On sale'], ['trending', 'Trending'], ['featured', 'Featured']]} />
+                <Pick label='Sort' value={f.sort} onChange={(sort) => setF({ sort })}
+                    options={[['newest', 'Newest first'], ['oldest', 'Oldest first'], ['name_asc', 'Name A to Z'], ['price_asc', 'Price, low to high'], ['price_desc', 'Price, high to low'], ['stock_asc', 'Stock, lowest first']]} />
+            </FilterBar>
 
             {isLoading ? <p className='wf-muted'>Loading…</p> : (
-                <div className={`${card} !p-0 overflow-hidden`}>
+                <div className={`${card} !p-0 overflow-hidden transition-opacity ${isFetching ? 'opacity-60' : ''}`}>
                     <div className='overflow-x-auto'>
                         <table className='w-full text-sm'>
                             <thead><tr>
@@ -159,7 +172,7 @@ const ManageProducts = () => {
                             </tr></thead>
                             <tbody>
                                 {filtered.length === 0 && (
-                                    <tr><td colSpan={5} className='text-center wf-muted' style={{ padding: 28 }}>No products match “{search}”.</td></tr>
+                                    <tr><td colSpan={5} className='text-center wf-muted' style={{ padding: 28 }}>No products match these filters.{filtering && <> <button type='button' className={linkBtn} onClick={clearF}>Clear filters</button></>}</td></tr>
                                 )}
                                 {filtered.map((p) => (
                                     <tr key={p._id}>

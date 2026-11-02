@@ -448,3 +448,14 @@ select.wf-ainput { appearance: none; padding-right: 38px; cursor: pointer; backg
 .wf-reqs__reply { padding: 10px 12px; border-left: 3px solid var(--wf-ink); background: var(--wf-stone); color: var(--wf-ink) !important; }
 .wf-reqs__reply span { display: block; font-size: 12px; font-weight: 700; color: var(--wf-muted); margin-bottom: 2px; }
 @media (prefers-reduced-motion: reduce) { .wf-dialog[open], .wf-dialog__sent i { animation: none; } }
+
+/* ---------- admin filter bars ---------- */
+.wf-afilters { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 14px; margin-bottom: 18px; padding: 16px; border: 1px solid var(--wf-line); background: var(--wf-paper); }
+.wf-afilter { display: grid; gap: 6px; min-width: 150px; }
+.wf-afilter > span:first-child { font-size: 12px; font-weight: 700; color: var(--wf-muted); }
+.wf-afilter .wf-ainput { min-height: 42px; padding-block: 8px; font-size: 14px; }
+.wf-afilter--q { flex: 1 1 260px; }
+.wf-afilter--q .wf-asearch { width: 100%; }
+.wf-afilters__end { margin-left: auto; display: flex; align-items: center; gap: 16px; min-height: 42px; white-space: nowrap; }
+.wf-afilters .wf-seg { align-self: end; }
+@media (max-width: 640px) { .wf-afilter { flex: 1 1 calc(50% - 7px); min-width: 0; } .wf-afilters__end { width: 100%; margin-left: 0; justify-content: space-between; } }
