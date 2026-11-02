@@ -40,6 +40,14 @@ exports.createOrderSchema = {
     },
 };
 
+exports.cancelOrderSchema = {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+        reason: { type: 'string', maxLength: 200 },
+    },
+};
+
 exports.updateOrderStatusSchema = {
     type: 'object',
     additionalProperties: false,

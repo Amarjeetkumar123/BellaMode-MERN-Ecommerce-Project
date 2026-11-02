@@ -37,6 +37,11 @@ async function saveOrder(data) {
     return new Order(data).save();
 }
 
+// Updates only if `filter` still matches, so two requests can't both act on the same order.
+async function updateOrderWhere(filter, data) {
+    return Order.findOneAndUpdate(filter, { $set: { ...data, update_date: Date.now() } }, { new: true });
+}
+
 async function updateOrderById(id, data) {
     return Order.findByIdAndUpdate(id, { $set: { ...data, update_date: Date.now() } }, { new: true });
 }
@@ -119,5 +124,6 @@ module.exports = {
     getOrderById,
     saveOrder,
     updateOrderById,
+    updateOrderWhere,
     getOrderStats,
 };

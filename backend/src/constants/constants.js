@@ -34,7 +34,20 @@ const PAYMENT_STATUS = {
     PENDING: 'PENDING',
     PAID: 'PAID',
     FAILED: 'FAILED',
+    REFUNDED: 'REFUNDED',
 };
+
+// Help requests a customer raises about one of their orders.
+const SUPPORT_TOPIC = {
+    REFUND: 'REFUND',
+    RETURN: 'RETURN',
+    DAMAGED: 'DAMAGED',
+    WRONG_ITEM: 'WRONG_ITEM',
+    DELIVERY: 'DELIVERY',
+    PAYMENT: 'PAYMENT',
+    OTHER: 'OTHER',
+};
+const SUPPORT_STATUS = { OPEN: 'OPEN', RESOLVED: 'RESOLVED' };
 
 const BANNER_POSITION = {
     HERO: 'hero',
@@ -72,6 +85,8 @@ module.exports = {
     PAYMENT_METHOD,
     PAYMENT_STATUS,
     BANNER_POSITION,
+    SUPPORT_TOPIC,
+    SUPPORT_STATUS,
     CURRENCY,
     DEFAULT_PAGE_SIZE,
     TAX_RATE,

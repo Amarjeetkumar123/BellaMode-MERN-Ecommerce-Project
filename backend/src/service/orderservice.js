@@ -1,5 +1,7 @@
 const orderDao = require('../dbhelper/orderdao');
 const productDao = require('../dbhelper/productdao');
+const Support = require('../models/support.model');
+const { getRazorpayInstance } = require('../config/razorpay');
 const { asyncHandler, sendSuccess, sendError, buildPagination } = require('../utils/commonUtils');
 const {
     ROLES,
@@ -10,7 +12,35 @@ const {
     SHIPPING_FEE,
     FREE_SHIPPING_THRESHOLD,
     CURRENCY,
+    SUPPORT_TOPIC,
 } = require('../constants/constants');
+
+// Customers can cancel until the order is shipped.
+const CANCELLABLE = [ORDER_STATUS.PENDING, ORDER_STATUS.PROCESSING];
+
+// Puts a cancelled order's items back in stock.
+async function restoreStock(order) {
+    for (const it of order.items) {
+        // eslint-disable-next-line no-await-in-loop
+        const p = await productDao.getProductById(it.product);
+        // eslint-disable-next-line no-await-in-loop
+        if (p) await productDao.updateProductById(it.product, { stock: p.stock + it.quantity });
+    }
+}
+
+// Refunds an online payment in full through Razorpay. Returns the updated order, or null
+// when it couldn't be refunded automatically (an admin then refunds it by hand).
+async function refundOnline(order) {
+    const rzp = getRazorpayInstance();
+    if (!rzp || !order.razorpay?.paymentId) return null;
+    try {
+        await rzp.payments.refund(order.razorpay.paymentId, { amount: Math.round(order.totalPrice * 100) });
+        return orderDao.updateOrderById(order._id, { paymentStatus: PAYMENT_STATUS.REFUNDED });
+    } catch (err) {
+        console.error('Razorpay refund failed for order', String(order._id), err?.error?.description || err.message);
+        return null;
+    }
+}
 
 function round2(n) {
     return Math.round(n * 100) / 100;
@@ -109,10 +139,44 @@ exports.getOrder = asyncHandler(async (req, res) => {
     return sendSuccess(res, 200, 'OK', { order });
 });
 
+// PATCH /api/orders/:id/cancel  (owner) — only before it ships
+exports.cancelMyOrder = asyncHandler(async (req, res) => {
+    let order = await orderDao.updateOrderWhere(
+        { _id: req.params.id, user: req.userId, status: { $in: CANCELLABLE } },
+        { status: ORDER_STATUS.CANCELLED, cancelReason: (req.body.reason || '').trim() }
+    );
+    if (!order) {
+        const existing = await orderDao.getOrderById(req.params.id);
+        if (!existing || String(existing.user._id || existing.user) !== String(req.userId)) return sendError(res, 404, 'Order not found.');
+        if (existing.status === ORDER_STATUS.CANCELLED) return sendError(res, 409, 'This order is already cancelled.');
+        return sendError(res, 409, 'This order has already shipped, so it can’t be cancelled. Ask for help with it instead.');
+    }
+    await restoreStock(order);
+
+    let refund = 'none';
+    if (order.paymentStatus === PAYMENT_STATUS.PAID) {
+        const refunded = await refundOnline(order);
+        if (refunded) { order = refunded; refund = 'done'; }
+        else {
+            // couldn't refund automatically: open a refund request so an admin sees it
+            refund = 'pending';
+            await Support.create({
+                user: req.userId, order: order._id, topic: SUPPORT_TOPIC.REFUND,
+                message: `Order cancelled by the customer${order.cancelReason ? ` (${order.cancelReason})` : ''}. It was paid online, so ₹${order.totalPrice} needs refunding.`,
+            });
+        }
+    }
+    return sendSuccess(res, 200, 'Order cancelled.', { order, refund });
+});
+
 // PATCH /api/orders/:id/status  (admin)
 exports.updateOrderStatus = asyncHandler(async (req, res) => {
+    const before = await orderDao.getOrderById(req.params.id);
+    if (!before) return sendError(res, 404, 'Order not found.');
     const order = await orderDao.updateOrderById(req.params.id, { status: req.body.status });
-    if (!order) return sendError(res, 404, 'Order not found.');
+    // cancelling puts the items back on the shelf
+    // ponytail: un-cancelling doesn't take them back out; set stock by hand if that ever happens
+    if (req.body.status === ORDER_STATUS.CANCELLED && before.status !== ORDER_STATUS.CANCELLED) await restoreStock(order);
     return sendSuccess(res, 200, 'Order status updated.', { order });
 });
 

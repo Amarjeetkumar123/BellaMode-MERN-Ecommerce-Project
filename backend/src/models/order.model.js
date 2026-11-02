@@ -45,7 +45,7 @@ const orderSchema = new Schema({
     },
     paymentStatus: {
         type: String,
-        enum: [PAYMENT_STATUS.PENDING, PAYMENT_STATUS.PAID, PAYMENT_STATUS.FAILED],
+        enum: Object.values(PAYMENT_STATUS),
         default: PAYMENT_STATUS.PENDING,
     },
     razorpay: {
@@ -58,6 +58,8 @@ const orderSchema = new Schema({
         enum: Object.values(ORDER_STATUS),
         default: ORDER_STATUS.PENDING,
     },
+    // set when the customer cancels it themselves
+    cancelReason: String,
 });
 
 withMsTimestamps(orderSchema);

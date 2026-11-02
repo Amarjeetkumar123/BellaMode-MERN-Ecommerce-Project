@@ -14,6 +14,7 @@ const paymentschema = require('./paymentschema');
 const settingschema = require('./settingschema');
 const bannerschema = require('./bannerschema');
 const blogschema = require('./blogschema');
+const supportschema = require('./supportschema');
 
 const ajv = new Ajv({ allErrors: true, coerceTypes: false });
 addKeywords(ajv);
@@ -84,6 +85,7 @@ module.exports = {
     // ---- order ----
     validateCreateOrderSchema: makeValidator(orderschema.createOrderSchema),
     validateUpdateOrderStatusSchema: makeValidator(orderschema.updateOrderStatusSchema),
+    validateCancelOrderSchema: makeValidator(orderschema.cancelOrderSchema),
     // ---- payment ----
     validateCreatePaymentOrderSchema: makeValidator(paymentschema.createPaymentOrderSchema),
     validateVerifyPaymentSchema: makeValidator(paymentschema.verifyPaymentSchema),
@@ -95,4 +97,7 @@ module.exports = {
     // ---- blog ----
     validateCreateBlogSchema: makeValidator(blogschema.createBlogSchema),
     validateUpdateBlogSchema: makeValidator(blogschema.updateBlogSchema),
+    // ---- support ----
+    validateCreateSupportSchema: makeValidator(supportschema.createSupportSchema),
+    validateUpdateSupportSchema: makeValidator(supportschema.updateSupportSchema),
 };

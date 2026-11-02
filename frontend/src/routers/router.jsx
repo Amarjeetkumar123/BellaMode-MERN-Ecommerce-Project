@@ -26,6 +26,7 @@ import ManageOrders from "../pages/dashboard/admin/ManageOrders";
 import AddNewPost from "../pages/dashboard/admin/AddNewPost";
 import DashboardSettings from "../pages/dashboard/admin/DashboardSettings";
 import ManageUsers from "../pages/dashboard/admin/ManageUsers";
+import ManageHelp from "../pages/dashboard/admin/ManageHelp";
 
 const ADMIN = ["ADMIN", "SUPERADMIN"];
 
@@ -57,6 +58,7 @@ const router = createBrowserRouter([
                     { path: "manage-products", element: <PrivateRoute roles={ADMIN}><ManageProducts /></PrivateRoute> },
                     { path: "manage-categories", element: <PrivateRoute roles={ADMIN}><ManageCategories /></PrivateRoute> },
                     { path: "manage-orders", element: <PrivateRoute roles={ADMIN}><ManageOrders /></PrivateRoute> },
+                    { path: "help-requests", element: <PrivateRoute roles={ADMIN}><ManageHelp /></PrivateRoute> },
                     { path: "add-new-post", element: <PrivateRoute roles={ADMIN}><AddNewPost /></PrivateRoute> },
                     { path: "settings", element: <PrivateRoute roles={ADMIN}><DashboardSettings /></PrivateRoute> },
                     { path: "manage-users", element: <PrivateRoute roles={["SUPERADMIN"]}><ManageUsers /></PrivateRoute> },

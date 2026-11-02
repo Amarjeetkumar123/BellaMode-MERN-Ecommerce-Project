@@ -14,3 +14,6 @@ export const etaRange = (ms) => {
     return `${d(3)} – ${d(6)}`;
 };
 export const PAYMENT_LABEL = { COD: 'Cash on delivery', RAZORPAY: 'Paid online' };
+// Customers can cancel until it ships (matches the backend).
+export const canCancel = (o) => ['PENDING', 'PROCESSING'].includes(o.status);
+export const HELP_TOPIC = { REFUND: 'Refund', RETURN: 'Return or exchange', DAMAGED: 'Damaged item', WRONG_ITEM: 'Wrong item', DELIVERY: 'Delivery', PAYMENT: 'Payment', OTHER: 'Something else' };

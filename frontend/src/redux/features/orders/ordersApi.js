@@ -1,5 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { createBaseQuery } from "../baseQuery";
+import supportApi from "../support/supportApi";
 
 const ordersApi = createApi({
     reducerPath: "ordersApi",
@@ -25,6 +26,14 @@ const ordersApi = createApi({
         getOrder: builder.query({
             query: (id) => ({ url: `/${id}`, method: "GET" }),
         }),
+        cancelOrder: builder.mutation({
+            query: ({ id, reason }) => ({ url: `/${id}/cancel`, method: "PATCH", body: reason ? { reason } : {} }),
+            invalidatesTags: ["Orders"],
+            // a paid order that can't be refunded automatically opens a refund request
+            async onQueryStarted(_, { dispatch, queryFulfilled }) {
+                try { await queryFulfilled; dispatch(supportApi.util.invalidateTags(["Support"])); } catch { /* shown by the caller */ }
+            },
+        }),
         updateOrderStatus: builder.mutation({
             query: ({ id, status }) => ({ url: `/${id}/status`, method: "PATCH", body: { status } }),
             invalidatesTags: ["Orders"],
@@ -39,6 +48,7 @@ export const {
     useGetOrderStatsQuery,
     useGetOrderQuery,
     useUpdateOrderStatusMutation,
+    useCancelOrderMutation,
 } = ordersApi;
 
 export default ordersApi;

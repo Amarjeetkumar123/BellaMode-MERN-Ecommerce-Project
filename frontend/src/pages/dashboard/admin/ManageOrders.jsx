@@ -40,10 +40,11 @@ const ManageOrders = () => {
                                         </td>
                                         <td>{o.user?.username || '—'}<div className='text-xs wf-muted'>{o.shippingAddress?.city}</div></td>
                                         <td className='font-bold tabular-nums'>{formatINR(o.totalPrice)}</td>
-                                        <td>{o.paymentMethod === 'COD' ? 'Cash on delivery' : 'Online'}<div className='text-xs wf-muted capitalize'>{(o.paymentStatus || '').toLowerCase()}</div></td>
+                                        <td>{o.paymentMethod === 'COD' ? 'Cash on delivery' : 'Online'}<div className='text-xs wf-muted'>{{ PAID: 'Paid', PENDING: 'Not paid', REFUNDED: 'Refunded', FAILED: 'Failed' }[o.paymentStatus] || o.paymentStatus}</div></td>
                                         <td>
                                             <div className='flex flex-col items-start gap-1.5'>
                                                 <span className={statusPill(o.status)}>{(o.status || '').toLowerCase()}</span>
+                                                {o.cancelReason && <span className='text-xs wf-muted'>Customer: “{o.cancelReason}”</span>}
                                                 <select value={o.status} onChange={(e) => handleStatus(o._id, e.target.value)} className={`${input} !min-h-0 !py-1.5 !w-auto text-sm`} aria-label={`Status of order ${o._id.slice(-8).toUpperCase()}`}>
                                                     {STATUSES.map((s) => <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>)}
                                                 </select>

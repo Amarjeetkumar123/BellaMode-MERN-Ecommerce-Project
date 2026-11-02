@@ -5,7 +5,7 @@ const orderService = require('../service/orderservice');
 const checkAuth = require('../middleware/checkAuth');
 const checkRole = require('../middleware/checkRole');
 const { andMiddleware } = require('../middleware/middlewarehelper/and_middleware');
-const { validateCreateOrderSchema, validateUpdateOrderStatusSchema } = require('../jsonvalidation/jsonvalidator');
+const { validateCreateOrderSchema, validateUpdateOrderStatusSchema, validateCancelOrderSchema } = require('../jsonvalidation/jsonvalidator');
 const { ROLES } = require('../constants/constants');
 
 const ADMIN = [ROLES.SUPERADMIN, ROLES.ADMIN];
@@ -13,6 +13,7 @@ const ADMIN = [ROLES.SUPERADMIN, ROLES.ADMIN];
 // ---- authenticated user ----
 router.post('/', andMiddleware([checkAuth, validateCreateOrderSchema]), orderService.createOrder);
 router.get('/myorders', andMiddleware([checkAuth]), orderService.getMyOrders);
+router.patch('/:id/cancel', andMiddleware([checkAuth, validateCancelOrderSchema]), orderService.cancelMyOrder);
 
 // ---- admin ----
 // NOTE: must stay above `/:id`, otherwise "stats" is parsed as an order id.

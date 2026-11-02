@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { addToCart } from '../../redux/features/cart/cartSlice'
 import { formatINR } from '../../utils/formatCurrency'
-import { ORDER_LABEL, ORDER_STEP, ORDER_STEPS, PAYMENT_LABEL, etaRange, fmtDate, orderNo, orderTone } from '../../data/orders'
+import { ORDER_LABEL, ORDER_STEP, ORDER_STEPS, PAYMENT_LABEL, canCancel, etaRange, fmtDate, orderNo, orderTone } from '../../data/orders'
+import { CancelOrder, GetHelp, OrderRequests } from './OrderHelp'
 
 // Placed → Packed → Shipped → Delivered. The line fills in once it's on screen.
 export const Track = ({ order }) => {
@@ -23,13 +24,18 @@ export const Track = ({ order }) => {
 
 const note = (o) => {
     if (o.status === 'DELIVERED') return <>Delivered. Returns are open for 30 days.</>;
-    if (o.status === 'CANCELLED') return <>Cancelled{o.paymentStatus === 'PAID' ? '. Your refund is on its way.' : '.'}</>;
+    if (o.status === 'CANCELLED') {
+        if (o.paymentStatus === 'REFUNDED') return <>Cancelled. Refunded {formatINR(o.totalPrice)} to your original payment method.</>;
+        if (o.paymentStatus === 'PAID') return <>Cancelled. Your refund of {formatINR(o.totalPrice)} is on its way (5 to 7 working days).</>;
+        return <>Cancelled.</>;
+    }
     return <>Arriving <b>{etaRange(o.create_date)}</b></>;
 };
 
 // One order: summary row, photos, actions, and a fold-out with progress, items and payment.
 const OrderCard = ({ order: o, open = false, compact = false }) => {
     const dispatch = useDispatch();
+    const [msg, setMsg] = useState('');
     const tone = orderTone(o.status);
     const a = o.shippingAddress || {};
 
@@ -64,8 +70,13 @@ const OrderCard = ({ order: o, open = false, compact = false }) => {
                     {compact && <Link to='/dashboard/orders' className='wf-btn wf-btn--sm'>Track order</Link>}
                     {tone === 'done' && <Link to='/help/shipping#returns' className='wf-btn wf-btn--sm wf-btn--line'>Return or exchange</Link>}
                     {tone !== 'way' && <button type='button' className={`wf-btn wf-btn--sm ${tone === 'cancel' ? 'wf-btn--line' : ''}`} onClick={buyAgain}>Buy again</button>}
+                    {!compact && canCancel(o) && <CancelOrder order={o} onDone={setMsg} />}
+                    {!compact && <GetHelp order={o} />}
                 </div>
             </div>
+            {/* the card itself changes to Cancelled; this just tells screen readers what happened */}
+            <p className='wf-sr' role='status'>{msg}</p>
+            {!compact && <OrderRequests orderId={o._id} />}
             {!compact && (
                 <details id={`d-${o._id}`} open={open}>
                     <summary>Order details<span className='wf-pm'></span></summary>
@@ -83,7 +94,7 @@ const OrderCard = ({ order: o, open = false, compact = false }) => {
                         </div>
                         <div>
                             <h4>Payment</h4>
-                            {PAYMENT_LABEL[o.paymentMethod] || o.paymentMethod}<br /><span className='wf-muted'>{o.paymentStatus === 'PAID' ? 'Paid' : o.paymentMethod === 'COD' ? 'Pay on delivery' : 'Not paid'}</span>
+                            {PAYMENT_LABEL[o.paymentMethod] || o.paymentMethod}<br /><span className='wf-muted'>{o.paymentStatus === 'REFUNDED' ? 'Refunded' : o.paymentStatus === 'PAID' ? (o.status === 'CANCELLED' ? 'Paid, refund on its way' : 'Paid') : o.status === 'CANCELLED' ? 'Nothing charged' : o.paymentMethod === 'COD' ? 'Pay on delivery' : 'Not paid'}</span>
                             <dl className='wf-sum'>
                                 <dt>Subtotal</dt><dd>{formatINR(o.itemsPrice)}</dd>
                                 <dt>Tax</dt><dd>{formatINR(o.tax)}</dd>
