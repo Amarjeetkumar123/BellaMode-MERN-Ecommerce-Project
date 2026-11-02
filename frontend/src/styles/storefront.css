@@ -46,13 +46,6 @@
 .wf-btn--line { background: none; color: var(--wf-ink); border: 1.5px solid var(--wf-ink); }
 .wf-btn--line:hover, .wf-btn--line:focus-visible { color: var(--wf-paper); border-color: var(--wf-accent); }
 
-/* light glint that sweeps across an image once per hover */
-.wf-glint::before {
-    content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-    background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, .45) 50%, transparent 65%); transform: translateX(-100%);
-}
-:hover > .wf-glint::before, .wf-glint:hover::before { transform: translateX(100%); transition: transform .9s var(--wf-ease); }
-
 /* ---------- header: the stores are the nav ---------- */
 .wf-header { position: sticky; top: 0; z-index: 1001; background: rgba(255, 255, 255, .96); backdrop-filter: blur(10px); border-bottom: 1px solid var(--wf-line); font-family: var(--wf-body); transition: box-shadow .3s; }
 .wf-header.is-scrolled { box-shadow: var(--wf-sh-2); }
@@ -244,7 +237,7 @@
 .wf-card__quick small a { color: inherit; }
 .wf-card__sizes { display: flex; gap: 6px; flex-wrap: wrap; }
 .wf-card__sizes button { min-width: 44px; height: 44px; padding: 0 8px; border: 1.5px solid var(--wf-ink); background: var(--wf-paper); font-weight: 700; font-size: 13px; cursor: pointer; transition: background-color .2s, color .2s; }
-.wf-card__sizes button:hover { background: var(--wf-ink); color: var(--wf-paper); }
+.wf-card__sizes button:hover, .wf-card__sizes button:focus-visible { background: var(--wf-accent); border-color: var(--wf-accent); color: var(--wf-paper); }
 .wf-card__done { display: block; font-weight: 700; font-size: 14px; color: var(--wf-accent); }
 .wf-card__info { margin-top: 14px; display: flex; justify-content: space-between; gap: 12px; }
 .wf-card__brand, .wf-card__colours { font-size: 13px; color: var(--wf-muted); }
@@ -252,6 +245,14 @@
 .wf-card h3 a { color: inherit; }
 .wf-card__price { text-align: right; font-weight: 800; white-space: nowrap; }
 .wf-card__price s { display: block; font-weight: 500; font-size: 13px; color: var(--wf-muted); }
+.wf-card__badge.is-out { background: var(--wf-ink); color: var(--wf-paper); }
+.wf-card.is-out .wf-card__ph img { opacity: .55; filter: grayscale(.6); }
+.wf-card.is-out .wf-card__price { color: var(--wf-muted); }
+/* rating: one red star, the score, then the review count */
+.wf-card__rating { display: inline-flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 13px; font-weight: 700; }
+.wf-card__rating i { width: 13px; height: 13px; background: var(--wf-accent); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+.wf-card__rating span { font-weight: 500; color: var(--wf-muted); }
+.wf-card__low { margin-top: 2px; font-size: 13px; font-weight: 700; color: var(--wf-accent); }
 
 /* ---------- shop by budget: black fill, spotlight, photo fan ---------- */
 .wf-budget { display: grid; grid-template-columns: repeat(var(--n, 4), 1fr); border-top: 1px solid var(--wf-line); border-left: 1px solid var(--wf-line); }

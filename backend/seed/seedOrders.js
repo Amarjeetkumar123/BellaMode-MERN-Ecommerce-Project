@@ -1,6 +1,7 @@
-// Demo orders for the admin overview graphs: ~90 days of orders from a few demo customers.
-// Run: node seed/seedOrders.js          (replaces earlier demo orders)
-//      node seed/seedOrders.js --undo   (removes the demo customers and their orders)
+// Demo data: ~90 days of orders from a few demo customers (admin graphs), and their reviews
+// of things they received (star ratings on the product cards).
+// Run: node seed/seedOrders.js          (replaces earlier demo data)
+//      node seed/seedOrders.js --undo   (removes the demo customers, their orders and reviews)
 require('dotenv').config();
 const crypto = require('crypto');
 const mongoose = require('mongoose');
@@ -9,6 +10,9 @@ const connectDB = require('../src/config/db');
 const User = require('../src/models/user.model');
 const Product = require('../src/models/product.model');
 const Order = require('../src/models/order.model');
+const Review = require('../src/models/review.model');
+const reviewDao = require('../src/dbhelper/reviewdao');
+const productDao = require('../src/dbhelper/productdao');
 const { ORDER_STATUS, PAYMENT_METHOD, PAYMENT_STATUS, TAX_RATE, SHIPPING_FEE, FREE_SHIPPING_THRESHOLD } = require('../src/constants/constants');
 
 const DEMO_DOMAIN = '@demo.wearly.local';
@@ -32,11 +36,55 @@ function statusFor(ageDays) {
     return pick([ORDER_STATUS.PENDING, ORDER_STATUS.PROCESSING]);
 }
 
+// Keeps each product's stored rating in step with its reviews (same as posting a review does).
+async function syncRatings(productIds) {
+    for (const id of productIds) {
+        // eslint-disable-next-line no-await-in-loop
+        const stats = await reviewDao.getProductRatingStats(id);
+        // eslint-disable-next-line no-await-in-loop
+        await productDao.setProductRating(id, stats.avg, stats.count);
+    }
+}
+
 async function removeDemo() {
     const ids = (await User.find({ email: { $regex: `${DEMO_DOMAIN.replace(/\./g, '\\.')}$` } }, '_id')).map((u) => u._id);
+    const reviewed = await Review.distinct('product', { user: { $in: ids } });
+    const { deletedCount: reviews } = await Review.deleteMany({ user: { $in: ids } });
+    await syncRatings(reviewed);
     const { deletedCount } = await Order.deleteMany({ user: { $in: ids } });
     await User.deleteMany({ _id: { $in: ids } });
-    console.log(`Removed ${deletedCount} demo orders and ${ids.length} demo customers.`);
+    console.log(`Removed ${deletedCount} demo orders, ${reviews} demo reviews and ${ids.length} demo customers.`);
+}
+
+// Mostly happy customers, a few lukewarm ones, now and then an unhappy one.
+const REVIEW_TEXT = {
+    5: ['Fits perfectly and the fabric feels great.', 'Exactly like the photos. Ordering another colour.', 'Great quality for the price. Washed well too.', 'Really comfortable, I wear it all the time.', 'Arrived quickly and looks even better in person.'],
+    4: ['Good quality, runs slightly large.', 'Nice fit. The colour is a little darker than shown.', 'Comfortable and well made. Delivery took a day longer.', 'Happy with it overall, would buy again.'],
+    3: ['Decent, but the fabric is thinner than I expected.', 'Okay for the price. Sizing is a bit off.'],
+    2: ['The stitching came loose after a few washes.'],
+    1: ['Not as pictured. Returned it.'],
+};
+const pickRating = () => { const r = Math.random(); return r < 0.55 ? 5 : r < 0.85 ? 4 : r < 0.94 ? 3 : r < 0.98 ? 2 : 1; };
+
+async function seedReviews(orders, users) {
+    const name = Object.fromEntries(users.map(({ user }) => [String(user._id), user.username]));
+    const seen = new Set();
+    const reviews = [];
+    orders.filter((o) => o.status === ORDER_STATUS.DELIVERED && Math.random() < 0.6).forEach((o) => {
+        o.items.forEach((it) => {
+            const key = `${o.user}-${it.product}`;
+            if (seen.has(key)) return; // one review per customer per product
+            seen.add(key);
+            const rating = pickRating();
+            const at = o.create_date + (5 + rand(10)) * DAY;
+            if (at > Date.now()) return;
+            reviews.push({ product: it.product, user: o.user, userName: name[String(o.user)], rating, comment: pick(REVIEW_TEXT[rating]), create_date: at, update_date: at });
+        });
+    });
+    await Review.insertMany(reviews);
+    const products = [...new Set(reviews.map((r) => String(r.product)))];
+    await syncRatings(products.map((id) => new mongoose.Types.ObjectId(id)));
+    console.log(`Added ${reviews.length} demo reviews on ${products.length} products.`);
 }
 
 async function seed() {
@@ -87,6 +135,7 @@ async function seed() {
     }
     await Order.insertMany(orders);
     console.log(`Added ${orders.length} demo orders from ${users.length} demo customers over the last 90 days.`);
+    await seedReviews(orders, users);
 }
 
 (async () => {

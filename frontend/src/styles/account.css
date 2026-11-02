@@ -409,9 +409,9 @@ select.wf-ainput { appearance: none; padding-right: 38px; cursor: pointer; backg
 /* ---------- order: cancel + help dialogs, help requests ---------- */
 .wf-order .wf-acts { flex-wrap: wrap; align-items: center; }
 .wf-dialog { width: min(540px, calc(100vw - 32px)); max-height: calc(100svh - 32px); margin: auto; padding: 0; border: 0; background: var(--wf-paper); color: var(--wf-ink); font-family: var(--wf-body); box-shadow: var(--wf-sh-3); }
-.wf-dialog[open] { animation: wf-pop .35s var(--wf-ease); }
+.wf-dialog[open] { animation: wf-dialog-in .35s var(--wf-ease); }
 .wf-dialog::backdrop { background: rgba(0, 0, 0, .5); backdrop-filter: blur(2px); }
-@keyframes wf-pop { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+@keyframes wf-dialog-in { from { opacity: 0; transform: translateY(14px) scale(.98); } }
 .wf-dialog__in { position: relative; padding: 28px; }
 .wf-dialog h2 { font-family: var(--wf-display); font-weight: 500; font-size: 26px; letter-spacing: -.02em; padding-right: 40px; margin-bottom: 4px; }
 .wf-dialog__x { position: absolute; top: 16px; right: 16px; width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; font-size: 22px; transition: background-color .2s, transform .3s var(--wf-ease); }
@@ -433,7 +433,7 @@ select.wf-ainput { appearance: none; padding-right: 38px; cursor: pointer; backg
 .wf-err-box { margin-top: 12px; color: var(--wf-accent); font-weight: 700; font-size: 14px; }
 .wf-dialog__acts { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
 .wf-dialog__sent { display: grid; justify-items: start; gap: 8px; padding-top: 10px; }
-.wf-dialog__sent i { font-size: 40px; color: var(--wf-accent); animation: wf-pop .5s var(--wf-ease); }
+.wf-dialog__sent i { font-size: 40px; color: var(--wf-accent); animation: wf-dialog-in .5s var(--wf-ease); }
 .wf-dialog__sent b { font-family: var(--wf-display); font-weight: 500; font-size: 20px; }
 .wf-dialog__sent .wf-btn { margin-top: 10px; }
 .wf-reqs { list-style: none; margin: 0 20px 20px; border-top: 1px solid var(--wf-line); }
@@ -459,3 +459,5 @@ select.wf-ainput { appearance: none; padding-right: 38px; cursor: pointer; backg
 .wf-afilters__end { margin-left: auto; display: flex; align-items: center; gap: 16px; min-height: 42px; white-space: nowrap; }
 .wf-afilters .wf-seg { align-self: end; }
 @media (max-width: 640px) { .wf-afilter { flex: 1 1 calc(50% - 7px); min-width: 0; } .wf-afilters__end { width: 100%; margin-left: 0; justify-content: space-between; } }
+.wf-stockalert { border-left: 3px solid var(--wf-accent); }
+.wf-stockalert h3 i { color: var(--wf-accent); }

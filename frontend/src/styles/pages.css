@@ -200,10 +200,12 @@
 .wf-rv__head small { color: var(--wf-muted); font-size: 13px; }
 .wf-rv p { margin-top: 8px; color: #333; }
 .wf-rform { display: grid; gap: 14px; padding: 22px; margin-bottom: 22px; background: var(--wf-stone); }
-.wf-rate { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 4px; }
+.wf-rate { display: flex; align-items: center; gap: 4px; }
 .wf-rate input { position: absolute; opacity: 0; }
 .wf-rate label { width: 30px; height: 30px; background: #c9c9c5; clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); cursor: pointer; transition: background-color .15s, transform .25s var(--wf-ease); }
-.wf-rate label:hover, .wf-rate label:hover ~ label, .wf-rate input:checked ~ label { background: var(--wf-accent); }
+.wf-rate label.on { background: var(--wf-accent); }
+.wf-rate input:focus-visible + label { outline: 3px solid var(--wf-accent); outline-offset: 3px; }
+.wf-rate__word { margin-left: 10px; font-weight: 700; font-size: 14px; }
 .wf-rate label:hover { transform: scale(1.15); }
 .wf-rform textarea { min-height: 96px; padding: 12px; border: 1px solid var(--wf-line); background: var(--wf-paper); font: inherit; resize: vertical; }
 .wf-rform textarea:focus { outline: none; border-color: var(--wf-ink); }

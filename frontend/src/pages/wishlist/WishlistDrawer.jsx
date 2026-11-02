@@ -16,6 +16,7 @@ const SavedItem = ({ item, index, leaving, onClose, onGone }) => {
     const image = (item.images && item.images[0]) || item.image;
     const off = item.oldPrice > item.price ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
     const sizes = item.sizes?.length > 1 ? item.sizes : null;
+    const soldOut = item.stock != null && item.stock < 1;
 
     const move = (size) => {
         dispatch(addToCart({ ...toCartProduct(item), ...(size && { size }), ...(item.colors?.[0] && { color: item.colors[0] }) }));
@@ -43,9 +44,9 @@ const SavedItem = ({ item, index, leaving, onClose, onGone }) => {
                 className={`wf-wl__move ${moved ? 'is-ok' : ''}`}
                 onClick={() => (sizes ? setPicking((v) => !v) : move(item.sizes?.[0]))}
                 aria-expanded={sizes ? picking : undefined}
-                disabled={moved}
+                disabled={moved || soldOut}
             >
-                {moved ? 'Moved to bag ✓' : picking ? 'Choose a size' : 'Move to bag'}
+                {soldOut ? 'Out of stock' : moved ? 'Moved to bag ✓' : picking ? 'Choose a size' : 'Move to bag'}
             </button>
         </article>
     );

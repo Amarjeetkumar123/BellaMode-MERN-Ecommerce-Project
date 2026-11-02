@@ -20,6 +20,8 @@ const Stars = ({ value, size }) => (
     </span>
 );
 
+const RATE_WORD = { 1: 'Poor', 2: 'Fair', 3: 'Good', 4: 'Very good', 5: 'Excellent' };
+
 const ProductView = ({ product }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -48,6 +50,7 @@ const ProductView = ({ product }) => {
     const [added, setAdded] = useState(false);
     const [writing, setWriting] = useState(false);
     const [stars, setStars] = useState(5);
+    const [hoverStar, setHoverStar] = useState(0);
     const [comment, setComment] = useState('');
     const [msg, setMsg] = useState('');
     const [barsIn, setBarsIn] = useState(false);
@@ -209,13 +212,15 @@ const ProductView = ({ product }) => {
                     {msg && <p className='wf-msg' role='status' style={{ marginBottom: 16 }}>{msg}</p>}
                     {writing && (
                         <form className='wf-rform' onSubmit={postReview}>
-                            <div className='wf-rate' role='radiogroup' aria-label='Your rating'>
-                                {[5, 4, 3, 2, 1].map((s) => (
+                            {/* every star up to the one you pick (or point at) lights up */}
+                            <div className='wf-rate' role='radiogroup' aria-label='Your rating' onMouseLeave={() => setHoverStar(0)}>
+                                {[1, 2, 3, 4, 5].map((s) => (
                                     <span key={s} style={{ display: 'contents' }}>
                                         <input type='radio' name='stars' id={`wf-r${s}`} checked={stars === s} onChange={() => setStars(s)} />
-                                        <label htmlFor={`wf-r${s}`} aria-label={`${s} stars`}></label>
+                                        <label htmlFor={`wf-r${s}`} aria-label={`${s} star${s > 1 ? 's' : ''}`} className={s <= (hoverStar || stars) ? 'on' : ''} onMouseEnter={() => setHoverStar(s)}></label>
                                     </span>
                                 ))}
+                                <span className='wf-rate__word' aria-hidden='true'>{RATE_WORD[hoverStar || stars]}</span>
                             </div>
                             <label className='wf-sr' htmlFor='wf-rv-text'>Your review</label>
                             <textarea id='wf-rv-text' required value={comment} onChange={(e) => setComment(e.target.value)} placeholder='What did you like or dislike? How was the fit?' />

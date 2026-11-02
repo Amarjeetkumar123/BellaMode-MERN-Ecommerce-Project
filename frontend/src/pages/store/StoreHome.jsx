@@ -99,7 +99,7 @@ const StoreHome = ({ store }) => {
                     <div className='wf-cats'>
                         {cats.map((c) => (
                             <Link key={c._id} to={listingLink(store, c)} className='wf-cat'>
-                                <div className='wf-cat__ph wf-glint'><img src={c.image || LIFESTYLE_IMG[c.slug]} alt='' loading='lazy' /></div>
+                                <div className='wf-cat__ph'><img src={c.image || LIFESTYLE_IMG[c.slug]} alt='' loading='lazy' /></div>
                                 <div className='wf-cat__name'>{c.name}<i className='ri-arrow-right-line'></i></div>
                                 {fromBySlug[c.slug] != null && <small>from {formatINR(fromBySlug[c.slug])}</small>}
                             </Link>

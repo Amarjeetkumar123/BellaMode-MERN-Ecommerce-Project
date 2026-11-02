@@ -4,7 +4,7 @@ import { createSlice } from '@reduxjs/toolkit'
 // move onto the account at sign-in. Keeps just what the cards and drawer show.
 const snapshot = (p) => ({
     _id: p._id, slug: p.slug, name: p.name, brand: p.brand, price: p.price, oldPrice: p.oldPrice,
-    images: (p.images || []).slice(0, 1), image: p.image, sizes: p.sizes, colors: p.colors,
+    images: (p.images || []).slice(0, 1), image: p.image, sizes: p.sizes, colors: p.colors, stock: p.stock,
 });
 
 const guestWishlistSlice = createSlice({

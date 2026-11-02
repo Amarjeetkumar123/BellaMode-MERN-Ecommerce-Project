@@ -52,6 +52,8 @@ export const ProductCardItem = ({ product, index = 0 }) => {
     const wished = isWished(product._id);
     const sizes = product.sizes?.length ? product.sizes : null;
     const colours = product.colors?.length || 0;
+    const soldOut = product.stock != null && product.stock < 1;
+    const fewLeft = product.stock > 0 && product.stock <= 5;
 
     const add = (size) => {
         dispatch(addToCart({ ...toCartProduct(product), ...(size && { size }) }));
@@ -59,11 +61,11 @@ export const ProductCardItem = ({ product, index = 0 }) => {
     };
 
     return (
-        <article className='wf-card' style={{ '--i': index }}>
+        <article className={`wf-card ${soldOut ? 'is-out' : ''}`} style={{ '--i': index }}>
             <div className='wf-card__media' {...(canTilt && { onPointerMove: tilt, onPointerLeave: untilt })}>
                 <Link to={to} className='wf-card__ph' aria-label={product.name}>
                     <img src={image} alt='' loading='lazy' />
-                    {onSale && <span className='wf-card__badge'>{discount}% off</span>}
+                    {soldOut ? <span className='wf-card__badge is-out'>Out of stock</span> : onSale && <span className='wf-card__badge'>{discount}% off</span>}
                 </Link>
                 <button
                     type='button'
@@ -74,7 +76,7 @@ export const ProductCardItem = ({ product, index = 0 }) => {
                 >
                     <i className={wished ? 'ri-heart-fill' : 'ri-heart-line'}></i>
                 </button>
-                <div className='wf-card__quick'>
+                {!soldOut && <div className='wf-card__quick'>
                     <small><span>Quick add</span>{sizes && <Link to={`/size-guide?for=${product.audience === 'unisex' ? 'men' : product.audience || 'men'}`} className='wf-u'>Size guide</Link>}</small>
                     {added ? (
                         <span className='wf-card__done' role='status'>{added}</span>
@@ -87,13 +89,19 @@ export const ProductCardItem = ({ product, index = 0 }) => {
                                 : <button type='button' onClick={() => add()}>Add to bag</button>}
                         </div>
                     )}
-                </div>
+                </div>}
             </div>
             <div className='wf-card__info'>
                 <div>
                     {product.brand && <div className='wf-card__brand'>{product.brand}</div>}
                     <h3><Link to={to}>{product.name}</Link></h3>
+                    {product.numReviews > 0 && (
+                        <div className='wf-card__rating' aria-label={`Rated ${product.rating} out of 5 from ${product.numReviews} review${product.numReviews > 1 ? 's' : ''}`}>
+                            <i aria-hidden='true'></i>{Number(product.rating).toFixed(1)}<span aria-hidden='true'>({product.numReviews})</span>
+                        </div>
+                    )}
                     {colours > 0 && <div className='wf-card__colours'>{colours} colour{colours > 1 ? 's' : ''}</div>}
+                    {fewLeft && <div className='wf-card__low'>Only {product.stock} left</div>}
                 </div>
                 <div className='wf-card__price'>
                     {formatINR(product.price)}

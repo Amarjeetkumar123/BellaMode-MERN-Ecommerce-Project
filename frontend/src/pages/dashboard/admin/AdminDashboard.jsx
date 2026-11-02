@@ -44,6 +44,11 @@ const AdminDashboard = () => {
     const { data: statsRes } = useGetOrderStatsQuery({ days });
     const { data: orders } = useGetAllOrdersQuery({ limit: 5 });
     const { data: cats } = useGetCategoriesQuery();
+    // stock alerts come from the server, so they count every product, not just one page
+    const { data: outData } = useGetProductsQuery({ stock: 'out', limit: 6, sort: 'name_asc' });
+    const { data: lowData } = useGetProductsQuery({ stock: 'low', limit: 6, sort: 'stock_asc' });
+    const out = { list: outData?.data?.products || [], total: outData?.data?.total || 0 };
+    const low = { list: lowData?.data?.products || [], total: lowData?.data?.total || 0 };
 
     const stats = statsRes?.data;
     const orderList = useMemo(() => orders?.data?.orders || [], [orders]);
@@ -105,13 +110,12 @@ const AdminDashboard = () => {
         const ordersWindow = stats?.ordersWindow || 0;
         const revenueWindow = stats?.revenueWindow || 0;
         const aov = ordersWindow ? Math.round(revenueWindow / ordersWindow) : 0;
-        const lowStock = productList.filter((p) => (p.stock ?? 0) <= 5).length;
 
         return {
             trend, perDay, statusRows, payRows, storeRows, topProducts, mix,
             revenueWindow, revenueAll: stats?.revenueAll || 0,
             ordersWindow, ordersAll: stats?.ordersAll || 0,
-            aov, lowStock,
+            aov,
         };
     }, [stats, productList, days]);
 
@@ -135,9 +139,38 @@ const AdminDashboard = () => {
                 <Stat label='Avg. order value' value={formatINR(analytics.aov)}
                     sub={rangeLabel} icon='ri-bar-chart-2-line' />
                 <Stat label='Products' value={prod?.data?.total ?? productList.length}
-                    sub={analytics.lowStock ? `${analytics.lowStock} low on stock` : `${cats?.data?.categories?.length ?? 0} categories`}
-                    icon='ri-t-shirt-line' warn={analytics.lowStock > 0} />
+                    sub={out.total || low.total ? [out.total && `${out.total} out of stock`, low.total && `${low.total} running low`].filter(Boolean).join(' · ') : `${cats?.data?.categories?.length ?? 0} categories`}
+                    icon='ri-t-shirt-line' warn={out.total + low.total > 0} />
             </div>
+
+            {/* Stock alerts: only when something needs restocking */}
+            {out.total + low.total > 0 && (
+                <div className={`${card} mb-6 wf-stockalert`}>
+                    <h3 style={titleFont}><i className='ri-alert-line' aria-hidden='true'></i> Needs restocking</h3>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mt-4'>
+                        {[['Out of stock', out, 'out', 'Shoppers see “Out of stock” and can’t add these to their bag.'], ['Running low (5 or fewer)', low, 'low', 'Shoppers see “Only 3 left” on the product.']]
+                            .filter(([, g]) => g.total > 0)
+                            .map(([title, g, key, note]) => (
+                                <div key={key}>
+                                    <p className='font-bold'>{title} <span className='wf-apill is-cancelled'>{g.total}</span></p>
+                                    <p className='text-xs wf-muted mt-1'>{note}</p>
+                                    <ul className='mt-3 space-y-2 text-sm'>
+                                        {g.list.map((p) => (
+                                            <li key={p._id} className='flex items-center gap-3'>
+                                                <img src={p.images?.[0]} alt='' className='w-8 object-cover shrink-0' style={{ aspectRatio: '3 / 4' }} />
+                                                <span className='truncate'>{p.name}</span>
+                                                <span className='ml-auto tabular-nums font-bold wf-danger'>{p.stock > 0 ? `${p.stock} left` : 'Sold out'}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <Link to={`/dashboard/manage-products?stock=${key}&sort=stock_asc`} className={`${linkBtn} inline-block mt-3`}>
+                                        {g.total > g.list.length ? `See all ${g.total}` : 'Restock in Products'}
+                                    </Link>
+                                </div>
+                            ))}
+                    </div>
+                </div>
+            )}
 
             {/* Revenue trend */}
             <div className={`${card} mb-6`}>
