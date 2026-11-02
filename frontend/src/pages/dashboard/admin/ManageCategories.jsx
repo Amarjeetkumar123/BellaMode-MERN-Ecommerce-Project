@@ -6,7 +6,8 @@ import {
     useDeleteCategoryMutation,
 } from '../../../redux/features/categories/categoriesApi'
 import ImageInput from '../../../components/ImageInput'
-import { card, input, primaryBtn, ghostBtn, titleFont } from './adminUI'
+import { card, input, primaryBtn, ghostBtn, titleFont, linkBtn } from './adminUI'
+import { AdminHead, L } from './AdminParts'
 
 const AUDIENCES = ['men', 'women', 'kids', 'unisex'];
 const blank = { name: '', audience: 'men', image: '', sortOrder: 0 };
@@ -41,35 +42,35 @@ const ManageCategories = () => {
 
     return (
         <div>
-            <h2 className='text-2xl font-bold mb-6' style={titleFont}>Manage Categories</h2>
+            <AdminHead title='Categories' sub='Each store shows its own categories; Unisex ones (footwear, watches…) appear in every store.' />
             <form onSubmit={handleSubmit} className={`${card} space-y-4 mb-8`}>
-                <h3 className='font-semibold' style={titleFont}>{editingId ? 'Edit Category' : 'New Category'}</h3>
+                <h3 style={titleFont}>{editingId ? 'Edit category' : 'New category'}</h3>
                 <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
-                    <input required placeholder='Name' value={form.name} onChange={(e) => setField('name', e.target.value)} className={input} />
-                    <select value={form.audience} onChange={(e) => setField('audience', e.target.value)} className={`${input} capitalize`}>
+                    <L t='Name'><input required value={form.name} onChange={(e) => setField('name', e.target.value)} className={input} /></L>
+                    <L t='Store'><select value={form.audience} onChange={(e) => setField('audience', e.target.value)} className={`${input} capitalize`}>
                         {AUDIENCES.map((a) => <option key={a} value={a}>{a}</option>)}
-                    </select>
-                    <input type='number' placeholder='Sort order' value={form.sortOrder} onChange={(e) => setField('sortOrder', e.target.value)} className={input} />
+                    </select></L>
+                    <L t='Sort order (lower shows first)'><input type='number' value={form.sortOrder} onChange={(e) => setField('sortOrder', e.target.value)} className={input} /></L>
                 </div>
-                <ImageInput value={form.image} onChange={(url) => setField('image', url)} />
-                {msg && <p className='text-primary text-sm'>{msg}</p>}
+                <ImageInput label='Image' value={form.image} onChange={(url) => setField('image', url)} />
+                {msg && <p className='wf-alert' role='status'>{msg}</p>}
                 <div className='flex gap-2'>
-                    <button className={primaryBtn}>{editingId ? 'Update Category' : 'Create Category'}</button>
+                    <button className={primaryBtn}>{editingId ? 'Save category' : 'Add category'}</button>
                     {editingId && <button type='button' onClick={reset} className={ghostBtn}>Cancel</button>}
                 </div>
             </form>
 
-            {isLoading ? <p>Loading…</p> : (
-                <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4'>
+            {isLoading ? <p className='wf-muted'>Loading…</p> : (
+                <div className='wf-atiles'>
                     {categories.map((c) => (
-                        <div key={c._id} className='bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition'>
-                            {c.image && <img src={c.image} alt='' className='w-full h-28 object-cover' />}
-                            <div className='p-3'>
-                                <p className='font-medium'>{c.name}</p>
-                                <p className='text-xs text-text-light capitalize'>{c.audience}</p>
-                                <div className='mt-2 text-sm flex gap-3'>
-                                    <button onClick={() => startEdit(c)} className='text-blue-600 hover:underline'>Edit</button>
-                                    <button onClick={() => handleDelete(c._id)} className='text-primary hover:underline'>Delete</button>
+                        <div key={c._id} className='wf-atile'>
+                            {c.image ? <img src={c.image} alt='' loading='lazy' /> : <div className='aspect-[4/3] bg-gray-100' />}
+                            <div>
+                                <b>{c.name}</b>
+                                <small>{c.audience === 'unisex' ? 'Every store' : c.audience} · order {c.sortOrder || 0}</small>
+                                <div className='wf-acts'>
+                                    <button type='button' onClick={() => { startEdit(c); window.scrollTo(0, 0); }} className={linkBtn}>Edit</button>
+                                    <button type='button' onClick={() => handleDelete(c._id)} className={`${linkBtn} wf-danger`}>Delete</button>
                                 </div>
                             </div>
                         </div>

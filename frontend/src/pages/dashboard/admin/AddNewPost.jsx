@@ -5,7 +5,9 @@ import {
     useDeleteBlogMutation,
 } from '../../../redux/features/blogs/blogsApi'
 import ImageInput from '../../../components/ImageInput'
-import { card, input, primaryBtn, titleFont } from './adminUI'
+import { Link } from 'react-router-dom'
+import { card, input, primaryBtn, titleFont, linkBtn } from './adminUI'
+import { AdminHead, L } from './AdminParts'
 
 const blank = { title: '', subtitle: '', content: '', image: '' };
 
@@ -31,25 +33,28 @@ const AddNewPost = () => {
 
     return (
         <div>
-            <h2 className='text-2xl font-bold mb-6' style={titleFont}>Blog Posts</h2>
+            <AdminHead title='Blog posts' sub='Posts appear in the journal on the store home pages.' />
             <form onSubmit={handleSubmit} className={`${card} space-y-3 mb-8 max-w-2xl`}>
-                <h3 className='font-semibold' style={titleFont}>New Post</h3>
-                <input required placeholder='Title' value={form.title} onChange={(e) => setField('title', e.target.value)} className={input} />
-                <input placeholder='Subtitle' value={form.subtitle} onChange={(e) => setField('subtitle', e.target.value)} className={input} />
-                <textarea placeholder='Content' value={form.content} onChange={(e) => setField('content', e.target.value)} className={input} rows={4} />
-                <ImageInput value={form.image} onChange={(url) => setField('image', url)} />
-                {msg && <p className='text-primary text-sm'>{msg}</p>}
-                <button className={primaryBtn}>Publish Post</button>
+                <h3 style={titleFont}>New post</h3>
+                <L t='Title'><input required value={form.title} onChange={(e) => setField('title', e.target.value)} className={input} /></L>
+                <L t='Topic (shown above the title, e.g. Style notes)'><input value={form.subtitle} onChange={(e) => setField('subtitle', e.target.value)} className={input} /></L>
+                <L t='Text (a blank line starts a new paragraph)'><textarea value={form.content} onChange={(e) => setField('content', e.target.value)} className={input} rows={8} /></L>
+                <ImageInput label='Cover photo' value={form.image} onChange={(url) => setField('image', url)} />
+                {msg && <p className='wf-alert' role='status'>{msg}</p>}
+                <button className={primaryBtn}>Publish post</button>
             </form>
 
-            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
+            <div className='wf-atiles'>
                 {blogs.map((b) => (
-                    <div key={b._id} className='bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition'>
-                        {b.image && <img src={b.image} alt='' className='w-full h-32 object-cover' />}
-                        <div className='p-3'>
-                            <p className='font-medium line-clamp-1'>{b.title}</p>
-                            <p className='text-xs text-text-light line-clamp-1'>{b.subtitle}</p>
-                            <button onClick={() => window.confirm('Delete post?') && deleteBlog(b._id)} className='text-primary text-sm hover:underline mt-2'>Delete</button>
+                    <div key={b._id} className='wf-atile'>
+                        {b.image ? <img src={b.image} alt='' loading='lazy' /> : <div className='aspect-[4/3] bg-gray-100' />}
+                        <div>
+                            <b className='line-clamp-1'>{b.title}</b>
+                            <small className='line-clamp-1'>{b.subtitle || 'Journal'}</small>
+                            <div className='wf-acts'>
+                                <Link to={`/journal/${b.slug}`} className={linkBtn}>View</Link>
+                                <button type='button' onClick={() => window.confirm(`Delete “${b.title}”?`) && deleteBlog(b._id)} className={`${linkBtn} wf-danger`}>Delete</button>
+                            </div>
                         </div>
                     </div>
                 ))}

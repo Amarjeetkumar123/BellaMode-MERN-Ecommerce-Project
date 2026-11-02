@@ -1,12 +1,12 @@
 import { useState } from 'react'
 
 // Hand-built SVG charts — no charting dependency.
-// Colours follow the data-viz rules: a single hue for magnitude, an ordinal
-// blue ramp for the order pipeline, and one reserved status red for Cancelled.
-export const INK = '#0f172a';
-export const MUTED = '#64748b';
-export const GRID = '#e8ecf1';
-export const SERIES = '#2a78d6';
+// Colours follow the store: ink for magnitude, an ordinal grey ramp for the order
+// pipeline, and the brand red reserved for one status (Cancelled).
+export const INK = '#000000';
+export const MUTED = '#5f6368';
+export const GRID = '#e4e4e1';
+export const SERIES = '#000000';
 
 const fmtShort = (n) => {
     if (n >= 10000000) return `${(n / 10000000).toFixed(1)}Cr`;
@@ -89,7 +89,7 @@ export const TrendChart = ({ points = [], height = 190, valuePrefix = '' }) => {
 
             {hover !== null && (
                 <div
-                    className='pointer-events-none absolute -translate-x-1/2 -translate-y-full bg-text-dark text-white text-xs rounded px-2 py-1 whitespace-nowrap shadow-lg'
+                    className='pointer-events-none absolute -translate-x-1/2 -translate-y-full bg-black text-white text-xs px-2 py-1 whitespace-nowrap shadow-lg'
                     style={{ left: `${(x(hover) / W) * 100}%`, top: `${(y(points[hover].value) / H) * 100}%` }}
                 >
                     <strong>{valuePrefix}{points[hover].value.toLocaleString('en-IN')}</strong>
@@ -105,7 +105,7 @@ export const TrendChart = ({ points = [], height = 190, valuePrefix = '' }) => {
  * rows: [{ label, value, color?, meta? }]
  */
 export const BarList = ({ rows = [], valuePrefix = '', emptyText = 'No data yet.' }) => {
-    if (rows.length === 0) return <p className='text-sm text-text-light py-4'>{emptyText}</p>;
+    if (rows.length === 0) return <p className='text-sm wf-muted py-4'>{emptyText}</p>;
     const max = Math.max(...rows.map((r) => r.value), 1);
 
     return (
@@ -113,15 +113,15 @@ export const BarList = ({ rows = [], valuePrefix = '', emptyText = 'No data yet.
             {rows.map((r) => (
                 <div key={r.label}>
                     <div className='flex items-baseline justify-between gap-3 mb-1'>
-                        <span className='text-sm text-text-dark truncate'>{r.label}</span>
+                        <span className='text-sm truncate'>{r.label}</span>
                         <span className='text-sm font-semibold tabular-nums shrink-0'>
                             {valuePrefix}{r.value.toLocaleString('en-IN')}
-                            {r.meta && <span className='text-text-light font-normal text-xs ml-1.5'>{r.meta}</span>}
+                            {r.meta && <span className='wf-muted font-normal text-xs ml-1.5'>{r.meta}</span>}
                         </span>
                     </div>
-                    <div className='h-2 rounded-full bg-gray-100 overflow-hidden'>
+                    <div className='h-1.5 overflow-hidden' style={{ background: GRID }}>
                         <div
-                            className='h-full rounded-full transition-[width] duration-500'
+                            className='h-full transition-[width] duration-700'
                             style={{ width: `${Math.max((r.value / max) * 100, 2)}%`, background: r.color || SERIES }}
                         />
                     </div>

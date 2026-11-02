@@ -36,18 +36,18 @@ const ImageInput = ({ value, onChange, label = 'Image' }) => {
 
     return (
         <div className='space-y-2 min-w-0'>
-            <label className='font-medium text-sm'>{label}</label>
-            {value && <img src={value} alt='' className='h-20 w-20 object-cover rounded-lg border' />}
-            <input type='file' accept='image/*' onChange={handleFile}
-                className='block w-full text-sm text-text-light file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-gray-100 file:text-text-dark hover:file:bg-gray-200 file:cursor-pointer' />
+            <span className='wf-alabel'>{label}</span>
+            {value && <img src={value} alt='' className='h-20 w-20 object-cover border border-gray-200 bg-gray-100' />}
+            <input type='file' accept='image/*' onChange={handleFile} aria-label={`Upload ${label}`}
+                className='block w-full text-sm wf-muted file:mr-3 file:py-2 file:px-4 file:border-[1.5px] file:border-black file:bg-white file:text-sm file:font-bold file:text-black hover:file:bg-black hover:file:text-white file:cursor-pointer file:transition' />
             <div className='flex gap-2 min-w-0'>
-                <input placeholder='or paste image URL' value={urlText}
+                <input placeholder='or paste an image URL' value={urlText} aria-label={`${label} URL`}
                     onChange={(e) => setUrlText(e.target.value)}
-                    className='border border-gray-200 rounded-lg px-3 py-2 text-sm flex-1 min-w-0 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15' />
+                    className='wf-ainput flex-1 min-w-0' />
                 <button type='button' onClick={handleUrl} disabled={savingUrl}
-                    className='px-3 py-2 bg-text-dark text-white rounded-lg text-sm shrink-0 hover:opacity-90'>Use URL</button>
+                    className='wf-btn wf-btn--sm shrink-0'>Use URL</button>
             </div>
-            {(uploading || status) && <p className='text-xs text-gray-500'>{uploading ? 'Uploading…' : status}</p>}
+            {(uploading || status) && <p className='text-xs wf-muted'>{uploading ? 'Uploading…' : status}</p>}
         </div>
     );
 };

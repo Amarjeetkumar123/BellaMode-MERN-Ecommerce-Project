@@ -6,7 +6,8 @@ import {
     useDeleteBannerMutation,
 } from '../../../redux/features/banners/bannersApi'
 import ImageInput from '../../../components/ImageInput'
-import { card, input, primaryBtn, ghostBtn, titleFont } from './adminUI'
+import { card, input, primaryBtn, ghostBtn, titleFont, linkBtn } from './adminUI'
+import { AdminHead, L } from './AdminParts'
 
 const bannerBlank = { title: '', subtitle: '', image: '', link: '/shop', ctaText: 'Shop Now', position: 'hero' };
 
@@ -83,25 +84,29 @@ const DashboardSettings = () => {
     };
 
     return (
-        <div className='space-y-8'>
+        <div className='space-y-6'>
             <div>
-                <h2 className='text-2xl font-bold mb-4' style={titleFont}>Brand Settings</h2>
-                <form onSubmit={saveBrand} className={`${card} max-w-2xl space-y-3`}>
-                    <input placeholder='Brand name' value={brand.brandName} onChange={(e) => setBrand({ ...brand, brandName: e.target.value })} className={input} />
-                    <input placeholder='Hero tagline' value={brand.heroTagline} onChange={(e) => setBrand({ ...brand, heroTagline: e.target.value })} className={input} />
-                    <input placeholder='Contact email' value={brand.contactEmail} onChange={(e) => setBrand({ ...brand, contactEmail: e.target.value })} className={input} />
-                    <input placeholder='Contact phone' value={brand.contactPhone} onChange={(e) => setBrand({ ...brand, contactPhone: e.target.value })} className={input} />
-                    <ImageInput label='Logo' value={brand.logoUrl} onChange={(url) => setBrand({ ...brand, logoUrl: url })} />
+                <AdminHead title='Settings' sub='Brand, stores, home page images, the announcement bar and banners.' />
+                <form onSubmit={saveBrand} className={`${card} max-w-3xl space-y-4`}>
+                    <h3 style={titleFont}>Brand</h3>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                        <L t='Brand name (two words show in two colours)'><input value={brand.brandName} onChange={(e) => setBrand({ ...brand, brandName: e.target.value })} className={input} /></L>
+                        <L t='Hero tagline'><input value={brand.heroTagline} onChange={(e) => setBrand({ ...brand, heroTagline: e.target.value })} className={input} /></L>
+                        <L t='Contact email'><input type='email' value={brand.contactEmail} onChange={(e) => setBrand({ ...brand, contactEmail: e.target.value })} className={input} /></L>
+                        <L t='Contact phone'><input value={brand.contactPhone} onChange={(e) => setBrand({ ...brand, contactPhone: e.target.value })} className={input} /></L>
+                    </div>
+                    <ImageInput label='Logo (optional; replaces the wordmark)' value={brand.logoUrl} onChange={(url) => setBrand({ ...brand, logoUrl: url })} />
 
                     {/* Store audiences */}
-                    <h3 className='font-semibold pt-4' style={titleFont}>Store Audiences</h3>
-                    <p className='text-sm text-text-light'>Choose which audiences your store serves. The storefront (nav, home, filters, footer &amp; hero) adapts automatically. Footwear, watches, perfumes &amp; accessories stay available for everyone.</p>
+                    <h3 className='pt-6 mt-2 border-t border-gray-200' style={titleFont}>Stores</h3>
+                    <p className='text-sm wf-muted'>Choose which audiences your store serves. The storefront (nav, home, filters, footer &amp; hero) adapts automatically. Footwear, watches, perfumes &amp; accessories stay available for everyone.</p>
                     <div className='flex flex-wrap gap-2'>
                         {PRESETS.map((p) => {
                             const on = p.keys.length === activeAudiences.length && p.keys.every((k) => activeAudiences.includes(k));
                             return (
                                 <button type='button' key={p.label} onClick={() => setActiveAudiences(p.keys)}
-                                    className={`px-3 py-1.5 rounded-full text-sm border transition ${on ? 'bg-text-dark text-white border-text-dark' : 'border-gray-200 hover:border-text-dark'}`}>
+                                    aria-pressed={on}
+                                    className={`px-3.5 py-2 text-sm font-semibold border-[1.5px] transition ${on ? 'bg-black text-white border-black' : 'border-gray-300 hover:border-black'}`}>
                                     {p.label}
                                 </button>
                             );
@@ -110,17 +115,17 @@ const DashboardSettings = () => {
                     <div className='flex flex-wrap gap-4 pt-1'>
                         {AUDIENCE_OPTS.map((aud) => (
                             <label key={aud} className='flex items-center gap-2 text-sm capitalize cursor-pointer'>
-                                <input type='checkbox' className='accent-primary w-4 h-4'
+                                <input type='checkbox' className='w-4 h-4'
                                     checked={activeAudiences.includes(aud)} onChange={() => toggleAudience(aud)} />
                                 {aud}
                             </label>
                         ))}
                     </div>
-                    {activeAudiences.length === 0 && <p className='text-primary text-xs'>Select at least one audience (empty = all audiences).</p>}
+                    {activeAudiences.length === 0 && <p className='wf-danger text-xs font-bold'>Select at least one audience (empty = all audiences).</p>}
 
                     {/* Per-audience hero images */}
-                    <h3 className='font-semibold pt-4' style={titleFont}>Audience Hero Images</h3>
-                    <p className='text-sm text-text-light'>Wide banner image shown on the homepage hero when the store is set to that audience (uploads to Cloudinary). Falls back to the default hero if empty.</p>
+                    <h3 className='pt-6 mt-2 border-t border-gray-200' style={titleFont}>Hero image for each store</h3>
+                    <p className='text-sm wf-muted'>Wide banner image shown on the homepage hero when the store is set to that audience (uploads to Cloudinary). Falls back to the default hero if empty.</p>
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                         {AUDIENCE_OPTS.filter((a) => activeAudiences.includes(a)).map((aud) => (
                             <ImageInput key={aud} label={`${aud.charAt(0).toUpperCase() + aud.slice(1)} hero`}
@@ -129,8 +134,8 @@ const DashboardSettings = () => {
                         ))}
                     </div>
 
-                    <h3 className='font-semibold pt-4' style={titleFont}>Homepage Category Tile Images</h3>
-                    <p className='text-sm text-text-light'>Override the &ldquo;Shop by Category&rdquo; tile images (Women is the large featured tile).</p>
+                    <h3 className='pt-6 mt-2 border-t border-gray-200' style={titleFont}>Home page store tiles</h3>
+                    <p className='text-sm wf-muted'>Override the &ldquo;Shop by Category&rdquo; tile images (Women is the large featured tile).</p>
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                         {AUDIENCE_OPTS.map((aud) => (
                             <ImageInput key={aud} label={aud.charAt(0).toUpperCase() + aud.slice(1)}
@@ -140,10 +145,10 @@ const DashboardSettings = () => {
                     </div>
 
                     {/* Announcement bar */}
-                    <h3 className='font-semibold pt-4' style={titleFont}>Announcement Bar</h3>
-                    <p className='text-sm text-text-light'>A slim strip above the navigation. Add more than one message and they cross-fade. Shoppers can dismiss it for their session.</p>
+                    <h3 className='pt-6 mt-2 border-t border-gray-200' style={titleFont}>Announcement bar</h3>
+                    <p className='text-sm wf-muted'>A slim strip above the navigation. Add more than one message and they cross-fade. Shoppers can dismiss it for their session.</p>
                     <label className='flex items-center gap-2 text-sm cursor-pointer'>
-                        <input type='checkbox' className='accent-primary w-4 h-4'
+                        <input type='checkbox' className='w-4 h-4'
                             checked={announcement.enabled}
                             onChange={(e) => setAnnouncement((a) => ({ ...a, enabled: e.target.checked }))} />
                         Show the announcement bar
@@ -153,7 +158,8 @@ const DashboardSettings = () => {
                         {announcement.messages.map((m, i) => (
                             <div key={i} className='flex gap-2'>
                                 <input
-                                    placeholder={`Message ${i + 1} — e.g. Complimentary shipping over ₹999`}
+                                    aria-label={`Announcement message ${i + 1}`}
+                                    placeholder={`Message ${i + 1}, e.g. Free delivery over ₹999`}
                                     value={m}
                                     onChange={(e) => setAnnouncement((a) => ({
                                         ...a,
@@ -164,7 +170,7 @@ const DashboardSettings = () => {
                                 {announcement.messages.length > 1 && (
                                     <button type='button' aria-label='Remove message'
                                         onClick={() => setAnnouncement((a) => ({ ...a, messages: a.messages.filter((_, xi) => xi !== i) }))}
-                                        className='px-3 rounded-lg border border-gray-200 hover:border-primary hover:text-primary'>
+                                        className='px-3 border border-gray-300 hover:border-black hover:text-primary'>
                                         <i className='ri-delete-bin-6-line'></i>
                                     </button>
                                 )}
@@ -173,32 +179,32 @@ const DashboardSettings = () => {
                         {announcement.messages.length < 6 && (
                             <button type='button' className={ghostBtn}
                                 onClick={() => setAnnouncement((a) => ({ ...a, messages: [...a.messages, ''] }))}>
-                                + Add message
+                                <i className='ri-add-line'></i>Add message
                             </button>
                         )}
                     </div>
 
-                    <input placeholder='Link (optional) — e.g. /shop' value={announcement.link}
-                        onChange={(e) => setAnnouncement((a) => ({ ...a, link: e.target.value }))} className={input} />
+                    <L t='Link (optional), e.g. /sale'><input value={announcement.link}
+                        onChange={(e) => setAnnouncement((a) => ({ ...a, link: e.target.value }))} className={input} /></L>
 
                     <div className='flex flex-wrap gap-6'>
                         <label className='flex items-center gap-2 text-sm'>
                             Background
                             <input type='color' value={announcement.bgColor}
                                 onChange={(e) => setAnnouncement((a) => ({ ...a, bgColor: e.target.value }))}
-                                className='w-10 h-8 rounded border border-gray-200 bg-white' />
+                                className='w-10 h-8 border border-gray-300 bg-white cursor-pointer' />
                         </label>
                         <label className='flex items-center gap-2 text-sm'>
                             Text
                             <input type='color' value={announcement.textColor}
                                 onChange={(e) => setAnnouncement((a) => ({ ...a, textColor: e.target.value }))}
-                                className='w-10 h-8 rounded border border-gray-200 bg-white' />
+                                className='w-10 h-8 border border-gray-300 bg-white cursor-pointer' />
                         </label>
                     </div>
 
                     {/* Live preview so colours can be judged before saving */}
                     {announcement.enabled && announcement.messages.some((m) => m.trim()) && (
-                        <div className='rounded-lg overflow-hidden border border-gray-200'>
+                        <div className='overflow-hidden border border-gray-200'>
                             <div className='text-center py-2 text-[0.72rem] uppercase tracking-[0.09em] font-medium'
                                 style={{ backgroundColor: announcement.bgColor, color: announcement.textColor }}>
                                 {announcement.messages.find((m) => m.trim())}
@@ -206,34 +212,36 @@ const DashboardSettings = () => {
                         </div>
                     )}
 
-                    {msg && <p className='text-primary text-sm'>{msg}</p>}
-                    <button className={primaryBtn}>Save Brand</button>
+                    {msg && <p className='wf-alert' role='status'>{msg}</p>}
+                    <button className={primaryBtn}>Save settings</button>
                 </form>
             </div>
 
             <div>
-                <h2 className='text-2xl font-bold mb-4' style={titleFont}>Homepage Banners</h2>
-                <form onSubmit={addBanner} className={`${card} space-y-3 max-w-2xl mb-6`}>
-                    <div className='grid grid-cols-2 gap-3'>
-                        <input placeholder='Title' value={banner.title} onChange={(e) => setBanner({ ...banner, title: e.target.value })} className={input} />
-                        <input placeholder='Subtitle' value={banner.subtitle} onChange={(e) => setBanner({ ...banner, subtitle: e.target.value })} className={input} />
-                        <input placeholder='Link' value={banner.link} onChange={(e) => setBanner({ ...banner, link: e.target.value })} className={input} />
-                        <input placeholder='CTA text' value={banner.ctaText} onChange={(e) => setBanner({ ...banner, ctaText: e.target.value })} className={input} />
-                        <select value={banner.position} onChange={(e) => setBanner({ ...banner, position: e.target.value })} className={`${input} col-span-2`}>
+                <form onSubmit={addBanner} className={`${card} space-y-4 max-w-3xl mb-6`}>
+                    <h3 style={titleFont}>Banners</h3>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                        <L t='Title'><input value={banner.title} onChange={(e) => setBanner({ ...banner, title: e.target.value })} className={input} /></L>
+                        <L t='Subtitle'><input value={banner.subtitle} onChange={(e) => setBanner({ ...banner, subtitle: e.target.value })} className={input} /></L>
+                        <L t='Link'><input value={banner.link} onChange={(e) => setBanner({ ...banner, link: e.target.value })} className={input} /></L>
+                        <L t='Button text'><input value={banner.ctaText} onChange={(e) => setBanner({ ...banner, ctaText: e.target.value })} className={input} /></L>
+                        <L t='Where it shows' className='sm:col-span-2'><select value={banner.position} onChange={(e) => setBanner({ ...banner, position: e.target.value })} className={input}>
                             <option value='hero'>Hero</option><option value='promo'>Promo</option><option value='deal'>Deal</option>
-                        </select>
+                        </select></L>
                     </div>
-                    <ImageInput value={banner.image} onChange={(url) => setBanner({ ...banner, image: url })} />
-                    <button className={primaryBtn}>Add Banner</button>
+                    <ImageInput label='Image' value={banner.image} onChange={(url) => setBanner({ ...banner, image: url })} />
+                    <button className={primaryBtn}>Add banner</button>
                 </form>
-                <div className='grid grid-cols-2 sm:grid-cols-3 gap-4'>
+                <div className='wf-atiles max-w-3xl'>
                     {banners.map((b) => (
-                        <div key={b._id} className='bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm'>
-                            {b.image && <img src={b.image} alt='' className='w-full h-24 object-cover' />}
-                            <div className='p-3'>
-                                <p className='text-sm font-medium'>{b.title}</p>
-                                <p className='text-xs text-text-light capitalize'>{b.position}</p>
-                                <button onClick={() => window.confirm('Delete banner?') && deleteBanner(b._id)} className='text-primary text-sm hover:underline mt-1'>Delete</button>
+                        <div key={b._id} className='wf-atile'>
+                            {b.image ? <img src={b.image} alt='' loading='lazy' /> : <div className='aspect-[4/3] bg-gray-100' />}
+                            <div>
+                                <b>{b.title || 'Untitled banner'}</b>
+                                <small>{b.position}</small>
+                                <div className='wf-acts'>
+                                    <button type='button' onClick={() => window.confirm('Delete this banner?') && deleteBanner(b._id)} className={`${linkBtn} wf-danger`}>Delete</button>
+                                </div>
                             </div>
                         </div>
                     ))}

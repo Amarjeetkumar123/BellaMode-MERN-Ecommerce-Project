@@ -9,7 +9,8 @@ import { useGetCategoriesQuery } from '../../../redux/features/categories/catego
 import ProductImages from '../../../components/ProductImages'
 import AdminPager from './AdminPager'
 import { formatINR } from '../../../utils/formatCurrency'
-import { card, input, primaryBtn, ghostBtn, titleFont } from './adminUI'
+import { card, input, primaryBtn, ghostBtn, titleFont, linkBtn } from './adminUI'
+import { AdminHead, L } from './AdminParts'
 
 const AUDIENCES = ['men', 'women', 'kids', 'unisex'];
 const blank = { name: '', description: '', price: '', oldPrice: '', audience: 'men', category: '', brand: '', colors: '', sizes: '', stock: '', images: [], isTrending: false, isFeatured: false };
@@ -95,25 +96,25 @@ const ManageProducts = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Delete this product?')) return;
+        if (!window.confirm('Delete this product? This can’t be undone.')) return;
         await deleteProduct(id);
     };
 
     return (
         <div>
-            <h2 className='text-2xl font-bold mb-6' style={titleFont}>Manage Products</h2>
+            <AdminHead title='Products' sub='Add, edit and price what’s in the store. Photos are cropped to fill the product cards.' />
 
             <form onSubmit={handleSubmit} className={`${card} space-y-4 mb-8`}>
-                <h3 className='font-semibold' style={titleFont}>{editingId ? 'Edit Product' : 'New Product'}</h3>
+                <h3 style={titleFont}>{editingId ? `Edit: ${form.name || 'product'}` : 'New product'}</h3>
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                    <input required placeholder='Name' value={form.name} onChange={(e) => setField('name', e.target.value)} className={input} />
-                    <input required type='number' placeholder='Price (₹)' value={form.price} onChange={(e) => setField('price', e.target.value)} className={input} />
-                    <input type='number' placeholder='Old Price (₹)' value={form.oldPrice} onChange={(e) => setField('oldPrice', e.target.value)} className={input} />
-                    <input type='number' placeholder='Stock' value={form.stock} onChange={(e) => setField('stock', e.target.value)} className={input} />
-                    <select value={form.audience} onChange={(e) => changeAudience(e.target.value)} className={`${input} capitalize`}>
+                    <L t='Name'><input required value={form.name} onChange={(e) => setField('name', e.target.value)} className={input} /></L>
+                    <L t='Price (₹)'><input required type='number' value={form.price} onChange={(e) => setField('price', e.target.value)} className={input} /></L>
+                    <L t='Old price (₹), shows a sale badge'><input type='number' value={form.oldPrice} onChange={(e) => setField('oldPrice', e.target.value)} className={input} /></L>
+                    <L t='Stock'><input type='number' value={form.stock} onChange={(e) => setField('stock', e.target.value)} className={input} /></L>
+                    <L t='Store'><select value={form.audience} onChange={(e) => changeAudience(e.target.value)} className={`${input} capitalize`}>
                         {AUDIENCES.map((a) => <option key={a} value={a}>{a}</option>)}
-                    </select>
-                    <select required value={form.category} onChange={(e) => setField('category', e.target.value)} className={input}>
+                    </select></L>
+                    <L t='Category'><select required value={form.category} onChange={(e) => setField('category', e.target.value)} className={input}>
                         <option value=''>Select category…</option>
                         {ownCats.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
                         {sharedCats.length > 0 && (
@@ -121,67 +122,61 @@ const ManageProducts = () => {
                                 {sharedCats.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
                             </optgroup>
                         )}
-                    </select>
-                    <input placeholder='Brand' value={form.brand} onChange={(e) => setField('brand', e.target.value)} className={input} />
-                    <input placeholder='Colors (comma separated)' value={form.colors} onChange={(e) => setField('colors', e.target.value)} className={input} />
-                    <input placeholder='Sizes (comma separated)' value={form.sizes} onChange={(e) => setField('sizes', e.target.value)} className={input} />
+                    </select></L>
+                    <L t='Brand'><input value={form.brand} onChange={(e) => setField('brand', e.target.value)} className={input} /></L>
+                    <L t='Colours, comma separated'><input value={form.colors} onChange={(e) => setField('colors', e.target.value)} className={input} /></L>
+                    <L t='Sizes, comma separated'><input value={form.sizes} onChange={(e) => setField('sizes', e.target.value)} className={input} /></L>
                 </div>
-                <textarea placeholder='Description' value={form.description} onChange={(e) => setField('description', e.target.value)} className={input} rows={2} />
+                <L t='Description'><textarea value={form.description} onChange={(e) => setField('description', e.target.value)} className={input} rows={3} /></L>
                 <ProductImages value={form.images} onChange={(urls) => setField('images', urls)} />
                 <div className='flex gap-5'>
-                    <label className='flex items-center gap-1.5 text-sm'><input type='checkbox' checked={form.isTrending} onChange={(e) => setField('isTrending', e.target.checked)} className='accent-primary' /> Trending</label>
-                    <label className='flex items-center gap-1.5 text-sm'><input type='checkbox' checked={form.isFeatured} onChange={(e) => setField('isFeatured', e.target.checked)} className='accent-primary' /> Featured</label>
+                    <label className='flex items-center gap-2 text-sm font-semibold cursor-pointer'><input type='checkbox' checked={form.isTrending} onChange={(e) => setField('isTrending', e.target.checked)} className='w-4 h-4' /> Trending</label>
+                    <label className='flex items-center gap-2 text-sm font-semibold cursor-pointer'><input type='checkbox' checked={form.isFeatured} onChange={(e) => setField('isFeatured', e.target.checked)} className='w-4 h-4' /> Featured</label>
                 </div>
-                {msg && <p className='text-primary text-sm'>{msg}</p>}
+                {msg && <p className='wf-alert' role='status'>{msg}</p>}
                 <div className='flex gap-2'>
-                    <button className={primaryBtn}>{editingId ? 'Update Product' : 'Create Product'}</button>
+                    <button className={primaryBtn}>{editingId ? 'Save product' : 'Add product'}</button>
                     {editingId && <button type='button' onClick={reset} className={ghostBtn}>Cancel</button>}
                 </div>
             </form>
 
             {/* Search */}
             <div className='flex items-center justify-between flex-wrap gap-3 mb-4'>
-                <div className='relative w-full sm:max-w-sm'>
-                    <i className='ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-text-light'></i>
-                    <input
-                        value={search}
-                        onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                        placeholder='Search products by name, brand, category…'
-                        className={`${input} !pl-9`}
-                    />
-                    {search && (
-                        <button onClick={() => setSearch('')} className='absolute right-3 top-1/2 -translate-y-1/2 text-text-light hover:text-primary'>
-                            <i className='ri-close-line'></i>
-                        </button>
-                    )}
+                <div className='wf-asearch'>
+                    <i className='ri-search-line' aria-hidden='true'></i>
+                    <label className='sr-only' htmlFor='wf-psearch'>Search products</label>
+                    <input id='wf-psearch' type='search' value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder='Search by name, brand or category' className={input} />
                 </div>
-                <span className='text-sm text-text-light'>{filtered.length} of {products.length} products</span>
+                <span className='text-sm wf-muted'>{total} product{total === 1 ? '' : 's'}</span>
             </div>
 
-            {isLoading ? <p>Loading…</p> : (
+            {isLoading ? <p className='wf-muted'>Loading…</p> : (
                 <div className={`${card} !p-0 overflow-hidden`}>
                     <div className='overflow-x-auto'>
                         <table className='w-full text-sm'>
-                            <thead className='bg-gray-50 text-text-light'><tr>
-                                <th className='p-3 text-left font-medium'>Product</th><th className='p-3 font-medium'>Audience</th><th className='p-3 font-medium'>Price</th><th className='p-3 font-medium'>Stock</th><th className='p-3 font-medium'>Actions</th>
+                            <thead><tr>
+                                <th className='text-left'>Product</th><th className='text-left'>Store</th><th className='text-left'>Price</th><th className='text-left'>Stock</th><th><span className='sr-only'>Actions</span></th>
                             </tr></thead>
                             <tbody>
                                 {filtered.length === 0 && (
-                                    <tr><td colSpan={5} className='p-6 text-center text-text-light'>No products match “{search}”.</td></tr>
+                                    <tr><td colSpan={5} className='text-center wf-muted' style={{ padding: 28 }}>No products match “{search}”.</td></tr>
                                 )}
                                 {filtered.map((p) => (
-                                    <tr key={p._id} className='border-t border-gray-100 hover:bg-gray-50/50'>
-                                        <td className='p-3 flex items-center gap-3'>
-                                            <img src={(p.images && p.images[0])} alt='' className='w-11 h-11 object-cover rounded-lg bg-gray-50' /><span className='font-medium'>{p.name}</span>
+                                    <tr key={p._id}>
+                                        <td>
+                                            <div className='flex items-center gap-3'>
+                                                <img src={(p.images && p.images[0])} alt='' className='w-10 object-cover shrink-0' style={{ aspectRatio: '3 / 4' }} />
+                                                <span><b>{p.name}</b><span className='block text-xs wf-muted'>{p.category?.name || ''}{p.images?.length > 1 ? ` · ${p.images.length} photos` : ''}</span></span>
+                                            </div>
                                         </td>
-                                        <td className='p-3 text-center capitalize'>{p.audience}</td>
-                                        <td className='p-3 text-center'>{formatINR(p.price)}</td>
-                                        <td className='p-3 text-center'>
-                                            <span className={p.stock > 0 ? '' : 'text-primary font-medium'}>{p.stock}</span>
-                                        </td>
-                                        <td className='p-3 text-center whitespace-nowrap'>
-                                            <button onClick={() => startEdit(p)} className='text-blue-600 hover:underline mr-3'>Edit</button>
-                                            <button onClick={() => handleDelete(p._id)} className='text-primary hover:underline'>Delete</button>
+                                        <td className='capitalize'>{p.audience === 'unisex' ? 'All stores' : p.audience}</td>
+                                        <td className='tabular-nums'><b>{formatINR(p.price)}</b>{p.oldPrice > p.price && <s className='block text-xs wf-muted'>{formatINR(p.oldPrice)}</s>}</td>
+                                        <td className='tabular-nums'>{p.stock > 0 ? p.stock : <span className='wf-apill is-shipped'>Out of stock</span>}{p.stock > 0 && p.stock <= 5 && <span className='block text-xs wf-danger font-bold'>Low</span>}</td>
+                                        <td className='text-right whitespace-nowrap'>
+                                            <span className='wf-acts justify-end' style={{ gap: 16 }}>
+                                                <button type='button' onClick={() => startEdit(p)} className={linkBtn}>Edit</button>
+                                                <button type='button' onClick={() => handleDelete(p._id)} className={`${linkBtn} wf-danger`}>Delete</button>
+                                            </span>
                                         </td>
                                     </tr>
                                 ))}
