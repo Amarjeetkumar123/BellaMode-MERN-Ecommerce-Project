@@ -5,6 +5,7 @@ import { card, input, statusPill } from './adminUI'
 import { AdminHead, FilterBar, Pick } from './AdminParts'
 import { useUrlFilters } from './useUrlFilters'
 import Seg from '../../../components/Seg'
+import { InlineLoader } from '../../../components/Loaders'
 
 const STATUSES = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
 const cap = (s) => s.charAt(0) + s.slice(1).toLowerCase();
@@ -46,7 +47,7 @@ const ManageOrders = () => {
                 <Pick label='Sort' value={f.sort} onChange={(sort) => setF({ sort })}
                     options={[['newest', 'Newest first'], ['oldest', 'Oldest first'], ['total_desc', 'Total, high to low'], ['total_asc', 'Total, low to high']]} />
             </FilterBar>
-            {isLoading ? <p className='wf-muted'>Loading…</p> : orders.length === 0 ? (
+            {isLoading ? <InlineLoader label='Loading orders' /> : orders.length === 0 ? (
                 filtering
                     ? <div className='wf-blank'><b>No orders match these filters</b><button type='button' className='wf-linkbtn wf-u' onClick={clearF}>Clear filters</button></div>
                     : <div className='wf-blank'><b>No orders yet</b>New orders appear here as soon as they’re placed.</div>

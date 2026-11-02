@@ -6,6 +6,7 @@ import Seg from '../../../components/Seg'
 import AdminPager from './AdminPager'
 import { card, primaryBtn, ghostBtn, statusPill } from './adminUI'
 import { AdminHead } from './AdminParts'
+import { InlineLoader } from '../../../components/Loaders'
 
 const PAYMENT = { PAID: 'paid', PENDING: 'not paid', REFUNDED: 'refunded', FAILED: 'failed' };
 
@@ -74,7 +75,7 @@ const ManageHelp = () => {
                 <Seg label='Show' value={status} onChange={(v) => { setStatus(v); setPage(1); }}
                     options={[['OPEN', 'Open', d?.openCount ?? 0], ['RESOLVED', 'Resolved'], ['ALL', 'All']]} />
             </AdminHead>
-            {isLoading ? <p className='wf-muted'>Loading…</p> : requests.length === 0 ? (
+            {isLoading ? <InlineLoader label='Loading requests' /> : requests.length === 0 ? (
                 <div className='wf-blank'><b>{status === 'OPEN' ? 'Nothing waiting' : 'No requests here'}</b>{status === 'OPEN' ? 'New help requests from customers appear here.' : 'Try another filter.'}</div>
             ) : (
                 <div className='space-y-4 max-w-3xl'>

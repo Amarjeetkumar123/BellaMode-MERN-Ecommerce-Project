@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { NavLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLogoutUserMutation } from '../../redux/features/auth/authApi'
@@ -5,6 +6,7 @@ import { logout } from '../../redux/features/auth/authSlice'
 import AccountLayout from '../account/AccountLayout'
 import { adminLinks, isAdminRole } from '../../data/adminNav'
 import { initialOf } from '../../utils/user'
+import { PageLoader } from '../../components/Loaders'
 
 // the customer's own pages use the storefront account layout, for every role
 const ACCOUNT_PAGES = ['/dashboard', '/dashboard/orders', '/dashboard/profile'];
@@ -42,7 +44,7 @@ const DashboardLayout = () => {
                     </ul>
                 </nav>
             </aside>
-            <section className='min-w-0'><Outlet /></section>
+            <section className='min-w-0'><Suspense fallback={<PageLoader />}><div className='wf-route' key={pathname}><Outlet /></div></Suspense></section>
         </div>
     );
 };

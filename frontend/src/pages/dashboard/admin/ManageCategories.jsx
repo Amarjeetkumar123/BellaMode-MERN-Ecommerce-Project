@@ -10,6 +10,7 @@ import { card, input, primaryBtn, ghostBtn, titleFont, linkBtn } from './adminUI
 import { AdminHead, L, FilterBar, Pick } from './AdminParts'
 import { useUrlFilters } from './useUrlFilters'
 import Seg from '../../../components/Seg'
+import { InlineLoader } from '../../../components/Loaders'
 
 const AUDIENCES = ['men', 'women', 'kids', 'unisex'];
 const blank = { name: '', audience: 'men', image: '', sortOrder: 0 };
@@ -81,7 +82,7 @@ const ManageCategories = () => {
                 <Pick label='Sort' value={f.sort} onChange={(sort) => setF({ sort })}
                     options={[['order', 'Store, then display order'], ['name', 'Name A to Z'], ['newest', 'Newest first']]} />
             </FilterBar>
-            {isLoading ? <p className='wf-muted'>Loading…</p> : shown.length === 0 ? (
+            {isLoading ? <InlineLoader label='Loading categories' /> : shown.length === 0 ? (
                 <div className='wf-blank'><b>No categories match</b><button type='button' className='wf-linkbtn wf-u' onClick={clearF}>Clear filters</button></div>
             ) : (
                 <div className='wf-atiles'>

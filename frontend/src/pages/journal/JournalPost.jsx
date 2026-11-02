@@ -5,6 +5,7 @@ import NotFound from '../NotFound'
 import { useGetBlogQuery, useGetBlogsQuery } from '../../redux/features/blogs/blogsApi'
 import { useGetProductsQuery } from '../../redux/features/products/productsApi'
 import { fmtDate } from '../../data/orders'
+import { PageLoader } from '../../components/Loaders'
 
 const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -31,7 +32,7 @@ const JournalPost = () => {
         return () => window.removeEventListener('scroll', onScroll);
     }, [slug]);
 
-    if (isLoading) return <main className='wf-wrap wf-pagehead'><p className='wf-muted'>Loading…</p></main>;
+    if (isLoading) return <main className='wf-wrap'><PageLoader label='Loading the story' /></main>;
     if (isError || !b) return <NotFound />;
 
     const paras = (b.content || '').split(/\n+/).map((p) => p.trim()).filter(Boolean);

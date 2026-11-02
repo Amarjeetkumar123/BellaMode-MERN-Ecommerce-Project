@@ -5,6 +5,7 @@ import { useGetOrderQuery } from '../../redux/features/orders/ordersApi'
 import { formatINR } from '../../utils/formatCurrency'
 import { etaRange, orderNo } from '../../data/orders'
 import { Track } from '../account/OrderCard'
+import { PageLoader } from '../../components/Loaders'
 
 // Shown right after checkout: /order/:id
 const OrderPlaced = () => {
@@ -14,7 +15,7 @@ const OrderPlaced = () => {
     const o = data?.data?.order;
     const [copied, setCopied] = useState(false);
 
-    if (isLoading) return <main className='wf-wrap wf-pagehead'><p className='wf-muted'>Loading your order…</p></main>;
+    if (isLoading) return <main className='wf-wrap'><PageLoader label='Loading your order' /></main>;
     if (isError || !o) return (
         <main className='wf-wrap wf-pagehead' style={{ paddingBottom: 88 }}>
             <p className='wf-kick'>Order</p><h1>We couldn’t find that order</h1>

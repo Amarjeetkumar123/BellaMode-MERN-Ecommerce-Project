@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components -- this is the route table, not a component file */
+import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import App from "../App";
 import CategoryPage from "../pages/category/CategoryPage";
@@ -19,14 +21,15 @@ import DashboardLayout from "../pages/dashboard/DashboardLayout";
 import UserDashboard from "../pages/dashboard/user/UserDashboard";
 import Profile from "../pages/dashboard/user/Profile";
 import MyOrders from "../pages/dashboard/user/MyOrders";
-import AdminDashboard from "../pages/dashboard/admin/AdminDashboard";
-import ManageProducts from "../pages/dashboard/admin/ManageProducts";
-import ManageCategories from "../pages/dashboard/admin/ManageCategories";
-import ManageOrders from "../pages/dashboard/admin/ManageOrders";
-import AddNewPost from "../pages/dashboard/admin/AddNewPost";
-import DashboardSettings from "../pages/dashboard/admin/DashboardSettings";
-import ManageUsers from "../pages/dashboard/admin/ManageUsers";
-import ManageHelp from "../pages/dashboard/admin/ManageHelp";
+// Admin pages load only when an admin opens them, so shoppers download less.
+const AdminDashboard = lazy(() => import("../pages/dashboard/admin/AdminDashboard"));
+const ManageProducts = lazy(() => import("../pages/dashboard/admin/ManageProducts"));
+const ManageCategories = lazy(() => import("../pages/dashboard/admin/ManageCategories"));
+const ManageOrders = lazy(() => import("../pages/dashboard/admin/ManageOrders"));
+const AddNewPost = lazy(() => import("../pages/dashboard/admin/AddNewPost"));
+const DashboardSettings = lazy(() => import("../pages/dashboard/admin/DashboardSettings"));
+const ManageUsers = lazy(() => import("../pages/dashboard/admin/ManageUsers"));
+const ManageHelp = lazy(() => import("../pages/dashboard/admin/ManageHelp"));
 
 const ADMIN = ["ADMIN", "SUPERADMIN"];
 

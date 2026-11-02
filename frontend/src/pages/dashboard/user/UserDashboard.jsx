@@ -5,6 +5,7 @@ import { useWishlist } from '../../../hooks/useWishlist'
 import { formatINR } from '../../../utils/formatCurrency'
 import { isOpenOrder } from '../../../data/orders'
 import OrderCard from '../../account/OrderCard'
+import { SkeletonOrders } from '../../../components/Loaders'
 
 const openWishlist = () => window.dispatchEvent(new Event('wf:open-wishlist'));
 
@@ -26,7 +27,7 @@ const UserDashboard = () => {
             </div>
 
             <div className='wf-rowhead'><p className='wf-sub'>Latest order</p>{orders.length > 1 && <Link to='/dashboard/orders' className='wf-u'>All orders</Link>}</div>
-            {isLoading ? <p className='wf-muted'>Loading…</p> : orders[0] ? <OrderCard order={orders[0]} compact /> : (
+            {isLoading ? <SkeletonOrders count={1} /> : orders[0] ? <OrderCard order={orders[0]} compact /> : (
                 <div className='wf-blank'><b>No orders yet</b>When you place one, you can follow it here.<br /><Link to='/' className='wf-btn wf-btn--sm'>Start shopping</Link></div>
             )}
 

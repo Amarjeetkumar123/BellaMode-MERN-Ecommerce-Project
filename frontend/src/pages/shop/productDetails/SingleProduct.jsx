@@ -8,6 +8,7 @@ import ProductCard, { toCartProduct } from '../ProductCard'
 import { formatINR } from '../../../utils/formatCurrency'
 import { useWishlist } from '../../../hooks/useWishlist'
 import { listingLink } from '../../../data/catalog'
+import { SkeletonProduct } from '../../../components/Loaders'
 
 const LABEL = { men: 'Men', women: 'Women', kids: 'Kids', unisex: 'Lifestyle' };
 // With a single photo, the gallery offers detail crops of it instead.
@@ -265,7 +266,7 @@ const SingleProduct = () => {
     const product = data?.data?.product;
     useEffect(() => { window.scrollTo(0, 0); }, [id]);
 
-    if (isLoading) return <main className='wf-page wf-wrap wf-page-top'><p className='wf-muted'>Loading…</p></main>;
+    if (isLoading) return <SkeletonProduct />;
     if (isError || !product) {
         return <main className='wf-page wf-wrap' style={{ padding: '96px 0' }}><p className='wf-empty'><b>Product not found</b><Link to='/' className='wf-u'>Back to the store</Link></p></main>;
     }

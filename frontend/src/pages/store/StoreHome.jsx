@@ -9,6 +9,7 @@ import StoreHero from './StoreHero'
 import { STORE_HOME, HERO_SLIDES, PRICE_BANDS, PERKS, LIFESTYLE, inBand, listingLink } from '../../data/catalog'
 import { formatINR } from '../../utils/formatCurrency'
 import { slideTo } from '../../utils/slideTo'
+import { SkeletonGrid } from '../../components/Loaders'
 
 const ALL_LABEL = { men: 'menswear', women: 'womenswear', kids: 'kidswear' };
 const LIFESTYLE_IMG = Object.fromEntries(LIFESTYLE.map((l) => [l.slug, l.image]));
@@ -136,7 +137,7 @@ const StoreHome = ({ store }) => {
                     <Link to={allTo} className='wf-u'>View all {ALL_LABEL[store]}</Link>
                 </div>
                 {isLoading
-                    ? <p className='text-text-light'>Loading…</p>
+                    ? <SkeletonGrid count={8} />
                     : (
                         <div className='wf-grid' role='tabpanel' key={tab}>
                             {lists[tab].map((p, i) => <ProductCardItem key={p._id} product={p} index={i} />)}

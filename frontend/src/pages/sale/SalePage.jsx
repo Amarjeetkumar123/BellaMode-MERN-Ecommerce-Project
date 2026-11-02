@@ -4,6 +4,7 @@ import ProductCard from '../shop/ProductCard'
 import { useGetProductsQuery } from '../../redux/features/products/productsApi'
 import { useActiveAudiences } from '../../hooks/useActiveAudiences'
 import { PRICE_BANDS, PERKS, inBand } from '../../data/catalog'
+import { SkeletonGrid } from '../../components/Loaders'
 
 const PAGE = 12;
 const LABEL = { men: 'Men', women: 'Women', kids: 'Kids' };
@@ -113,7 +114,7 @@ const SalePage = () => {
                 </div>
 
                 <section className='wf-sale-list' aria-label='Sale products'>
-                    {isLoading ? <p className='wf-muted'>Loading…</p> : list.length === 0 ? (
+                    {isLoading ? <SkeletonGrid count={8} /> : list.length === 0 ? (
                         <p className='wf-empty'><b>No deals match</b>Try another size or price, or <button type='button' className='wf-linkbtn wf-u' onClick={reset}>clear the filters</button>.</p>
                     ) : (
                         <>

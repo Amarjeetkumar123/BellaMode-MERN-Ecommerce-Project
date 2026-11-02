@@ -5,6 +5,7 @@ import { card, input, statusPill, linkBtn } from './adminUI'
 import { AdminHead } from './AdminParts'
 import { initialOf } from '../../../utils/user'
 import AdminPager from './AdminPager'
+import { InlineLoader } from '../../../components/Loaders'
 
 const ROLES = ['USER', 'ADMIN', 'SUPERADMIN'];
 
@@ -18,7 +19,7 @@ const ManageUsers = () => {
     const totalPages = data?.data?.totalPages || 1;
     const total = data?.data?.total || users.length;
 
-    if (isLoading) return <p className='wf-muted'>Loading…</p>;
+    if (isLoading) return <InlineLoader label='Loading people' />;
 
     return (
         <div>

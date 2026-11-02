@@ -12,6 +12,7 @@ import { formatINR } from '../../../utils/formatCurrency'
 import { card, input, primaryBtn, ghostBtn, titleFont, linkBtn } from './adminUI'
 import { AdminHead, L, FilterBar, Pick } from './AdminParts'
 import { useUrlFilters } from './useUrlFilters'
+import { InlineLoader } from '../../../components/Loaders'
 
 const AUDIENCES = ['men', 'women', 'kids', 'unisex'];
 const blank = { name: '', description: '', price: '', oldPrice: '', audience: 'men', category: '', brand: '', colors: '', sizes: '', stock: '', images: [], isTrending: false, isFeatured: false };
@@ -163,7 +164,7 @@ const ManageProducts = () => {
                     options={[['newest', 'Newest first'], ['oldest', 'Oldest first'], ['name_asc', 'Name A to Z'], ['price_asc', 'Price, low to high'], ['price_desc', 'Price, high to low'], ['stock_asc', 'Stock, lowest first']]} />
             </FilterBar>
 
-            {isLoading ? <p className='wf-muted'>Loading…</p> : (
+            {isLoading ? <InlineLoader label='Loading products' /> : (
                 <div className={`${card} !p-0 overflow-hidden transition-opacity ${isFetching ? 'opacity-60' : ''}`}>
                     <div className='overflow-x-auto'>
                         <table className='w-full text-sm'>

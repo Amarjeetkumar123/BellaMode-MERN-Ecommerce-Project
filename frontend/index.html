@@ -8,9 +8,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Allura&family=Hanken+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* shown until the app starts, then React replaces it */
+    .boot { position: fixed; inset: 0; display: grid; place-content: center; justify-items: center; gap: 18px; background: #fff; font: 700 28px/1 "Hanken Grotesk", system-ui, sans-serif; letter-spacing: -.035em; color: #000; }
+    .boot b { color: #c8102e; font-weight: inherit; }
+    .boot i { display: block; width: 140px; height: 2px; background: #ececea; overflow: hidden; }
+    .boot i::after { content: ""; display: block; width: 40%; height: 100%; background: #c8102e; animation: boot 1s ease-in-out infinite; }
+    @keyframes boot { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+    @media (prefers-reduced-motion: reduce) { .boot i::after { animation: none; width: 100%; } }
+  </style>
 </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div class="boot" role="status" aria-label="Loading Wearly Fashion"><span><b>Wearly</b> Fashion</span><i></i></div></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

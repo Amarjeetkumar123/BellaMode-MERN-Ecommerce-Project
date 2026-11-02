@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import ProductCard from '../shop/ProductCard'
 import Seg from '../../components/Seg'
 import { useGetProductsQuery } from '../../redux/features/products/productsApi'
+import { SkeletonGrid } from '../../components/Loaders'
 
 const STORES = [['men', 'Men'], ['women', 'Women'], ['kids', 'Kids'], ['unisex', 'Lifestyle']];
 const POPULAR = ['shirt', 'sneakers', 'dress', 'watch', 'jeans', 'saree'];
@@ -42,13 +43,15 @@ const Search = () => {
                 {text && <button type='button' className='wf-clear' aria-label='Clear search' onClick={() => { setText(''); input.current.focus(); }}><i className='ri-close-line'></i></button>}
             </form>
 
+            {q && isFetching && found.length === 0 && <div style={{ marginTop: 32 }}><SkeletonGrid count={8} /></div>}
+
             {q && found.length > 0 && (
                 <>
                     <div className='wf-sline'>
                         <p aria-live='polite'>{found.length} result{found.length > 1 ? 's' : ''} for “{q}”{isFetching ? ' …' : ''}</p>
                         {tabs.length > 2 && <Seg label='Store' options={tabs} value={store} onChange={setStore} />}
                     </div>
-                    <ProductCard products={shown} />
+                    <ProductCard products={shown} className={isFetching ? 'wf-refreshing' : ''} />
                 </>
             )}
 

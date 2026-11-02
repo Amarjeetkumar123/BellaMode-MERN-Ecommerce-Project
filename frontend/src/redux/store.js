@@ -16,7 +16,7 @@ import wishlistApi from "./features/wishlist/wishlistApi";
 import newsletterApi from "./features/newsletter/newsletterApi";
 import supportApi from "./features/support/supportApi";
 
-const apis = [
+export const apis = [
     authApi,
     productsApi,
     categoriesApi,

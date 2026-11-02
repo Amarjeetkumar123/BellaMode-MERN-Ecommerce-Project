@@ -5,6 +5,7 @@ import { useGetProductsQuery, useGetProductFiltersQuery } from '../../redux/feat
 import { useGetCategoriesQuery } from '../../redux/features/categories/categoriesApi'
 import { useActiveAudiences } from '../../hooks/useActiveAudiences'
 import { AUDIENCES, LIFESTYLE, PRICE_BANDS, STORE_HOME, listingLink } from '../../data/catalog'
+import { SkeletonGrid } from '../../components/Loaders'
 
 const PAGE = 12;
 const SORTS = [['newest', 'Newest'], ['price_asc', 'Price: low to high'], ['price_desc', 'Price: high to low'], ['rating', 'Top rated']];
@@ -27,6 +28,7 @@ const ShopPage = () => {
     const store = [sp.get('store'), audience].find((s) => keys.includes(s)) || '';
 
     const [limit, setLimit] = useState(PAGE);
+    const [more, setMore] = useState(false); // fetching the next page, not new filters
     const [panel, setPanel] = useState(false);
     useEffect(() => { setLimit(PAGE); }, [sp]);
     useEffect(() => { window.scrollTo(0, 0); }, [store, category]);
@@ -45,6 +47,8 @@ const ShopPage = () => {
         ...(colors.length && { color: colors.join(',') }),
     });
     const products = data?.data?.products || [];
+    useEffect(() => { if (!isFetching) setMore(false); }, [isFetching]);
+    const refreshing = isFetching && !isLoading && !more;
     const total = data?.data?.total ?? 0;
 
     const { data: catData } = useGetCategoriesQuery();
@@ -170,17 +174,17 @@ const ShopPage = () => {
                 </aside>
 
                 <section aria-label='Products'>
-                    {isLoading ? <p className='wf-muted'>Loading…</p> : products.length === 0 ? (
+                    {isLoading ? <SkeletonGrid count={9} className='wf-grid--3' /> : products.length === 0 && !refreshing ? (
                         <p className='wf-empty'><b>Nothing matches those filters</b>Try removing one, or <button type='button' className='wf-linkbtn wf-u' onClick={() => setSp({}, { replace: true })}>clear them all</button>.</p>
                     ) : (
                         <>
-                            <ProductCard products={products} className='wf-grid--3' />
+                            <ProductCard products={products} className={`wf-grid--3 ${refreshing ? 'wf-refreshing' : ''}`} />
                             <div className='wf-loadmore'>
                                 <p>Showing {products.length} of {total}</p>
                                 <div className='wf-meter'><i style={{ width: `${(products.length / (total || 1)) * 100}%` }}></i></div>
                                 {products.length < total && (
-                                    <button type='button' className='wf-btn wf-btn--line' onClick={() => setLimit((l) => l + PAGE)} disabled={isFetching}>
-                                        {isFetching ? 'Loading…' : 'Load more'}
+                                    <button type='button' className='wf-btn wf-btn--line' onClick={() => { setMore(true); setLimit((l) => l + PAGE); }} disabled={isFetching}>
+                                        {more ? <><span className='wf-ring wf-ring--sm'></span>Loading more</> : 'Load more'}
                                     </button>
                                 )}
                             </div>

@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLogoutUserMutation } from '../../redux/features/auth/authApi'
 import { logout } from '../../redux/features/auth/authSlice'
@@ -12,6 +12,7 @@ const AccountLayout = () => {
     const { user } = useSelector((s) => s.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { pathname } = useLocation();
     const [logoutUser] = useLogoutUserMutation();
     const { data } = useGetMyOrdersQuery();
     const open = (data?.data?.orders || []).filter(isOpenOrder).length;
@@ -46,7 +47,7 @@ const AccountLayout = () => {
                     )}
                 </nav>
             </aside>
-            <section><Outlet /></section>
+            <section><div className='wf-route' key={pathname}><Outlet /></div></section>
         </div>
     );
 };
