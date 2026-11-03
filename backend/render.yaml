@@ -22,6 +22,10 @@ services:
         value: 7d
       - key: CORS_ORIGIN
         sync: false          # e.g. https://your-app.vercel.app
+      - key: COOKIE_SECURE
+        value: "true"        # required for sameSite=none (HTTPS only)
+      - key: COOKIE_SAMESITE
+        value: none          # allows cross-origin cookies (Vercel → Render)
       - key: ADMIN_EMAIL
         sync: false
       - key: ADMIN_PASSWORD
