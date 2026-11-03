@@ -1,5 +1,4 @@
 // Low-level Mongo query builders shared by every DAO.
-// Adapted from pronnelbackend/api/dbhelper/mongohelpers.js (logger & read-preference stripped).
 
 function convertToJsonArray(obj) {
     if (obj instanceof Array) return obj;

@@ -1,4 +1,4 @@
-// Base class for all query filter DTOs (pronnel basefilter analog).
+// Base class for all query filter DTOs.
 class BaseFilter {
     constructor() {
         this.readFromCache = false;

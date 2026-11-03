@@ -1,4 +1,4 @@
-// Reusable JSON-Schema fragments shared across entity schemas (pronnel schemaDefinitions analog).
+// Reusable JSON-Schema fragments shared across entity schemas.
 
 const nonEmptyString = { type: 'string', minLength: 1 };
 const trimString = { type: 'string' };

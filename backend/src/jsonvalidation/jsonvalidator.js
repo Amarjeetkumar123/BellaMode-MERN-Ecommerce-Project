@@ -1,4 +1,4 @@
-// Central AJV validator registry (pronnel jsonvalidator analog).
+// Central AJV validator registry.
 // Each exported middleware validates req.body against a schema and uses the custom
 // next(isSuccess, code, body) contract so it composes with and/or middleware.
 const Ajv = require('ajv');

@@ -1,4 +1,4 @@
-// Stateless shared helpers used across services/DAOs (pronnel commonUtils analog).
+// Stateless shared helpers used across services/DAOs.
 const mongoose = require('mongoose');
 
 const { DEFAULT_PAGE_SIZE } = require('../constants/constants');

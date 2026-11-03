@@ -1,5 +1,5 @@
 // Attaches millisecond create_date/update_date fields + a pre-save hook to a schema
-// (pronnel timestamp convention — epoch numbers, not Mongoose Date timestamps).
+// (Timestamp convention — epoch numbers, not Mongoose Date timestamps).
 function withMsTimestamps(schema) {
     schema.add({
         create_date: { type: Number, default: () => Date.now() },
